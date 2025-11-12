@@ -57,12 +57,9 @@ add_executable(${PROJECT_NAME}
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
-set(MAP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pac_man_map_moderno)
-set(BINARY_MAP_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pac_man_map_moderno)
 
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${SHADER_DIR} ${BINARY_SHADER_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${MAP_DIR} ${BINARY_MAP_DIR}
     COMMENT "Copying runtime assets"
 )
 

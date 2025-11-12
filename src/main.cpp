@@ -463,6 +463,460 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_sphere(float rad
     return {vertices, indices};
 }
 
+// Helper function to add a box (wall) to the map
+void add_box(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices,
+             float x, float z, float width, float length, float height,
+             const glm::vec3& color)
+{
+    const float hw = width * 0.5f;
+    const float hl = length * 0.5f;
+    
+    // Top face
+    const auto [top_verts, top_indices] = build_plane(width, length, color, color);
+    const std::size_t top_offset = vertices.size();
+    for (const auto& v : top_verts)
+    {
+        Vertex translated = v;
+        translated.position.x += x;
+        translated.position.y += height;
+        translated.position.z += z;
+        vertices.push_back(translated);
+    }
+    for (unsigned int idx : top_indices)
+    {
+        indices.push_back(static_cast<unsigned int>(top_offset + idx));
+    }
+    
+    // Bottom face (flipped)
+    std::vector<Vertex> bot_verts = {
+        {{x - hw, 0.0f, z - hl}, color},
+        {{x + hw, 0.0f, z - hl}, color},
+        {{x + hw, 0.0f, z + hl}, color},
+        {{x - hw, 0.0f, z + hl}, color}
+    };
+    const std::size_t bot_offset = vertices.size();
+    vertices.insert(vertices.end(), bot_verts.begin(), bot_verts.end());
+    indices.push_back(static_cast<unsigned int>(bot_offset + 0));
+    indices.push_back(static_cast<unsigned int>(bot_offset + 2));
+    indices.push_back(static_cast<unsigned int>(bot_offset + 1));
+    indices.push_back(static_cast<unsigned int>(bot_offset + 2));
+    indices.push_back(static_cast<unsigned int>(bot_offset + 0));
+    indices.push_back(static_cast<unsigned int>(bot_offset + 3));
+    
+    // Front face
+    std::vector<Vertex> front_verts = {
+        {{x - hw, 0.0f, z + hl}, color},
+        {{x + hw, 0.0f, z + hl}, color},
+        {{x + hw, height, z + hl}, color},
+        {{x - hw, height, z + hl}, color}
+    };
+    const std::size_t front_offset = vertices.size();
+    vertices.insert(vertices.end(), front_verts.begin(), front_verts.end());
+    indices.push_back(static_cast<unsigned int>(front_offset + 0));
+    indices.push_back(static_cast<unsigned int>(front_offset + 1));
+    indices.push_back(static_cast<unsigned int>(front_offset + 2));
+    indices.push_back(static_cast<unsigned int>(front_offset + 2));
+    indices.push_back(static_cast<unsigned int>(front_offset + 3));
+    indices.push_back(static_cast<unsigned int>(front_offset + 0));
+    
+    // Back face
+    std::vector<Vertex> back_verts = {
+        {{x + hw, 0.0f, z - hl}, color},
+        {{x - hw, 0.0f, z - hl}, color},
+        {{x - hw, height, z - hl}, color},
+        {{x + hw, height, z - hl}, color}
+    };
+    const std::size_t back_offset = vertices.size();
+    vertices.insert(vertices.end(), back_verts.begin(), back_verts.end());
+    indices.push_back(static_cast<unsigned int>(back_offset + 0));
+    indices.push_back(static_cast<unsigned int>(back_offset + 1));
+    indices.push_back(static_cast<unsigned int>(back_offset + 2));
+    indices.push_back(static_cast<unsigned int>(back_offset + 2));
+    indices.push_back(static_cast<unsigned int>(back_offset + 3));
+    indices.push_back(static_cast<unsigned int>(back_offset + 0));
+    
+    // Left face
+    std::vector<Vertex> left_verts = {
+        {{x - hw, 0.0f, z - hl}, color},
+        {{x - hw, 0.0f, z + hl}, color},
+        {{x - hw, height, z + hl}, color},
+        {{x - hw, height, z - hl}, color}
+    };
+    const std::size_t left_offset = vertices.size();
+    vertices.insert(vertices.end(), left_verts.begin(), left_verts.end());
+    indices.push_back(static_cast<unsigned int>(left_offset + 0));
+    indices.push_back(static_cast<unsigned int>(left_offset + 1));
+    indices.push_back(static_cast<unsigned int>(left_offset + 2));
+    indices.push_back(static_cast<unsigned int>(left_offset + 2));
+    indices.push_back(static_cast<unsigned int>(left_offset + 3));
+    indices.push_back(static_cast<unsigned int>(left_offset + 0));
+    
+    // Right face
+    std::vector<Vertex> right_verts = {
+        {{x + hw, 0.0f, z + hl}, color},
+        {{x + hw, 0.0f, z - hl}, color},
+        {{x + hw, height, z - hl}, color},
+        {{x + hw, height, z + hl}, color}
+    };
+    const std::size_t right_offset = vertices.size();
+    vertices.insert(vertices.end(), right_verts.begin(), right_verts.end());
+    indices.push_back(static_cast<unsigned int>(right_offset + 0));
+    indices.push_back(static_cast<unsigned int>(right_offset + 1));
+    indices.push_back(static_cast<unsigned int>(right_offset + 2));
+    indices.push_back(static_cast<unsigned int>(right_offset + 2));
+    indices.push_back(static_cast<unsigned int>(right_offset + 3));
+    indices.push_back(static_cast<unsigned int>(right_offset + 0));
+}
+
+// Global map layout for collision detection
+namespace
+{
+    constexpr float g_cell_size = 4.0f;
+    constexpr int g_grid_width = 28;
+    constexpr int g_grid_height = 31;
+    
+    std::vector<std::vector<int>> g_map_layout = {
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+        {1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
+        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+        {1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1},
+        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+        {1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+        {1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
+        {1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
+        {1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
+        {1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
+        {0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0},
+        {1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
+        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
+        {1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
+        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+        {1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1},
+        {1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
+        {1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
+        {1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
+        {1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
+        {1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
+        {1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    };
+}
+
+// ตรวจสอบว่า position ชนกำแพงหรือไม่
+bool check_wall_collision(const glm::vec3& position, float radius)
+{
+    const float start_x = -(g_grid_width * g_cell_size) * 0.5f + g_cell_size * 0.5f;
+    const float start_z = -(g_grid_height * g_cell_size) * 0.5f + g_cell_size * 0.5f;
+    
+    // ตรวจสอบ cell หลักที่ player อยู่
+    int center_col = static_cast<int>((position.x - start_x) / g_cell_size + 0.5f);
+    int center_row = static_cast<int>((position.z - start_z) / g_cell_size + 0.5f);
+    
+    // ตรวจสอบ cell หลักก่อน
+    if (center_row >= 0 && center_row < g_grid_height && center_col >= 0 && center_col < g_grid_width)
+    {
+        const int center_cell = g_map_layout[center_row][center_col];
+        if (center_cell == 1 || center_cell == 4) // Wall or Ghost House
+        {
+            return true;
+        }
+    }
+    
+    // ตรวจสอบ cell รอบๆ player (เฉพาะที่ใกล้พอ)
+    const float check_radius = radius * 0.6f; // ลด check radius
+    const int check_points = 4; // ลดจำนวนจุดที่ตรวจสอบ
+    
+    for (int i = 0; i < check_points; ++i)
+    {
+        const float angle = (static_cast<float>(i) / static_cast<float>(check_points)) * glm::two_pi<float>();
+        const float check_x = position.x + std::cos(angle) * check_radius;
+        const float check_z = position.z + std::sin(angle) * check_radius;
+        
+        // แปลง world position เป็น grid coordinates
+        int col = static_cast<int>((check_x - start_x) / g_cell_size + 0.5f);
+        int row = static_cast<int>((check_z - start_z) / g_cell_size + 0.5f);
+        
+        // ตรวจสอบว่า cell นี้เป็นกำแพงหรือไม่
+        if (row >= 0 && row < g_grid_height && col >= 0 && col < g_grid_width)
+        {
+            const int cell = g_map_layout[row][col];
+            if (cell == 1 || cell == 4) // Wall or Ghost House
+            {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_pacman_map(float /*map_size*/)
+{
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    
+    const float cell_size = g_cell_size;
+    const int grid_width = g_grid_width;
+    const int grid_height = g_grid_height;
+    const float wall_height = 2.5f;
+    const float wall_thickness = cell_size * 0.9f;
+    
+    const glm::vec3 ground_color = {0.05f, 0.05f, 0.15f};  // พื้นสีน้ำเงินเข้ม
+    const glm::vec3 wall_color = {0.2f, 0.3f, 0.8f};       // กำแพงสีน้ำเงินเรืองแสง
+    const glm::vec3 pellet_color = {1.0f, 1.0f, 0.2f};     // pellet สีเหลือง
+    const glm::vec3 power_pellet_color = {1.0f, 0.8f, 0.0f}; // power pellet สีส้ม
+    const glm::vec3 ghost_house_color = {0.4f, 0.2f, 0.6f};  // ghost house สีม่วง
+    
+    // สร้างพื้นหลัก
+    const float actual_map_width = grid_width * cell_size;
+    const float actual_map_height = grid_height * cell_size;
+    const auto [ground_verts, ground_indices] = build_plane(actual_map_width, actual_map_height, ground_color, ground_color);
+    const std::size_t ground_vertex_offset = vertices.size();
+    vertices.insert(vertices.end(), ground_verts.begin(), ground_verts.end());
+    for (unsigned int idx : ground_indices)
+    {
+        indices.push_back(static_cast<unsigned int>(ground_vertex_offset + idx));
+    }
+    
+    const float start_x = -(grid_width * cell_size) * 0.5f + cell_size * 0.5f;
+    const float start_z = -(grid_height * cell_size) * 0.5f + cell_size * 0.5f;
+    
+    // สร้าง map จาก layout
+    for (int row = 0; row < grid_height; ++row)
+    {
+        for (int col = 0; col < grid_width; ++col)
+        {
+            const float x = start_x + col * cell_size;
+            const float z = start_z + row * cell_size;
+            const int cell = g_map_layout[row][col];
+            
+            if (cell == 1) // Wall
+            {
+                add_box(vertices, indices, x, z, wall_thickness, wall_thickness, wall_height, wall_color);
+            }
+            else if (cell == 2) // Pellet
+            {
+                const float pellet_radius = 0.15f;
+                const auto [pellet_verts, pellet_indices] = build_sphere(pellet_radius, 16, 8, pellet_color);
+                const std::size_t pellet_offset = vertices.size();
+                for (const auto& v : pellet_verts)
+                {
+                    Vertex translated = v;
+                    translated.position.x += x;
+                    translated.position.y += pellet_radius;
+                    translated.position.z += z;
+                    vertices.push_back(translated);
+                }
+                for (unsigned int idx : pellet_indices)
+                {
+                    indices.push_back(static_cast<unsigned int>(pellet_offset + idx));
+                }
+            }
+            else if (cell == 3) // Power Pellet
+            {
+                const float power_radius = 0.4f;
+                const auto [power_verts, power_indices] = build_sphere(power_radius, 16, 8, power_pellet_color);
+                const std::size_t power_offset = vertices.size();
+                for (const auto& v : power_verts)
+                {
+                    Vertex translated = v;
+                    translated.position.x += x;
+                    translated.position.y += power_radius;
+                    translated.position.z += z;
+                    vertices.push_back(translated);
+                }
+                for (unsigned int idx : power_indices)
+                {
+                    indices.push_back(static_cast<unsigned int>(power_offset + idx));
+                }
+            }
+            else if (cell == 4) // Ghost House
+            {
+                add_box(vertices, indices, x, z, wall_thickness * 0.8f, wall_thickness * 0.8f, wall_height * 0.6f, ghost_house_color);
+            }
+        }
+    }
+    
+    return {vertices, indices};
+}
+
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_simple_map(float map_size)
+{
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    
+    const float half_size = map_size * 0.5f;
+    const float wall_height = 2.0f;
+    const float wall_thickness = 1.0f;
+    const glm::vec3 ground_color = {0.2f, 0.2f, 0.4f};  // สีน้ำเงินเข้ม
+    const glm::vec3 wall_color = {0.4f, 0.2f, 0.2f};    // สีแดงเข้ม
+    
+    // สร้างพื้นหลัก
+    const auto [ground_verts, ground_indices] = build_plane(map_size, map_size, ground_color, ground_color);
+    const std::size_t ground_vertex_offset = vertices.size();
+    vertices.insert(vertices.end(), ground_verts.begin(), ground_verts.end());
+    for (unsigned int idx : ground_indices)
+    {
+        indices.push_back(static_cast<unsigned int>(ground_vertex_offset + idx));
+    }
+    
+    // สร้างกำแพงรอบๆ
+    const float wall_offset = half_size - wall_thickness * 0.5f;
+    
+    // กำแพงเหนือ (North wall)
+    {
+        const auto [wall_verts, wall_indices] = build_plane(wall_thickness, map_size, wall_color, wall_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : wall_verts)
+        {
+            Vertex translated = v;
+            translated.position.x += wall_offset;
+            translated.position.y += wall_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : wall_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // กำแพงใต้ (South wall)
+    {
+        const auto [wall_verts, wall_indices] = build_plane(wall_thickness, map_size, wall_color, wall_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : wall_verts)
+        {
+            Vertex translated = v;
+            translated.position.x -= wall_offset;
+            translated.position.y += wall_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : wall_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // กำแพงตะวันออก (East wall)
+    {
+        const auto [wall_verts, wall_indices] = build_plane(map_size, wall_thickness, wall_color, wall_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : wall_verts)
+        {
+            Vertex translated = v;
+            translated.position.z += wall_offset;
+            translated.position.y += wall_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : wall_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // กำแพงตะวันตก (West wall)
+    {
+        const auto [wall_verts, wall_indices] = build_plane(map_size, wall_thickness, wall_color, wall_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : wall_verts)
+        {
+            Vertex translated = v;
+            translated.position.z -= wall_offset;
+            translated.position.y += wall_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : wall_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // สร้าง obstacles ง่ายๆ (กล่องเล็กๆ)
+    const float obstacle_size = 8.0f;
+    const float obstacle_height = 1.5f;
+    const glm::vec3 obstacle_color = {0.3f, 0.3f, 0.5f};
+    
+    // Obstacle 1 - กลางซ้าย
+    {
+        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : obs_verts)
+        {
+            Vertex translated = v;
+            translated.position.x -= map_size * 0.25f;
+            translated.position.y += obstacle_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : obs_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // Obstacle 2 - กลางขวา
+    {
+        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : obs_verts)
+        {
+            Vertex translated = v;
+            translated.position.x += map_size * 0.25f;
+            translated.position.y += obstacle_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : obs_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // Obstacle 3 - บนซ้าย
+    {
+        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : obs_verts)
+        {
+            Vertex translated = v;
+            translated.position.x -= map_size * 0.25f;
+            translated.position.z -= map_size * 0.25f;
+            translated.position.y += obstacle_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : obs_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    // Obstacle 4 - บนขวา
+    {
+        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
+        const std::size_t vertex_offset = vertices.size();
+        for (const auto& v : obs_verts)
+        {
+            Vertex translated = v;
+            translated.position.x += map_size * 0.25f;
+            translated.position.z -= map_size * 0.25f;
+            translated.position.y += obstacle_height * 0.5f;
+            vertices.push_back(translated);
+        }
+        for (unsigned int idx : obs_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+        }
+    }
+    
+    return {vertices, indices};
+}
+
 int main(int argc, char* argv[])
 {
     if (!glfwInit())
@@ -523,24 +977,57 @@ int main(int argc, char* argv[])
 
         Mesh map_mesh{};
         Bounds map_bounds{};
-        const auto map_path = executable_dir / "pac_man_map_moderno" / "scene.gltf";
-        constexpr float target_map_extent = 160.0f;
-        if (!load_gltf_model(map_path, map_mesh, map_bounds, {0.35f, 0.35f, 0.38f}, target_map_extent))
-        {
-            throw std::runtime_error("Failed to load map model: " + map_path.string());
-        }
+        
+        // สร้าง Pac-Man map
+        constexpr float map_size = 160.0f;
+        const auto [map_vertices, map_indices] = build_pacman_map(map_size);
+        map_mesh = create_mesh(map_vertices, map_indices);
+        
+        // ตั้งค่า bounds (28x31 grid, cell_size = 4.0)
+        const float grid_width = 28.0f * 4.0f;
+        const float grid_height = 31.0f * 4.0f;
+        map_bounds.min = glm::vec3(-grid_width * 0.5f, 0.0f, -grid_height * 0.5f);
+        map_bounds.max = glm::vec3(grid_width * 0.5f, 0.0f, grid_height * 0.5f);
 
         const float map_width = map_bounds.max.x - map_bounds.min.x;
         const float map_length = map_bounds.max.z - map_bounds.min.z;
         const float map_min_dimension = std::min(map_width, map_length);
 
-        const float player_radius = std::max(0.75f, 0.04f * map_min_dimension);
+        // ลดขนาด player ให้เล็กลงเพื่อเดินผ่านได้ง่ายขึ้น
+        const float player_radius = std::max(0.4f, 0.02f * map_min_dimension);
         const auto [sphere_vertices, sphere_indices] = build_sphere(player_radius, 32, 16, {1.0f, 0.9f, 0.1f});
         Mesh sphere_mesh = create_mesh(sphere_vertices, sphere_indices);
 
         const glm::vec3 map_center = 0.5f * (map_bounds.min + map_bounds.max);
         const float player_ground_y = map_bounds.min.y + player_radius;
-        glm::vec3 player_position(map_center.x, player_ground_y, map_center.z);
+        // เริ่มต้นที่ด้านล่างของ map - หา path ที่ปลอดภัย
+        // ดูจาก map layout แถว 29 (index 29) มี path ที่ col 1-26
+        const float start_x = -(g_grid_width * g_cell_size) * 0.5f + g_cell_size * 0.5f;
+        const float start_z = -(g_grid_height * g_cell_size) * 0.5f + g_cell_size * 0.5f;
+        // หา path ที่ด้านล่างของ map (แถว 29, col 13) - ตรงกลาง path
+        const int start_col = 13; // ตรงกลาง path
+        const int start_row = 29; // แถวล่างสุดที่มี path (index 29)
+        glm::vec3 player_position(
+            start_x + start_col * g_cell_size,
+            player_ground_y,
+            start_z + start_row * g_cell_size
+        );
+        
+        // ตรวจสอบว่า collision detection ทำงานถูกต้อง - ถ้าตำแหน่งเริ่มต้นชนกำแพง ให้ย้ายไปที่ path ที่ปลอดภัย
+        if (check_wall_collision(player_position, player_radius))
+        {
+            // ลองหาตำแหน่งที่ปลอดภัยใกล้ๆ
+            for (int offset = 0; offset < 5; ++offset)
+            {
+                glm::vec3 test_pos = player_position;
+                test_pos.z += offset * g_cell_size * 0.5f;
+                if (!check_wall_collision(test_pos, player_radius))
+                {
+                    player_position = test_pos;
+                    break;
+                }
+            }
+        }
         const float player_speed = std::max(6.0f, player_radius * 4.0f);
 
         float last_time = static_cast<float>(glfwGetTime());
@@ -579,15 +1066,36 @@ int main(int argc, char* argv[])
             if (glm::dot(input, input) > 0.0f)
             {
                 input = glm::normalize(input);
-                player_position += input * player_speed * delta_time;
+                
+                // ตรวจสอบ collision ก่อนเคลื่อนที่
+                glm::vec3 new_position = player_position + input * player_speed * delta_time;
+                
+                // ตรวจสอบ collision แยกตามแกน X และ Z
+                glm::vec3 test_position_x = glm::vec3(new_position.x, player_position.y, player_position.z);
+                glm::vec3 test_position_z = glm::vec3(player_position.x, player_position.y, new_position.z);
+                
+                // ถ้าไม่ชนกำแพงในแกน X ให้เคลื่อนที่ในแกน X
+                if (!check_wall_collision(test_position_x, player_radius))
+                {
+                    player_position.x = new_position.x;
+                }
+                
+                // ถ้าไม่ชนกำแพงในแกน Z ให้เคลื่อนที่ในแกน Z
+                if (!check_wall_collision(test_position_z, player_radius))
+                {
+                    player_position.z = new_position.z;
+                }
             }
 
+            // Clamp เพื่อป้องกันไม่ให้ออกนอก bounds (แต่ให้เดินได้ในพื้นที่ path)
+            // อนุญาตให้เดินได้ในพื้นที่ที่กว้างขึ้นเล็กน้อย
+            const float margin = player_radius * 2.0f;
             player_position.x = glm::clamp(player_position.x,
-                                           map_bounds.min.x + player_radius,
-                                           map_bounds.max.x - player_radius);
+                                           map_bounds.min.x - margin,
+                                           map_bounds.max.x + margin);
             player_position.z = glm::clamp(player_position.z,
-                                           map_bounds.min.z + player_radius,
-                                           map_bounds.max.z - player_radius);
+                                           map_bounds.min.z - margin,
+                                           map_bounds.max.z + margin);
             player_position.y = player_ground_y;
 
             glClearColor(0.1f, 0.1f, 0.15f, 1.0f);

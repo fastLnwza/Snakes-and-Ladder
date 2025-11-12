@@ -110,8 +110,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build/Debug/shaders
 if %errorlevel% neq 0 goto :cmEnd
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/pac_man_map_moderno C:/Github/Pacman-OpenGL/build/Debug/pac_man_map_moderno
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -125,8 +123,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Copying runtime assets</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build/Release/shaders
-if %errorlevel% neq 0 goto :cmEnd
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/pac_man_map_moderno C:/Github/Pacman-OpenGL/build/Release/pac_man_map_moderno
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -142,8 +138,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build/MinSizeRel/shaders
 if %errorlevel% neq 0 goto :cmEnd
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/pac_man_map_moderno C:/Github/Pacman-OpenGL/build/MinSizeRel/pac_man_map_moderno
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -157,8 +151,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Copying runtime assets</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build/RelWithDebInfo/shaders
-if %errorlevel% neq 0 goto :cmEnd
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/pac_man_map_moderno C:/Github/Pacman-OpenGL/build/RelWithDebInfo/pac_man_map_moderno
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
