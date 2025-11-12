@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\CMakeFiles\32fcc84df4957b81e413936f56838772\glad.h.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\CMakeFiles\f603fe3a871d7228ca8a9c7a4d8fee9f\glad-generate-files.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Github\Pacman-OpenGL\build\_deps\glad-build\CMakeFiles\glad-generate-files" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C2195C2F-38DB-39B9-A125-F2BCF34E2220}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+^C:\GITHUB\PACMAN-OPENGL\BUILD\CMAKEFILES\32FCC84DF4957B81E413936F56838772\GLAD.H.RULE
+setlocal
+cd C:\Github\Pacman-OpenGL\build\_deps\glad-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\nanth\AppData\Local\Programs\Python\Python312\python.exe -m glad --profile=core --out-path=C:/Github/Pacman-OpenGL/build/_deps/glad-build --api=gl=4.1 --generator=c --extensions= --spec=gl
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GITHUB\PACMAN-OPENGL\BUILD\CMAKEFILES\F603FE3A871D7228CA8A9C7A4D8FEE9F\GLAD-GENERATE-FILES.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GITHUB\PACMAN-OPENGL\BUILD\_DEPS\GLAD-SRC\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Github/Pacman-OpenGL -BC:/Github/Pacman-OpenGL/build --check-stamp-file C:/Github/Pacman-OpenGL/build/_deps/glad-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

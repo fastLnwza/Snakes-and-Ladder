@@ -1,0 +1,10 @@
+^C:\GITHUB\PACMAN-OPENGL\BUILD\_DEPS\GLFW-SUBBUILD\CMAKEFILES\4577F57DDE6947077362D5F0E0B8676B\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild -BC:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/glfw-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

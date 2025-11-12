@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/glfw-populate"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/4577f57dde6947077362d5f0e0b8676b/glfw-populate.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/5d41251209b8b2524ad7e89738324395/glfw-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-build.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-download.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-install.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-test.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glfw-subbuild/CMakeFiles/f6494b031da4c64a5b320244383d83a9/glfw-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glfw-populate"
+		],
+		"name" : "glfw-populate"
+	}
+}

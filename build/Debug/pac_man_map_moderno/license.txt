@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pac Man Map (MODERNO)
+* source:	https://sketchfab.com/3d-models/pac-man-map-moderno-a40169367d5547cb83a82b372852d322
+* author:	Aldomi364 (https://sketchfab.com/sonicgamuno320)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pac Man Map (MODERNO)" (https://sketchfab.com/3d-models/pac-man-map-moderno-a40169367d5547cb83a82b372852d322) by Aldomi364 (https://sketchfab.com/sonicgamuno320) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

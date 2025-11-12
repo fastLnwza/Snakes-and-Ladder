@@ -1,0 +1,10 @@
+^C:\GITHUB\PACMAN-OPENGL\BUILD\_DEPS\GLAD-SUBBUILD\CMAKEFILES\A428D09A39516DC4B8DAD7B19D8A2E4A\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Github/Pacman-OpenGL/build/_deps/glad-subbuild -BC:/Github/Pacman-OpenGL/build/_deps/glad-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/glad-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

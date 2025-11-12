@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\2935705903c1a9fde9bdcebcdc62027b\glad-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\e6f75a8486c983a1d4b225ba7aee45e2\glad-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\a428d09a39516dc4b8dad7b19d8a2e4a\glad-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Github\Pacman-OpenGL\build\_deps\glad-subbuild\CMakeFiles\glad-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A3519CBE-0C3B-350A-B0D7-85ADA9BFE055}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

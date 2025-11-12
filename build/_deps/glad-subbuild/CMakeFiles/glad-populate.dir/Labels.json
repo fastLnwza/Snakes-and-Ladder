@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/glad-populate"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/a428d09a39516dc4b8dad7b19d8a2e4a/glad-populate.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/e6f75a8486c983a1d4b225ba7aee45e2/glad-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-build.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-download.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-install.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-test.rule"
+		},
+		{
+			"file" : "C:/Github/Pacman-OpenGL/build/_deps/glad-subbuild/CMakeFiles/2935705903c1a9fde9bdcebcdc62027b/glad-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glad-populate"
+		],
+		"name" : "glad-populate"
+	}
+}

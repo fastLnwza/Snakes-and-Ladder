@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Github\Pacman-OpenGL\build\CMakeFiles\d3639d175b47d53c805a74be8756739e\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C2195C2F-38DB-39B9-A125-F2BCF34E2220}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
