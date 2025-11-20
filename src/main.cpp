@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -463,454 +464,775 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_sphere(float rad
     return {vertices, indices};
 }
 
-// Helper function to add a box (wall) to the map
-void add_box(std::vector<Vertex>& vertices, std::vector<unsigned int>& indices,
-             float x, float z, float width, float length, float height,
+void append_box_prism(std::vector<Vertex>& vertices,
+                      std::vector<unsigned int>& indices,
+                      float center_x,
+                      float center_z,
+                      float width,
+                      float length,
+                      float height,
              const glm::vec3& color)
 {
-    const float hw = width * 0.5f;
-    const float hl = length * 0.5f;
-    
-    // Top face
-    const auto [top_verts, top_indices] = build_plane(width, length, color, color);
-    const std::size_t top_offset = vertices.size();
-    for (const auto& v : top_verts)
+    const float half_width = width * 0.5f;
+    const float half_length = length * 0.5f;
+
+    const std::array<glm::vec3, 8> corners = {{
+        {center_x - half_width, 0.0f, center_z - half_length},
+        {center_x + half_width, 0.0f, center_z - half_length},
+        {center_x + half_width, 0.0f, center_z + half_length},
+        {center_x - half_width, 0.0f, center_z + half_length},
+        {center_x - half_width, height, center_z - half_length},
+        {center_x + half_width, height, center_z - half_length},
+        {center_x + half_width, height, center_z + half_length},
+        {center_x - half_width, height, center_z + half_length},
+    }};
+
+    const std::array<std::array<int, 4>, 6> faces = {{
+        {{0, 1, 2, 3}},
+        {{4, 5, 6, 7}},
+        {{0, 1, 5, 4}},
+        {{1, 2, 6, 5}},
+        {{2, 3, 7, 6}},
+        {{3, 0, 4, 7}},
+    }};
+
+    for (const auto& face : faces)
     {
-        Vertex translated = v;
-        translated.position.x += x;
-        translated.position.y += height;
-        translated.position.z += z;
-        vertices.push_back(translated);
+        const std::size_t offset = vertices.size();
+        vertices.push_back({corners[face[0]], color});
+        vertices.push_back({corners[face[1]], color});
+        vertices.push_back({corners[face[2]], color});
+        vertices.push_back({corners[face[3]], color});
+
+        indices.push_back(static_cast<unsigned int>(offset + 0));
+        indices.push_back(static_cast<unsigned int>(offset + 1));
+        indices.push_back(static_cast<unsigned int>(offset + 2));
+        indices.push_back(static_cast<unsigned int>(offset + 2));
+        indices.push_back(static_cast<unsigned int>(offset + 3));
+        indices.push_back(static_cast<unsigned int>(offset + 0));
     }
-    for (unsigned int idx : top_indices)
-    {
-        indices.push_back(static_cast<unsigned int>(top_offset + idx));
-    }
-    
-    // Bottom face (flipped)
-    std::vector<Vertex> bot_verts = {
-        {{x - hw, 0.0f, z - hl}, color},
-        {{x + hw, 0.0f, z - hl}, color},
-        {{x + hw, 0.0f, z + hl}, color},
-        {{x - hw, 0.0f, z + hl}, color}
-    };
-    const std::size_t bot_offset = vertices.size();
-    vertices.insert(vertices.end(), bot_verts.begin(), bot_verts.end());
-    indices.push_back(static_cast<unsigned int>(bot_offset + 0));
-    indices.push_back(static_cast<unsigned int>(bot_offset + 2));
-    indices.push_back(static_cast<unsigned int>(bot_offset + 1));
-    indices.push_back(static_cast<unsigned int>(bot_offset + 2));
-    indices.push_back(static_cast<unsigned int>(bot_offset + 0));
-    indices.push_back(static_cast<unsigned int>(bot_offset + 3));
-    
-    // Front face
-    std::vector<Vertex> front_verts = {
-        {{x - hw, 0.0f, z + hl}, color},
-        {{x + hw, 0.0f, z + hl}, color},
-        {{x + hw, height, z + hl}, color},
-        {{x - hw, height, z + hl}, color}
-    };
-    const std::size_t front_offset = vertices.size();
-    vertices.insert(vertices.end(), front_verts.begin(), front_verts.end());
-    indices.push_back(static_cast<unsigned int>(front_offset + 0));
-    indices.push_back(static_cast<unsigned int>(front_offset + 1));
-    indices.push_back(static_cast<unsigned int>(front_offset + 2));
-    indices.push_back(static_cast<unsigned int>(front_offset + 2));
-    indices.push_back(static_cast<unsigned int>(front_offset + 3));
-    indices.push_back(static_cast<unsigned int>(front_offset + 0));
-    
-    // Back face
-    std::vector<Vertex> back_verts = {
-        {{x + hw, 0.0f, z - hl}, color},
-        {{x - hw, 0.0f, z - hl}, color},
-        {{x - hw, height, z - hl}, color},
-        {{x + hw, height, z - hl}, color}
-    };
-    const std::size_t back_offset = vertices.size();
-    vertices.insert(vertices.end(), back_verts.begin(), back_verts.end());
-    indices.push_back(static_cast<unsigned int>(back_offset + 0));
-    indices.push_back(static_cast<unsigned int>(back_offset + 1));
-    indices.push_back(static_cast<unsigned int>(back_offset + 2));
-    indices.push_back(static_cast<unsigned int>(back_offset + 2));
-    indices.push_back(static_cast<unsigned int>(back_offset + 3));
-    indices.push_back(static_cast<unsigned int>(back_offset + 0));
-    
-    // Left face
-    std::vector<Vertex> left_verts = {
-        {{x - hw, 0.0f, z - hl}, color},
-        {{x - hw, 0.0f, z + hl}, color},
-        {{x - hw, height, z + hl}, color},
-        {{x - hw, height, z - hl}, color}
-    };
-    const std::size_t left_offset = vertices.size();
-    vertices.insert(vertices.end(), left_verts.begin(), left_verts.end());
-    indices.push_back(static_cast<unsigned int>(left_offset + 0));
-    indices.push_back(static_cast<unsigned int>(left_offset + 1));
-    indices.push_back(static_cast<unsigned int>(left_offset + 2));
-    indices.push_back(static_cast<unsigned int>(left_offset + 2));
-    indices.push_back(static_cast<unsigned int>(left_offset + 3));
-    indices.push_back(static_cast<unsigned int>(left_offset + 0));
-    
-    // Right face
-    std::vector<Vertex> right_verts = {
-        {{x + hw, 0.0f, z + hl}, color},
-        {{x + hw, 0.0f, z - hl}, color},
-        {{x + hw, height, z - hl}, color},
-        {{x + hw, height, z + hl}, color}
-    };
-    const std::size_t right_offset = vertices.size();
-    vertices.insert(vertices.end(), right_verts.begin(), right_verts.end());
-    indices.push_back(static_cast<unsigned int>(right_offset + 0));
-    indices.push_back(static_cast<unsigned int>(right_offset + 1));
-    indices.push_back(static_cast<unsigned int>(right_offset + 2));
-    indices.push_back(static_cast<unsigned int>(right_offset + 2));
-    indices.push_back(static_cast<unsigned int>(right_offset + 3));
-    indices.push_back(static_cast<unsigned int>(right_offset + 0));
 }
 
-// Global map layout for collision detection
+void append_oriented_prism(std::vector<Vertex>& vertices,
+                           std::vector<unsigned int>& indices,
+                           const glm::vec3& center,
+                           const glm::vec3& right_dir,
+                           const glm::vec3& up_dir,
+                           const glm::vec3& forward_dir,
+                           const glm::vec3& half_extents,
+                           const glm::vec3& color)
+{
+    auto safe_normalize = [](const glm::vec3& v) {
+        const float len_sq = glm::dot(v, v);
+        if (len_sq < 1e-6f)
+        {
+            return glm::vec3(0.0f, 1.0f, 0.0f);
+        }
+        return v / std::sqrt(len_sq);
+    };
+
+    const glm::vec3 axes[3] = {
+        safe_normalize(right_dir),
+        safe_normalize(up_dir),
+        safe_normalize(forward_dir)};
+
+    std::array<glm::vec3, 8> corners{};
+    for (int i = 0; i < 8; ++i)
+    {
+        const float sx = (i & 1) ? 1.0f : -1.0f;
+        const float sy = (i & 2) ? 1.0f : -1.0f;
+        const float sz = (i & 4) ? 1.0f : -1.0f;
+        corners[i] = center + axes[0] * (sx * half_extents.x) + axes[1] * (sy * half_extents.y) +
+                     axes[2] * (sz * half_extents.z);
+    }
+
+    const std::array<std::array<int, 4>, 6> faces = {{
+        {{0, 1, 3, 2}}, // bottom
+        {{4, 5, 7, 6}}, // top
+        {{0, 1, 5, 4}}, // front
+        {{2, 3, 7, 6}}, // back
+        {{1, 3, 7, 5}}, // right
+        {{0, 2, 6, 4}}, // left
+    }};
+
+    for (const auto& face : faces)
+    {
+        const std::size_t offset = vertices.size();
+        vertices.push_back({corners[face[0]], color});
+        vertices.push_back({corners[face[1]], color});
+        vertices.push_back({corners[face[2]], color});
+        vertices.push_back({corners[face[3]], color});
+
+        indices.push_back(static_cast<unsigned int>(offset + 0));
+        indices.push_back(static_cast<unsigned int>(offset + 1));
+        indices.push_back(static_cast<unsigned int>(offset + 2));
+        indices.push_back(static_cast<unsigned int>(offset + 2));
+        indices.push_back(static_cast<unsigned int>(offset + 3));
+        indices.push_back(static_cast<unsigned int>(offset + 0));
+    }
+}
+
+void append_pyramid(std::vector<Vertex>& vertices,
+                    std::vector<unsigned int>& indices,
+                    const glm::vec3& center,
+                    float base_size,
+                    float height,
+                    const glm::vec3& color)
+{
+    const float half = base_size * 0.5f;
+    const glm::vec3 base_y(center.x, center.y, center.z);
+    const std::array<glm::vec3, 5> points = {{
+        base_y + glm::vec3(-half, 0.0f, -half),
+        base_y + glm::vec3(half, 0.0f, -half),
+        base_y + glm::vec3(half, 0.0f, half),
+        base_y + glm::vec3(-half, 0.0f, half),
+        base_y + glm::vec3(0.0f, height, 0.0f),
+    }};
+
+    const std::size_t offset = vertices.size();
+    for (const glm::vec3& point : points)
+    {
+        vertices.push_back({point, color});
+    }
+
+    indices.push_back(static_cast<unsigned int>(offset + 0));
+    indices.push_back(static_cast<unsigned int>(offset + 1));
+    indices.push_back(static_cast<unsigned int>(offset + 2));
+    indices.push_back(static_cast<unsigned int>(offset + 2));
+    indices.push_back(static_cast<unsigned int>(offset + 3));
+    indices.push_back(static_cast<unsigned int>(offset + 0));
+
+    indices.push_back(static_cast<unsigned int>(offset + 0));
+    indices.push_back(static_cast<unsigned int>(offset + 1));
+    indices.push_back(static_cast<unsigned int>(offset + 4));
+
+    indices.push_back(static_cast<unsigned int>(offset + 1));
+    indices.push_back(static_cast<unsigned int>(offset + 2));
+    indices.push_back(static_cast<unsigned int>(offset + 4));
+
+    indices.push_back(static_cast<unsigned int>(offset + 2));
+    indices.push_back(static_cast<unsigned int>(offset + 3));
+    indices.push_back(static_cast<unsigned int>(offset + 4));
+
+    indices.push_back(static_cast<unsigned int>(offset + 3));
+    indices.push_back(static_cast<unsigned int>(offset + 0));
+    indices.push_back(static_cast<unsigned int>(offset + 4));
+}
+
 namespace
 {
-    constexpr float g_cell_size = 4.0f;
-    constexpr int g_grid_width = 28;
-    constexpr int g_grid_height = 31;
-    
-    std::vector<std::vector<int>> g_map_layout = {
-        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-        {1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
-        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
-        {1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1},
-        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
-        {1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
-        {1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
-        {1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
-        {1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
-        {1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,1,1,1,4,4,1,1,1,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
-        {0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0},
-        {1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
-        {1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
-        {1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
-        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
-        {1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
-        {1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1},
-        {1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
-        {1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
-        {1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
-        {1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
-        {1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
-        {1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
-        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    constexpr int g_board_columns = 10;
+    constexpr int g_board_rows = 10;
+    constexpr float g_tile_size = 4.0f;
+
+    enum class TileKind
+    {
+        Normal,
+        Start,
+        Finish,
+        LadderBase,
+        SnakeHead
+    };
+
+    struct BoardLink
+    {
+        int start = 0;
+        int end = 0;
+        glm::vec3 color{};
+        bool is_ladder = false;
+    };
+
+    constexpr std::array<BoardLink, 6> g_board_links = {{
+        {2, 21, {0.35f, 0.75f, 0.38f}, true},
+        {6, 17, {0.32f, 0.68f, 0.82f}, true},
+        {20, 38, {0.46f, 0.78f, 0.36f}, true},
+        {41, 62, {0.28f, 0.7f, 0.55f}, true},
+        {16, 3, {0.78f, 0.24f, 0.24f}, false},
+        {47, 25, {0.82f, 0.3f, 0.18f}, false},
+    }};
+
+    constexpr int g_digit_rows = 5;
+    constexpr int g_digit_cols = 3;
+    using DigitGlyph = std::array<uint8_t, g_digit_rows>;
+    constexpr std::array<DigitGlyph, 10> g_digit_glyphs = {{
+        DigitGlyph{0b111, 0b101, 0b101, 0b101, 0b111}, // 0
+        DigitGlyph{0b010, 0b110, 0b010, 0b010, 0b111}, // 1
+        DigitGlyph{0b111, 0b001, 0b111, 0b100, 0b111}, // 2
+        DigitGlyph{0b111, 0b001, 0b111, 0b001, 0b111}, // 3
+        DigitGlyph{0b101, 0b101, 0b111, 0b001, 0b001}, // 4
+        DigitGlyph{0b111, 0b100, 0b111, 0b001, 0b111}, // 5
+        DigitGlyph{0b111, 0b100, 0b111, 0b101, 0b111}, // 6
+        DigitGlyph{0b111, 0b001, 0b010, 0b010, 0b010}, // 7
+        DigitGlyph{0b111, 0b101, 0b111, 0b101, 0b111}, // 8
+        DigitGlyph{0b111, 0b101, 0b111, 0b001, 0b111}, // 9
+    }};
+
+    enum class ActivityKind
+    {
+        None,
+        Bonus,
+        Slide,
+        Portal,
+        Trap
     };
 }
 
-// ตรวจสอบว่า position ชนกำแพงหรือไม่
-bool check_wall_collision(const glm::vec3& position, float radius)
+glm::vec3 tile_center_world(int tile_index, float height_offset = 0.0f)
 {
-    const float start_x = -(g_grid_width * g_cell_size) * 0.5f + g_cell_size * 0.5f;
-    const float start_z = -(g_grid_height * g_cell_size) * 0.5f + g_cell_size * 0.5f;
-    
-    // ตรวจสอบ cell หลักที่ player อยู่
-    int center_col = static_cast<int>((position.x - start_x) / g_cell_size + 0.5f);
-    int center_row = static_cast<int>((position.z - start_z) / g_cell_size + 0.5f);
-    
-    // ตรวจสอบ cell หลักก่อน
-    if (center_row >= 0 && center_row < g_grid_height && center_col >= 0 && center_col < g_grid_width)
+    const int row = tile_index / g_board_columns;
+    const int column_in_row = tile_index % g_board_columns;
+    const int column = (row % 2 == 0) ? column_in_row : (g_board_columns - 1 - column_in_row);
+
+    const float board_width = static_cast<float>(g_board_columns) * g_tile_size;
+    const float board_height = static_cast<float>(g_board_rows) * g_tile_size;
+    const float start_x = -board_width * 0.5f + g_tile_size * 0.5f;
+    const float start_z = -board_height * 0.5f + g_tile_size * 0.5f;
+
+    const float x = start_x + static_cast<float>(column) * g_tile_size;
+    const float z = start_z + static_cast<float>(row) * g_tile_size;
+    return {x, height_offset, z};
+}
+
+void append_digit_glyph(std::vector<Vertex>& vertices,
+                        std::vector<unsigned int>& indices,
+                        int digit,
+                        const glm::vec3& center,
+                        float cell_size,
+                        const glm::vec3& color)
+{
+    if (digit < 0 || digit > 9)
     {
-        const int center_cell = g_map_layout[center_row][center_col];
-        if (center_cell == 1 || center_cell == 4) // Wall or Ghost House
-        {
-            return true;
-        }
+        return;
     }
-    
-    // ตรวจสอบ cell รอบๆ player (เฉพาะที่ใกล้พอ)
-    const float check_radius = radius * 0.6f; // ลด check radius
-    const int check_points = 4; // ลดจำนวนจุดที่ตรวจสอบ
-    
-    for (int i = 0; i < check_points; ++i)
+
+    const auto& glyph = g_digit_glyphs[digit];
+    const float total_width = static_cast<float>(g_digit_cols) * cell_size;
+    const float total_height = static_cast<float>(g_digit_rows) * cell_size;
+    const float origin_x = center.x - total_width * 0.5f + cell_size * 0.5f;
+    const float origin_z = center.z - total_height * 0.5f + cell_size * 0.5f;
+    const float patch_size = cell_size * 0.75f;
+
+    for (int row = 0; row < g_digit_rows; ++row)
     {
-        const float angle = (static_cast<float>(i) / static_cast<float>(check_points)) * glm::two_pi<float>();
-        const float check_x = position.x + std::cos(angle) * check_radius;
-        const float check_z = position.z + std::sin(angle) * check_radius;
-        
-        // แปลง world position เป็น grid coordinates
-        int col = static_cast<int>((check_x - start_x) / g_cell_size + 0.5f);
-        int row = static_cast<int>((check_z - start_z) / g_cell_size + 0.5f);
-        
-        // ตรวจสอบว่า cell นี้เป็นกำแพงหรือไม่
-        if (row >= 0 && row < g_grid_height && col >= 0 && col < g_grid_width)
+        for (int col = 0; col < g_digit_cols; ++col)
         {
-            const int cell = g_map_layout[row][col];
-            if (cell == 1 || cell == 4) // Wall or Ghost House
+            const bool filled = ((glyph[row] >> (g_digit_cols - 1 - col)) & 1U) != 0U;
+            if (!filled)
             {
-                return true;
+                continue;
+            }
+
+            glm::vec3 patch_center(origin_x + static_cast<float>(col) * cell_size,
+                                   center.y,
+                                   origin_z + static_cast<float>(row) * cell_size);
+
+            const auto [patch_verts, patch_indices] = build_plane(patch_size, patch_size, color, color);
+            const std::size_t vertex_offset = vertices.size();
+            for (auto vertex : patch_verts)
+            {
+                vertex.position += patch_center;
+                vertices.push_back(vertex);
+            }
+            for (unsigned int idx : patch_indices)
+            {
+                indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
             }
         }
     }
-    
+}
+
+void append_tile_number(std::vector<Vertex>& vertices,
+                        std::vector<unsigned int>& indices,
+                        int tile_index,
+                        const glm::vec3& tile_center,
+                        float tile_size)
+{
+    const std::string label = std::to_string(tile_index + 1);
+    const int digit_count = static_cast<int>(label.size());
+    if (digit_count <= 0)
+    {
+        return;
+    }
+
+    const glm::vec3 digit_color = {0.95f, 0.95f, 0.92f};
+    const float cell_size = tile_size * 0.05f;
+    const float glyph_width = static_cast<float>(g_digit_cols) * cell_size;
+    const float glyph_height = static_cast<float>(g_digit_rows) * cell_size;
+    const float digit_gap = cell_size * 0.7f;
+    const float edge_margin = tile_size * 0.08f;
+    const float start_x = tile_center.x - tile_size * 0.5f + edge_margin + glyph_width * 0.5f;
+    const float base_z = tile_center.z - tile_size * 0.5f + edge_margin + glyph_height * 0.5f;
+    const float base_y = tile_center.y + tile_size * 0.01f;
+
+    for (int i = 0; i < digit_count; ++i)
+    {
+        const int digit = label[i] - '0';
+        glm::vec3 digit_center = tile_center;
+        digit_center.x = start_x + static_cast<float>(i) * (glyph_width + digit_gap);
+        digit_center.z = base_z;
+        digit_center.y = base_y;
+
+        append_digit_glyph(vertices, indices, digit, digit_center, cell_size, digit_color);
+    }
+}
+
+ActivityKind classify_activity_tile(int tile_index)
+{
+    const int last_tile = g_board_columns * g_board_rows - 1;
+    if (tile_index <= 0 || tile_index >= last_tile)
+    {
+        return ActivityKind::None;
+    }
+
+    if (tile_index % 14 == 0)
+    {
+        return ActivityKind::Portal;
+    }
+    if ((tile_index + 5) % 11 == 0)
+    {
+        return ActivityKind::Slide;
+    }
+    if ((tile_index % 9) == 0)
+    {
+        return ActivityKind::Trap;
+    }
+    if ((tile_index % 4) == 0)
+    {
+        return ActivityKind::Bonus;
+    }
+
+    return ActivityKind::None;
+}
+
+void append_activity_icon(std::vector<Vertex>& vertices,
+                          std::vector<unsigned int>& indices,
+                          ActivityKind kind,
+                          const glm::vec3& tile_center,
+                          float tile_size)
+{
+    const glm::vec3 base_center = tile_center + glm::vec3(tile_size * 0.18f, tile_size * 0.02f, -tile_size * 0.18f);
+
+    switch (kind)
+    {
+    case ActivityKind::Bonus:
+    {
+        const glm::vec3 gold_base_color(0.92f, 0.76f, 0.18f);
+        append_box_prism(vertices,
+                         indices,
+                         base_center.x,
+                         base_center.z,
+                         tile_size * 0.2f,
+                         tile_size * 0.2f,
+                         tile_size * 0.18f,
+                         gold_base_color);
+        append_box_prism(vertices,
+                         indices,
+                         base_center.x,
+                         base_center.z,
+                         tile_size * 0.14f,
+                         tile_size * 0.14f,
+                         tile_size * 0.28f,
+                         {1.0f, 0.92f, 0.44f});
+        break;
+    }
+    case ActivityKind::Trap:
+    {
+        const glm::vec3 trap_center = tile_center + glm::vec3(-tile_size * 0.15f, tile_center.y, tile_size * 0.15f);
+        append_pyramid(vertices,
+                       indices,
+                       trap_center,
+                       tile_size * 0.28f,
+                       tile_size * 0.4f,
+                       {0.86f, 0.34f, 0.26f});
+        break;
+    }
+    case ActivityKind::Portal:
+    {
+        const float radius = tile_size * 0.18f;
+        const auto [orb_vertices, orb_indices] = build_sphere(radius, 18, 12, {0.3f, 0.78f, 0.95f});
+        const std::size_t offset = vertices.size();
+        const glm::vec3 orb_center = tile_center + glm::vec3(0.0f, tile_size * 0.18f, 0.0f);
+        for (auto vertex : orb_vertices)
+        {
+            vertex.position += orb_center;
+            vertices.push_back(vertex);
+        }
+        for (unsigned int idx : orb_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(offset + idx));
+        }
+        break;
+    }
+    case ActivityKind::Slide:
+    {
+        const glm::vec3 ramp_center = tile_center + glm::vec3(tile_size * 0.2f, 0.0f, tile_size * 0.1f);
+        const auto [ramp_vertices, ramp_indices] =
+            build_plane(tile_size * 0.5f, tile_size * 0.18f, {0.4f, 0.65f, 0.9f}, {0.35f, 0.7f, 0.95f});
+        const std::size_t offset = vertices.size();
+        for (auto vertex : ramp_vertices)
+        {
+            vertex.position += ramp_center;
+            vertices.push_back(vertex);
+        }
+        for (unsigned int idx : ramp_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(offset + idx));
+        }
+
+        append_pyramid(vertices,
+                       indices,
+                       ramp_center + glm::vec3(tile_size * 0.28f, tile_size * 0.02f, 0.0f),
+                       tile_size * 0.18f,
+                       tile_size * 0.18f,
+                       {0.95f, 0.85f, 0.35f});
+        break;
+    }
+    case ActivityKind::None:
+    default:
+        break;
+    }
+}
+
+void append_ladder_between_tiles(std::vector<Vertex>& vertices,
+                                 std::vector<unsigned int>& indices,
+                                 const BoardLink& link,
+                                 float surface_height)
+{
+    glm::vec3 start = tile_center_world(link.start, surface_height);
+    glm::vec3 end = tile_center_world(link.end, surface_height);
+    glm::vec3 forward = end - start;
+    const float span = glm::length(forward);
+    if (span < 1e-3f)
+    {
+        return;
+    }
+    forward /= span;
+    const glm::vec3 up(0.0f, 1.0f, 0.0f);
+    glm::vec3 right = glm::cross(up, forward);
+    if (glm::dot(right, right) < 1e-6f)
+    {
+        right = glm::vec3(1.0f, 0.0f, 0.0f);
+    }
+    right = glm::normalize(right);
+    const glm::vec3 mid = 0.5f * (start + end);
+
+    const float rail_spacing = g_tile_size * 0.35f;
+    const float rail_width = g_tile_size * 0.04f;
+    const float rail_height = g_tile_size * 0.08f;
+    const glm::vec3 rail_half_extents(rail_width, rail_height, span * 0.5f);
+    const glm::vec3 rail_color = glm::mix(link.color, glm::vec3(0.95f, 0.95f, 0.95f), 0.35f);
+
+    append_oriented_prism(vertices,
+                          indices,
+                          mid + right * rail_spacing,
+                          right,
+                          up,
+                          forward,
+                          rail_half_extents,
+                          rail_color);
+    append_oriented_prism(vertices,
+                          indices,
+                          mid - right * rail_spacing,
+                          right,
+                          up,
+                          forward,
+                          rail_half_extents,
+                          rail_color);
+
+    const int rung_count = std::max(3, static_cast<int>(span / (g_tile_size * 0.4f)));
+    const glm::vec3 rung_half_extents(rail_spacing * 0.95f, rail_height * 0.5f, rail_width * 0.6f);
+    for (int i = 0; i < rung_count; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(rung_count - 1);
+        glm::vec3 rung_center = start + forward * (t * span);
+        rung_center.y += rail_height * 0.25f;
+        append_oriented_prism(vertices,
+                              indices,
+                              rung_center,
+                              right,
+                              up,
+                              forward,
+                              rung_half_extents,
+                              glm::vec3(0.92f, 0.8f, 0.45f));
+    }
+}
+
+void append_snake_between_tiles(std::vector<Vertex>& vertices,
+                                std::vector<unsigned int>& indices,
+                                const BoardLink& link,
+                                float surface_height)
+{
+    glm::vec3 start = tile_center_world(link.start, surface_height + g_tile_size * 0.08f);
+    glm::vec3 end = tile_center_world(link.end, surface_height + g_tile_size * 0.08f);
+    const glm::vec3 delta = end - start;
+    const float span = glm::length(delta);
+    if (span < 1e-3f)
+    {
+        return;
+    }
+
+    const int segments = 12;
+    const float body_radius = g_tile_size * 0.22f;
+    const auto [body_vertices, body_indices] = build_sphere(body_radius, 14, 10, link.color);
+
+    for (int i = 0; i < segments; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
+        glm::vec3 position = glm::mix(start, end, t);
+        position.y += std::sin(t * glm::pi<float>()) * body_radius * 0.35f;
+
+        const std::size_t offset = vertices.size();
+        for (auto vertex : body_vertices)
+        {
+            vertex.position += position;
+            vertices.push_back(vertex);
+        }
+        for (unsigned int idx : body_indices)
+        {
+            indices.push_back(static_cast<unsigned int>(offset + idx));
+        }
+    }
+
+    const auto [head_vertices, head_indices] = build_sphere(body_radius * 1.2f, 16, 12, link.color * 0.9f);
+    const std::size_t head_offset = vertices.size();
+    for (auto vertex : head_vertices)
+    {
+        vertex.position += start + glm::vec3(0.0f, body_radius * 0.6f, 0.0f);
+        vertices.push_back(vertex);
+    }
+    for (unsigned int idx : head_indices)
+    {
+        indices.push_back(static_cast<unsigned int>(head_offset + idx));
+    }
+}
+bool check_wall_collision(const glm::vec3& position, float radius)
+{
+    const float half_width = static_cast<float>(g_board_columns) * g_tile_size * 0.5f;
+    const float half_height = static_cast<float>(g_board_rows) * g_tile_size * 0.5f;
+
+    if (position.x - radius < -half_width || position.x + radius > half_width)
+    {
+        return true;
+    }
+    if (position.z - radius < -half_height || position.z + radius > half_height)
+    {
+        return true;
+    }
+
     return false;
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_pacman_map(float /*map_size*/)
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_snakes_ladders_map()
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     
-    const float cell_size = g_cell_size;
-    const int grid_width = g_grid_width;
-    const int grid_height = g_grid_height;
-    const float wall_height = 2.5f;
-    const float wall_thickness = cell_size * 0.9f;
-    
-    const glm::vec3 ground_color = {0.05f, 0.05f, 0.15f};  // พื้นสีน้ำเงินเข้ม
-    const glm::vec3 wall_color = {0.2f, 0.3f, 0.8f};       // กำแพงสีน้ำเงินเรืองแสง
-    const glm::vec3 pellet_color = {1.0f, 1.0f, 0.2f};     // pellet สีเหลือง
-    const glm::vec3 power_pellet_color = {1.0f, 0.8f, 0.0f}; // power pellet สีส้ม
-    const glm::vec3 ghost_house_color = {0.4f, 0.2f, 0.6f};  // ghost house สีม่วง
-    
-    // สร้างพื้นหลัก
-    const float actual_map_width = grid_width * cell_size;
-    const float actual_map_height = grid_height * cell_size;
-    const auto [ground_verts, ground_indices] = build_plane(actual_map_width, actual_map_height, ground_color, ground_color);
-    const std::size_t ground_vertex_offset = vertices.size();
-    vertices.insert(vertices.end(), ground_verts.begin(), ground_verts.end());
-    for (unsigned int idx : ground_indices)
-    {
-        indices.push_back(static_cast<unsigned int>(ground_vertex_offset + idx));
-    }
-    
-    const float start_x = -(grid_width * cell_size) * 0.5f + cell_size * 0.5f;
-    const float start_z = -(grid_height * cell_size) * 0.5f + cell_size * 0.5f;
-    
-    // สร้าง map จาก layout
-    for (int row = 0; row < grid_height; ++row)
-    {
-        for (int col = 0; col < grid_width; ++col)
-        {
-            const float x = start_x + col * cell_size;
-            const float z = start_z + row * cell_size;
-            const int cell = g_map_layout[row][col];
-            
-            if (cell == 1) // Wall
-            {
-                add_box(vertices, indices, x, z, wall_thickness, wall_thickness, wall_height, wall_color);
-            }
-            else if (cell == 2) // Pellet
-            {
-                const float pellet_radius = 0.15f;
-                const auto [pellet_verts, pellet_indices] = build_sphere(pellet_radius, 16, 8, pellet_color);
-                const std::size_t pellet_offset = vertices.size();
-                for (const auto& v : pellet_verts)
-                {
-                    Vertex translated = v;
-                    translated.position.x += x;
-                    translated.position.y += pellet_radius;
-                    translated.position.z += z;
-                    vertices.push_back(translated);
-                }
-                for (unsigned int idx : pellet_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(pellet_offset + idx));
-                }
-            }
-            else if (cell == 3) // Power Pellet
-            {
-                const float power_radius = 0.4f;
-                const auto [power_verts, power_indices] = build_sphere(power_radius, 16, 8, power_pellet_color);
-                const std::size_t power_offset = vertices.size();
-                for (const auto& v : power_verts)
-                {
-                    Vertex translated = v;
-                    translated.position.x += x;
-                    translated.position.y += power_radius;
-                    translated.position.z += z;
-                    vertices.push_back(translated);
-                }
-                for (unsigned int idx : power_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(power_offset + idx));
-                }
-            }
-            else if (cell == 4) // Ghost House
-            {
-                add_box(vertices, indices, x, z, wall_thickness * 0.8f, wall_thickness * 0.8f, wall_height * 0.6f, ghost_house_color);
-            }
-        }
-    }
-    
-    return {vertices, indices};
-}
+    const float board_width = static_cast<float>(g_board_columns) * g_tile_size;
+    const float board_height = static_cast<float>(g_board_rows) * g_tile_size;
+    const float plaza_margin = g_tile_size * 3.0f;
+    const float board_margin = g_tile_size * 0.5f;
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_simple_map(float map_size)
-{
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    
-    const float half_size = map_size * 0.5f;
-    const float wall_height = 2.0f;
-    const float wall_thickness = 1.0f;
-    const glm::vec3 ground_color = {0.2f, 0.2f, 0.4f};  // สีน้ำเงินเข้ม
-    const glm::vec3 wall_color = {0.4f, 0.2f, 0.2f};    // สีแดงเข้ม
-    
-    // สร้างพื้นหลัก
-    const auto [ground_verts, ground_indices] = build_plane(map_size, map_size, ground_color, ground_color);
-    const std::size_t ground_vertex_offset = vertices.size();
-    vertices.insert(vertices.end(), ground_verts.begin(), ground_verts.end());
-    for (unsigned int idx : ground_indices)
-    {
-        indices.push_back(static_cast<unsigned int>(ground_vertex_offset + idx));
-    }
-    
-    // สร้างกำแพงรอบๆ
-    const float wall_offset = half_size - wall_thickness * 0.5f;
-    
-    // กำแพงเหนือ (North wall)
-    {
-        const auto [wall_verts, wall_indices] = build_plane(wall_thickness, map_size, wall_color, wall_color);
+    const auto push_plane = [&](const std::vector<Vertex>& plane_vertices,
+                                const std::vector<unsigned int>& plane_indices,
+                                float y_offset) {
         const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : wall_verts)
+        for (const auto& v : plane_vertices)
         {
             Vertex translated = v;
-            translated.position.x += wall_offset;
-            translated.position.y += wall_height * 0.5f;
+            translated.position.y += y_offset;
             vertices.push_back(translated);
         }
-        for (unsigned int idx : wall_indices)
+        for (unsigned int idx : plane_indices)
         {
             indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
         }
-    }
-    
-    // กำแพงใต้ (South wall)
+    };
+
+    const glm::vec3 base_color = {0.08f, 0.07f, 0.07f};
+    const auto [plaza_verts, plaza_indices] =
+        build_plane(board_width + plaza_margin, board_height + plaza_margin, base_color, base_color);
+    push_plane(plaza_verts, plaza_indices, -0.02f);
+
+    const glm::vec3 terrace_color = {0.16f, 0.13f, 0.1f};
+    const auto [terrace_verts, terrace_indices] =
+        build_plane(board_width + board_margin * 2.0f, board_height + board_margin * 2.0f, terrace_color, terrace_color);
+    push_plane(terrace_verts, terrace_indices, 0.0f);
+
+    const glm::vec3 board_plate_color = {0.12f, 0.16f, 0.22f};
+    const auto [board_plate_verts, board_plate_indices] = build_plane(board_width, board_height, board_plate_color, board_plate_color);
+    push_plane(board_plate_verts, board_plate_indices, 0.015f);
+
+    const float wall_thickness = g_tile_size * 0.45f;
+    const float wall_height = 2.4f;
+    const glm::vec3 wall_color = {0.15f, 0.2f, 0.32f};
+    const float half_board_w = board_width * 0.5f;
+    const float half_board_h = board_height * 0.5f;
+
+    append_box_prism(vertices,
+                     indices,
+                     0.0f,
+                     half_board_h + wall_thickness * 0.5f,
+                     board_width + wall_thickness * 2.0f,
+                     wall_thickness,
+                     wall_height,
+                     wall_color);
+    append_box_prism(vertices,
+                     indices,
+                     0.0f,
+                     -(half_board_h + wall_thickness * 0.5f),
+                     board_width + wall_thickness * 2.0f,
+                     wall_thickness,
+                     wall_height,
+                     wall_color);
+    append_box_prism(vertices,
+                     indices,
+                     half_board_w + wall_thickness * 0.5f,
+                     0.0f,
+                     wall_thickness,
+                     board_height + wall_thickness * 2.0f,
+                     wall_height,
+                     wall_color);
+    append_box_prism(vertices,
+                     indices,
+                     -(half_board_w + wall_thickness * 0.5f),
+                     0.0f,
+                     wall_thickness,
+                     board_height + wall_thickness * 2.0f,
+                     wall_height,
+                     wall_color);
+
+    const glm::vec3 pillar_color = {0.22f, 0.22f, 0.3f};
+    const float pillar_size = wall_thickness * 0.85f;
+    const float pillar_height = wall_height * 1.15f;
+    const float pillar_offset_x = half_board_w + wall_thickness * 0.5f;
+    const float pillar_offset_z = half_board_h + wall_thickness * 0.5f;
+    const std::array<glm::vec2, 4> pillar_offsets = {{
+        {pillar_offset_x, pillar_offset_z},
+        {-pillar_offset_x, pillar_offset_z},
+        {pillar_offset_x, -pillar_offset_z},
+        {-pillar_offset_x, -pillar_offset_z},
+    }};
+    for (const auto& offset : pillar_offsets)
     {
-        const auto [wall_verts, wall_indices] = build_plane(wall_thickness, map_size, wall_color, wall_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : wall_verts)
+        append_box_prism(vertices,
+                         indices,
+                         offset.x,
+                         offset.y,
+                         pillar_size,
+                         pillar_size,
+                         pillar_height,
+                         pillar_color);
+    }
+
+    std::array<TileKind, g_board_columns * g_board_rows> tile_kinds{};
+    tile_kinds.fill(TileKind::Normal);
+    tile_kinds.front() = TileKind::Start;
+    tile_kinds.back() = TileKind::Finish;
+
+    for (const auto& link : g_board_links)
+    {
+        tile_kinds[link.start] = link.is_ladder ? TileKind::LadderBase : TileKind::SnakeHead;
+    }
+
+    const glm::vec3 color_a = {0.18f, 0.28f, 0.45f};
+    const glm::vec3 color_b = {0.16f, 0.24f, 0.4f};
+    const glm::vec3 start_color = {0.22f, 0.65f, 0.28f};
+    const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
+    const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
+    const glm::vec3 snake_color = {0.78f, 0.28f, 0.28f};
+
+    const float tile_surface_offset = 0.02f;
+    const float tile_size = g_tile_size * 0.92f;
+
+    for (int tile = 0; tile < g_board_columns * g_board_rows; ++tile)
+    {
+        glm::vec3 color = ((tile / g_board_columns + tile % g_board_columns) % 2 == 0) ? color_a : color_b;
+
+        switch (tile_kinds[tile])
+        {
+        case TileKind::Start:
+            color = start_color;
+            break;
+        case TileKind::Finish:
+            color = finish_color;
+            break;
+        case TileKind::LadderBase:
+            color = ladder_color;
+            break;
+        case TileKind::SnakeHead:
+            color = snake_color;
+            break;
+        default:
+            break;
+        }
+
+        const auto [tile_verts, tile_indices] = build_plane(tile_size, tile_size, color, color);
+        const std::size_t tile_offset = vertices.size();
+        const glm::vec3 center = tile_center_world(tile, tile_surface_offset);
+        for (const auto& v : tile_verts)
         {
             Vertex translated = v;
-            translated.position.x -= wall_offset;
-            translated.position.y += wall_height * 0.5f;
+            translated.position += center;
             vertices.push_back(translated);
         }
-        for (unsigned int idx : wall_indices)
+        for (unsigned int idx : tile_indices)
         {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+            indices.push_back(static_cast<unsigned int>(tile_offset + idx));
+        }
+
+        append_tile_number(vertices, indices, tile, center, tile_size);
+        const ActivityKind activity = classify_activity_tile(tile);
+        if (activity != ActivityKind::None)
+        {
+            append_activity_icon(vertices, indices, activity, center, tile_size);
         }
     }
-    
-    // กำแพงตะวันออก (East wall)
+
+    for (const auto& link : g_board_links)
     {
-        const auto [wall_verts, wall_indices] = build_plane(map_size, wall_thickness, wall_color, wall_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : wall_verts)
+        if (link.is_ladder)
         {
-            Vertex translated = v;
-            translated.position.z += wall_offset;
-            translated.position.y += wall_height * 0.5f;
-            vertices.push_back(translated);
+            append_ladder_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
         }
-        for (unsigned int idx : wall_indices)
+        else
         {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+            append_snake_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
         }
     }
-    
-    // กำแพงตะวันตก (West wall)
+
+    const float marker_radius = 0.35f;
+    const auto [marker_verts, marker_indices] = build_sphere(marker_radius, 12, 6, {1.0f, 1.0f, 1.0f});
+
+    for (const auto& link : g_board_links)
     {
-        const auto [wall_verts, wall_indices] = build_plane(map_size, wall_thickness, wall_color, wall_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : wall_verts)
+        const float elevation = marker_radius + tile_surface_offset;
+        const glm::vec3 start_center = tile_center_world(link.start, elevation);
+        const glm::vec3 end_center = tile_center_world(link.end, elevation);
+
+        const std::size_t start_marker_offset = vertices.size();
+        for (const auto& v : marker_verts)
         {
             Vertex translated = v;
-            translated.position.z -= wall_offset;
-            translated.position.y += wall_height * 0.5f;
+            translated.position += start_center;
+            translated.color = link.color;
             vertices.push_back(translated);
         }
-        for (unsigned int idx : wall_indices)
+        for (unsigned int idx : marker_indices)
         {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+            indices.push_back(static_cast<unsigned int>(start_marker_offset + idx));
         }
-    }
-    
-    // สร้าง obstacles ง่ายๆ (กล่องเล็กๆ)
-    const float obstacle_size = 8.0f;
-    const float obstacle_height = 1.5f;
-    const glm::vec3 obstacle_color = {0.3f, 0.3f, 0.5f};
-    
-    // Obstacle 1 - กลางซ้าย
-    {
-        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : obs_verts)
+
+        const std::size_t end_marker_offset = vertices.size();
+        for (const auto& v : marker_verts)
         {
             Vertex translated = v;
-            translated.position.x -= map_size * 0.25f;
-            translated.position.y += obstacle_height * 0.5f;
+            translated.position += end_center;
+            translated.color = link.color;
             vertices.push_back(translated);
         }
-        for (unsigned int idx : obs_indices)
+        for (unsigned int idx : marker_indices)
         {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
-        }
-    }
-    
-    // Obstacle 2 - กลางขวา
-    {
-        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : obs_verts)
-        {
-            Vertex translated = v;
-            translated.position.x += map_size * 0.25f;
-            translated.position.y += obstacle_height * 0.5f;
-            vertices.push_back(translated);
-        }
-        for (unsigned int idx : obs_indices)
-        {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
-        }
-    }
-    
-    // Obstacle 3 - บนซ้าย
-    {
-        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : obs_verts)
-        {
-            Vertex translated = v;
-            translated.position.x -= map_size * 0.25f;
-            translated.position.z -= map_size * 0.25f;
-            translated.position.y += obstacle_height * 0.5f;
-            vertices.push_back(translated);
-        }
-        for (unsigned int idx : obs_indices)
-        {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
-        }
-    }
-    
-    // Obstacle 4 - บนขวา
-    {
-        const auto [obs_verts, obs_indices] = build_plane(obstacle_size, obstacle_size, obstacle_color, obstacle_color);
-        const std::size_t vertex_offset = vertices.size();
-        for (const auto& v : obs_verts)
-        {
-            Vertex translated = v;
-            translated.position.x += map_size * 0.25f;
-            translated.position.z -= map_size * 0.25f;
-            translated.position.y += obstacle_height * 0.5f;
-            vertices.push_back(translated);
-        }
-        for (unsigned int idx : obs_indices)
-        {
-            indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+            indices.push_back(static_cast<unsigned int>(end_marker_offset + idx));
         }
     }
     
@@ -978,57 +1300,25 @@ int main(int argc, char* argv[])
         Mesh map_mesh{};
         Bounds map_bounds{};
         
-        // สร้าง Pac-Man map
-        constexpr float map_size = 160.0f;
-        const auto [map_vertices, map_indices] = build_pacman_map(map_size);
+        const auto [map_vertices, map_indices] = build_snakes_ladders_map();
         map_mesh = create_mesh(map_vertices, map_indices);
         
-        // ตั้งค่า bounds (28x31 grid, cell_size = 4.0)
-        const float grid_width = 28.0f * 4.0f;
-        const float grid_height = 31.0f * 4.0f;
-        map_bounds.min = glm::vec3(-grid_width * 0.5f, 0.0f, -grid_height * 0.5f);
-        map_bounds.max = glm::vec3(grid_width * 0.5f, 0.0f, grid_height * 0.5f);
+        const float board_width = static_cast<float>(g_board_columns) * g_tile_size;
+        const float board_height = static_cast<float>(g_board_rows) * g_tile_size;
+        map_bounds.min = glm::vec3(-board_width * 0.5f, 0.0f, -board_height * 0.5f);
+        map_bounds.max = glm::vec3(board_width * 0.5f, 0.0f, board_height * 0.5f);
 
-        const float map_width = map_bounds.max.x - map_bounds.min.x;
-        const float map_length = map_bounds.max.z - map_bounds.min.z;
-        const float map_min_dimension = std::min(map_width, map_length);
+        const float map_min_dimension = std::min(board_width, board_height);
+        const float map_length = board_height;
 
-        // ลดขนาด player ให้เล็กลงเพื่อเดินผ่านได้ง่ายขึ้น
-        const float player_radius = std::max(0.4f, 0.02f * map_min_dimension);
+        const float player_radius = std::max(0.4f, 0.025f * map_min_dimension);
         const auto [sphere_vertices, sphere_indices] = build_sphere(player_radius, 32, 16, {1.0f, 0.9f, 0.1f});
         Mesh sphere_mesh = create_mesh(sphere_vertices, sphere_indices);
 
-        const glm::vec3 map_center = 0.5f * (map_bounds.min + map_bounds.max);
         const float player_ground_y = map_bounds.min.y + player_radius;
-        // เริ่มต้นที่ด้านล่างของ map - หา path ที่ปลอดภัย
-        // ดูจาก map layout แถว 29 (index 29) มี path ที่ col 1-26
-        const float start_x = -(g_grid_width * g_cell_size) * 0.5f + g_cell_size * 0.5f;
-        const float start_z = -(g_grid_height * g_cell_size) * 0.5f + g_cell_size * 0.5f;
-        // หา path ที่ด้านล่างของ map (แถว 29, col 13) - ตรงกลาง path
-        const int start_col = 13; // ตรงกลาง path
-        const int start_row = 29; // แถวล่างสุดที่มี path (index 29)
-        glm::vec3 player_position(
-            start_x + start_col * g_cell_size,
-            player_ground_y,
-            start_z + start_row * g_cell_size
-        );
-        
-        // ตรวจสอบว่า collision detection ทำงานถูกต้อง - ถ้าตำแหน่งเริ่มต้นชนกำแพง ให้ย้ายไปที่ path ที่ปลอดภัย
-        if (check_wall_collision(player_position, player_radius))
-        {
-            // ลองหาตำแหน่งที่ปลอดภัยใกล้ๆ
-            for (int offset = 0; offset < 5; ++offset)
-            {
-                glm::vec3 test_pos = player_position;
-                test_pos.z += offset * g_cell_size * 0.5f;
-                if (!check_wall_collision(test_pos, player_radius))
-                {
-                    player_position = test_pos;
-                    break;
-                }
-            }
-        }
-        const float player_speed = std::max(6.0f, player_radius * 4.0f);
+        glm::vec3 player_position = tile_center_world(0);
+        player_position.y = player_ground_y;
+        const float player_speed = std::max(6.0f, player_radius * 3.5f);
 
         float last_time = static_cast<float>(glfwGetTime());
 
@@ -1067,28 +1357,22 @@ int main(int argc, char* argv[])
             {
                 input = glm::normalize(input);
                 
-                // ตรวจสอบ collision ก่อนเคลื่อนที่
                 glm::vec3 new_position = player_position + input * player_speed * delta_time;
                 
-                // ตรวจสอบ collision แยกตามแกน X และ Z
                 glm::vec3 test_position_x = glm::vec3(new_position.x, player_position.y, player_position.z);
                 glm::vec3 test_position_z = glm::vec3(player_position.x, player_position.y, new_position.z);
                 
-                // ถ้าไม่ชนกำแพงในแกน X ให้เคลื่อนที่ในแกน X
                 if (!check_wall_collision(test_position_x, player_radius))
                 {
                     player_position.x = new_position.x;
                 }
                 
-                // ถ้าไม่ชนกำแพงในแกน Z ให้เคลื่อนที่ในแกน Z
                 if (!check_wall_collision(test_position_z, player_radius))
                 {
                     player_position.z = new_position.z;
                 }
             }
 
-            // Clamp เพื่อป้องกันไม่ให้ออกนอก bounds (แต่ให้เดินได้ในพื้นที่ path)
-            // อนุญาตให้เดินได้ในพื้นที่ที่กว้างขึ้นเล็กน้อย
             const float margin = player_radius * 2.0f;
             player_position.x = glm::clamp(player_position.x,
                                            map_bounds.min.x - margin,
@@ -1140,6 +1424,7 @@ int main(int argc, char* argv[])
                 glBindVertexArray(sphere_mesh.vao);
                 glDrawElements(GL_TRIANGLES, sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
             }
+
 
             glfwSwapBuffers(window);
         }
