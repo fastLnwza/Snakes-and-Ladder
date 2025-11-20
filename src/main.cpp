@@ -515,14 +515,6 @@ void append_box_prism(std::vector<Vertex>& vertices,
     }
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_cube(float size, const glm::vec3& color)
-{
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    append_box_prism(vertices, indices, 0.0f, 0.0f, size, size, size, color);
-    return {vertices, indices};
-}
-
 void append_oriented_prism(std::vector<Vertex>& vertices,
                            std::vector<unsigned int>& indices,
                            const glm::vec3& center,
@@ -1325,41 +1317,6 @@ int main(int argc, char* argv[])
         const auto [sphere_vertices, sphere_indices] = build_sphere(player_radius, 32, 16, {1.0f, 0.9f, 0.1f});
         Mesh sphere_mesh = create_mesh(sphere_vertices, sphere_indices);
 
-        const float dice_size = g_tile_size * 0.9f;
-        const auto [dice_vertices, dice_indices] = build_cube(dice_size, {0.95f, 0.95f, 0.92f});
-        Mesh dice_mesh = create_mesh(dice_vertices, dice_indices);
-        const auto [pip_vertices, pip_indices] = build_sphere(dice_size * 0.1f, 12, 6, {0.08f, 0.08f, 0.08f});
-        Mesh pip_mesh = create_mesh(pip_vertices, pip_indices);
-        std::array<Mesh, 10> digit_meshes{};
-        for (int digit = 0; digit <= 9; ++digit)
-        {
-            std::vector<Vertex> digit_vertices;
-            std::vector<unsigned int> digit_indices;
-            append_digit_glyph(digit_vertices,
-                               digit_indices,
-                               digit,
-                               glm::vec3(0.0f),
-                               dice_size * 0.07f,
-                               glm::vec3(1.0f));
-            digit_meshes[static_cast<std::size_t>(digit)] = create_mesh(digit_vertices, digit_indices);
-        }
-        glm::vec3 dice_position(map_bounds.min.x - dice_size * 0.8f,
-                                map_bounds.min.y + dice_size * 0.5f,
-                                map_bounds.min.z - dice_size * 0.8f);
-        glm::vec3 dice_velocity(0.0f);
-        float dice_target_height = dice_position.y;
-        const std::array<std::vector<glm::vec2>, 7> pip_layouts = {
-            std::vector<glm::vec2>{},
-            std::vector<glm::vec2>{glm::vec2(0.0f, 0.0f)},
-            std::vector<glm::vec2>{glm::vec2(-0.35f, -0.35f), glm::vec2(0.35f, 0.35f)},
-            std::vector<glm::vec2>{glm::vec2(-0.35f, -0.35f), glm::vec2(0.0f, 0.0f), glm::vec2(0.35f, 0.35f)},
-            std::vector<glm::vec2>{glm::vec2(-0.35f, -0.35f), glm::vec2(-0.35f, 0.35f),
-                                   glm::vec2(0.35f, -0.35f), glm::vec2(0.35f, 0.35f)},
-            std::vector<glm::vec2>{glm::vec2(-0.35f, -0.35f), glm::vec2(-0.35f, 0.35f),
-                                   glm::vec2(0.35f, -0.35f), glm::vec2(0.35f, 0.35f), glm::vec2(0.0f, 0.0f)},
-            std::vector<glm::vec2>{glm::vec2(-0.35f, -0.4f), glm::vec2(-0.35f, 0.0f), glm::vec2(-0.35f, 0.4f),
-                                   glm::vec2(0.35f, -0.4f), glm::vec2(0.35f, 0.0f), glm::vec2(0.35f, 0.4f)}};
-
         const float player_ground_y = map_bounds.min.y + player_radius;
         glm::vec3 player_position = tile_center_world(0);
         player_position.y = player_ground_y;
@@ -1376,22 +1333,6 @@ int main(int argc, char* argv[])
         std::mt19937 rng(static_cast<unsigned int>(
             std::chrono::steady_clock::now().time_since_epoch().count()));
         std::uniform_int_distribution<int> dice_distribution(1, 6);
-        struct DiceFace
-        {
-            glm::vec3 normal;
-            glm::vec3 tangent;
-            glm::vec3 bitangent;
-            glm::vec3 center_offset;
-            int value;
-        };
-        const std::array<DiceFace, 6> dice_faces = {{
-            {{0.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, dice_size * 0.5f, 0.0f}, 1},
-            {{0.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, -dice_size * 0.5f, 0.0f}, 6},
-            {{0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, dice_size * 0.5f}, 2},
-            {{0.0f, 0.0f, -1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -dice_size * 0.5f}, 5},
-            {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {dice_size * 0.5f, 0.0f, 0.0f}, 3},
-            {{-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {-dice_size * 0.5f, 0.0f, 0.0f}, 4},
-        }};
 
         auto schedule_step = [&]() {
             if (steps_remaining <= 0 || is_stepping || current_tile_index >= final_tile_index)
@@ -1434,18 +1375,7 @@ int main(int argc, char* argv[])
                 if (steps_remaining > 0)
                 {
                     schedule_step();
-                    dice_velocity = glm::vec3(0.0f, dice_size * 1.8f, 0.0f);
-                    dice_target_height = dice_position.y + dice_size * 0.6f;
                 }
-            }
-
-            dice_velocity.y -= 9.8f * delta_time;
-            dice_position += dice_velocity * delta_time;
-            if (dice_position.y <= dice_target_height)
-            {
-                dice_position.y = dice_target_height;
-                dice_velocity = glm::vec3(0.0f);
-                dice_target_height = map_bounds.min.y + dice_size * 0.5f;
             }
 
             if (is_stepping)
@@ -1520,58 +1450,11 @@ int main(int argc, char* argv[])
                 glDrawElements(GL_TRIANGLES, sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
             }
 
-            {
-                const glm::mat4 model = glm::translate(glm::mat4(1.0f), dice_position);
-                const glm::mat4 mvp = projection * view * model;
-                glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-
-                glBindVertexArray(dice_mesh.vao);
-                glDrawElements(GL_TRIANGLES, dice_mesh.index_count, GL_UNSIGNED_INT, nullptr);
-
-                const float pip_scale = dice_size * 0.4f;
-                const float pip_offset = dice_size * 0.05f;
-                for (const auto& face : dice_faces)
-                {
-                    const auto& layout = pip_layouts[face.value];
-                    for (const auto& offset : layout)
-                    {
-                        glm::vec3 pip_pos = dice_position + face.center_offset +
-                                            face.tangent * (offset.x * pip_scale) +
-                                            face.bitangent * (offset.y * pip_scale) +
-                                            face.normal * pip_offset;
-                        const glm::mat4 pip_model = glm::translate(glm::mat4(1.0f), pip_pos);
-                        const glm::mat4 pip_mvp = projection * view * pip_model;
-                        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(pip_mvp));
-                        glBindVertexArray(pip_mesh.vao);
-                        glDrawElements(GL_TRIANGLES, pip_mesh.index_count, GL_UNSIGNED_INT, nullptr);
-                    }
-                }
-
-                if (last_dice_result >= 1 && last_dice_result <= 6)
-                {
-                    const float text_height = dice_size * 0.95f;
-                    const Mesh& digit_mesh = digit_meshes[static_cast<std::size_t>(last_dice_result)];
-                    const glm::mat4 digit_model =
-                        glm::translate(glm::mat4(1.0f), dice_position + glm::vec3(0.0f, text_height, 0.0f));
-                    const glm::mat4 digit_mvp = projection * view * digit_model;
-                    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(digit_mvp));
-                    glBindVertexArray(digit_mesh.vao);
-                    glDrawElements(GL_TRIANGLES, digit_mesh.index_count, GL_UNSIGNED_INT, nullptr);
-                }
-            }
-
-
             glfwSwapBuffers(window);
         }
 
         destroy_mesh(map_mesh);
         destroy_mesh(sphere_mesh);
-        destroy_mesh(dice_mesh);
-        destroy_mesh(pip_mesh);
-        for (auto& mesh : digit_meshes)
-        {
-            destroy_mesh(mesh);
-        }
         glDeleteProgram(program);
     }
     catch (const std::exception& ex)
