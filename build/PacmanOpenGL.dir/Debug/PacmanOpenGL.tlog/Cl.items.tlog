@@ -1,1 +1,15 @@
 C:\Github\Pacman-OpenGL\src\main.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\main.obj
+C:\Github\Pacman-OpenGL\src\core\camera.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\camera.obj
+C:\Github\Pacman-OpenGL\src\core\window.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\window.obj
+C:\Github\Pacman-OpenGL\src\utils\bounds_utils.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\bounds_utils.obj
+C:\Github\Pacman-OpenGL\src\utils\file_utils.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\file_utils.obj
+C:\Github\Pacman-OpenGL\src\rendering\gltf_loader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\gltf_loader.obj
+C:\Github\Pacman-OpenGL\src\rendering\obj_loader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\obj_loader.obj
+C:\Github\Pacman-OpenGL\src\rendering\mesh.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\mesh.obj
+C:\Github\Pacman-OpenGL\src\rendering\primitives.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\primitives.obj
+C:\Github\Pacman-OpenGL\src\rendering\shader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\shader.obj
+C:\Github\Pacman-OpenGL\src\rendering\texture_loader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\texture_loader.obj
+C:\Github\Pacman-OpenGL\src\game\map\board.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\board.obj
+C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\map_generator.obj
+C:\Github\Pacman-OpenGL\src\game\player\player.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\player.obj
+C:\Github\Pacman-OpenGL\src\game\player\dice\dice.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\dice.obj

@@ -42,17 +42,111 @@ cmake_ninja_workdir = C$:/Github/Pacman-OpenGL/build-clangd/
 #############################################
 # Order-only phony target for PacmanOpenGL
 
-build cmake_object_order_depends_target_PacmanOpenGL: phony || cmake_object_order_depends_target_glad cmake_object_order_depends_target_glfw cmake_object_order_depends_target_glm copy_shaders
+build cmake_object_order_depends_target_PacmanOpenGL: phony || cmake_object_order_depends_target_glad cmake_object_order_depends_target_glfw cmake_object_order_depends_target_glm copy_assets
 
 build CMakeFiles/PacmanOpenGL.dir/src/main.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/main.cpp || cmake_object_order_depends_target_PacmanOpenGL
-  DEFINES = -DNOMINMAX
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
   DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\main.cpp.obj.d
   FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
   INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
   OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
   OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src
-  TARGET_COMPILE_PDB = CMakeFiles\PacmanOpenGL.dir\
-  TARGET_PDB = PacmanOpenGL.pdb
+
+build CMakeFiles/PacmanOpenGL.dir/src/core/camera.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/core/camera.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\core\camera.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\core
+
+build CMakeFiles/PacmanOpenGL.dir/src/core/window.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/core/window.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\core\window.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\core
+
+build CMakeFiles/PacmanOpenGL.dir/src/utils/bounds_utils.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/utils/bounds_utils.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\utils\bounds_utils.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\utils
+
+build CMakeFiles/PacmanOpenGL.dir/src/utils/file_utils.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/utils/file_utils.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\utils\file_utils.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\utils
+
+build CMakeFiles/PacmanOpenGL.dir/src/rendering/mesh.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/rendering/mesh.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\rendering\mesh.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\rendering
+
+build CMakeFiles/PacmanOpenGL.dir/src/rendering/primitives.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/rendering/primitives.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\rendering\primitives.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\rendering
+
+build CMakeFiles/PacmanOpenGL.dir/src/rendering/shader.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/rendering/shader.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\rendering\shader.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\rendering
+
+build CMakeFiles/PacmanOpenGL.dir/src/rendering/cgltf_impl.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/rendering/cgltf_impl.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\rendering\cgltf_impl.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\rendering
+
+build CMakeFiles/PacmanOpenGL.dir/src/rendering/gltf_loader.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/rendering/gltf_loader.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\rendering\gltf_loader.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\rendering
+
+build CMakeFiles/PacmanOpenGL.dir/src/game/map/board.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/game/map/board.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\game\map\board.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\game\map
+
+build CMakeFiles/PacmanOpenGL.dir/src/game/map/map_generator.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/game/map/map_generator.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\game\map\map_generator.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\game\map
+
+build CMakeFiles/PacmanOpenGL.dir/src/game/player/player.cpp.obj: CXX_COMPILER__PacmanOpenGL_unscanned_ C$:/Github/Pacman-OpenGL/src/game/player/player.cpp || cmake_object_order_depends_target_PacmanOpenGL
+  DEFINES = -DGLM_FORCE_CTOR_INIT -DNOMINMAX
+  DEP_FILE = CMakeFiles\PacmanOpenGL.dir\src\game\player\player.cpp.obj.d
+  FLAGS = -std=c++1z -Wall -Wextra -Wpedantic
+  INCLUDES = -IC:/Github/Pacman-OpenGL/src -IC:/Github/Pacman-OpenGL/external -IC:/Github/Pacman-OpenGL/external/cgltf -IC:/Github/Pacman-OpenGL/external/glad/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
+  OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
+  OBJECT_FILE_DIR = CMakeFiles\PacmanOpenGL.dir\src\game\player
 
 
 # =============================================================================
@@ -62,21 +156,20 @@ build CMakeFiles/PacmanOpenGL.dir/src/main.cpp.obj: CXX_COMPILER__PacmanOpenGL_u
 #############################################
 # Link the executable PacmanOpenGL.exe
 
-build PacmanOpenGL.exe: CXX_EXECUTABLE_LINKER__PacmanOpenGL_ CMakeFiles/PacmanOpenGL.dir/src/main.cpp.obj | _deps/glad-build/libglad.a _deps/glfw-build/src/libglfw3.a _deps/glm-build/glm/libglm.a || _deps/glad-build/libglad.a _deps/glfw-build/src/libglfw3.a _deps/glm-build/glm/libglm.a copy_shaders
+build PacmanOpenGL.exe: CXX_EXECUTABLE_LINKER__PacmanOpenGL_ CMakeFiles/PacmanOpenGL.dir/src/main.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/core/camera.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/core/window.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/utils/bounds_utils.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/utils/file_utils.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/rendering/mesh.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/rendering/primitives.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/rendering/shader.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/rendering/cgltf_impl.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/rendering/gltf_loader.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/game/map/board.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/game/map/map_generator.cpp.obj CMakeFiles/PacmanOpenGL.dir/src/game/player/player.cpp.obj | _deps/glad-build/libglad.a _deps/glfw-build/src/libglfw3.a _deps/glm-build/glm/libglm.a || _deps/glad-build/libglad.a _deps/glfw-build/src/libglfw3.a _deps/glm-build/glm/libglm.a copy_assets
   LINK_LIBRARIES = _deps/glad-build/libglad.a  _deps/glfw-build/src/libglfw3.a  -lopengl32  _deps/glm-build/glm/libglm.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\PacmanOpenGL.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_COMPILE_PDB = CMakeFiles\PacmanOpenGL.dir\
   TARGET_FILE = PacmanOpenGL.exe
   TARGET_IMPLIB = libPacmanOpenGL.dll.a
-  TARGET_PDB = PacmanOpenGL.pdb
+  TARGET_PDB = PacmanOpenGL.exe.dbg
 
 
 #############################################
-# Utility command for copy_shaders
+# Utility command for copy_assets
 
-build copy_shaders: phony CMakeFiles/copy_shaders
+build copy_assets: phony CMakeFiles/copy_assets
 
 
 #############################################
@@ -146,10 +239,10 @@ build install/strip: phony CMakeFiles/install/strip.util
 
 
 #############################################
-# Custom command for CMakeFiles\copy_shaders
+# Custom command for CMakeFiles\copy_assets
 
-build CMakeFiles/copy_shaders | ${cmake_ninja_workdir}CMakeFiles/copy_shaders: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Github\Pacman-OpenGL\build-clangd && "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build-clangd//shaders"
+build CMakeFiles/copy_assets | ${cmake_ninja_workdir}CMakeFiles/copy_assets: CUSTOM_COMMAND
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Github\Pacman-OpenGL\build-clangd && "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Github/Pacman-OpenGL/shaders C:/Github/Pacman-OpenGL/build-clangd//shaders && "C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Github/Pacman-OpenGL/dice.glb C:/Github/Pacman-OpenGL/build-clangd//dice.glb"
   DESC = Copying runtime assets
 
 # =============================================================================
@@ -244,8 +337,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/context.c.obj: C_COMPILER__glfw_u
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/init.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/init.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -254,8 +345,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/init.c.obj: C_COMPILER__glfw_unsc
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/input.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/input.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -264,8 +353,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/input.c.obj: C_COMPILER__glfw_uns
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/monitor.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/monitor.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -274,8 +361,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/monitor.c.obj: C_COMPILER__glfw_u
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/platform.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/platform.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -284,8 +369,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/platform.c.obj: C_COMPILER__glfw_
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/vulkan.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/vulkan.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -294,8 +377,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/vulkan.c.obj: C_COMPILER__glfw_un
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/window.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/window.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -304,8 +385,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/window.c.obj: C_COMPILER__glfw_un
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/egl_context.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/egl_context.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -314,8 +393,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/egl_context.c.obj: C_COMPILER__gl
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/osmesa_context.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/osmesa_context.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -324,8 +401,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/osmesa_context.c.obj: C_COMPILER_
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_init.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/null_init.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -334,8 +409,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_init.c.obj: C_COMPILER__glfw
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_monitor.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/null_monitor.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -344,8 +417,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_monitor.c.obj: C_COMPILER__g
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_window.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/null_window.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -354,8 +425,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_window.c.obj: C_COMPILER__gl
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_joystick.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/null_joystick.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -364,8 +433,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/null_joystick.c.obj: C_COMPILER__
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_module.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_module.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -374,8 +441,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_module.c.obj: C_COMPILER__g
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_time.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_time.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -384,8 +449,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_time.c.obj: C_COMPILER__glf
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_thread.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_thread.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -394,8 +457,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_thread.c.obj: C_COMPILER__g
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_init.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_init.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -404,8 +465,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_init.c.obj: C_COMPILER__glf
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_joystick.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_joystick.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -414,8 +473,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_joystick.c.obj: C_COMPILER_
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_monitor.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_monitor.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -424,8 +481,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_monitor.c.obj: C_COMPILER__
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_window.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/win32_window.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -434,8 +489,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_window.c.obj: C_COMPILER__g
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 build _deps/glfw-build/src/CMakeFiles/glfw.dir/wgl_context.c.obj: C_COMPILER__glfw_unscanned_ C$:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src/wgl_context.c || cmake_object_order_depends_target_glfw
   DEFINES = -DUNICODE -DWINVER=0x0501 -D_GLFW_WIN32 -D_UNICODE
@@ -444,8 +497,6 @@ build _deps/glfw-build/src/CMakeFiles/glfw.dir/wgl_context.c.obj: C_COMPILER__gl
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/include -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-build/src -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glfw-src/deps/mingw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   OBJECT_FILE_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
 
 
 # =============================================================================
@@ -459,9 +510,8 @@ build _deps/glfw-build/src/libglfw3.a: C_STATIC_LIBRARY_LINKER__glfw_ _deps/glfw
   OBJECT_DIR = _deps\glfw-build\src\CMakeFiles\glfw.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_COMPILE_PDB = _deps\glfw-build\src\CMakeFiles\glfw.dir\glfw.pdb
   TARGET_FILE = _deps\glfw-build\src\libglfw3.a
-  TARGET_PDB = _deps\glfw-build\src\libglfw3.pdb
+  TARGET_PDB = glfw3.a.dbg
 
 
 #############################################
@@ -569,8 +619,6 @@ build _deps/glad-build/CMakeFiles/glad.dir/src/glad.c.obj: C_COMPILER__glad_unsc
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glad-build/include
   OBJECT_DIR = _deps\glad-build\CMakeFiles\glad.dir
   OBJECT_FILE_DIR = _deps\glad-build\CMakeFiles\glad.dir\src
-  TARGET_COMPILE_PDB = _deps\glad-build\CMakeFiles\glad.dir\glad.pdb
-  TARGET_PDB = _deps\glad-build\libglad.pdb
 
 
 # =============================================================================
@@ -584,9 +632,8 @@ build _deps/glad-build/libglad.a: C_STATIC_LIBRARY_LINKER__glad_ _deps/glad-buil
   OBJECT_DIR = _deps\glad-build\CMakeFiles\glad.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_COMPILE_PDB = _deps\glad-build\CMakeFiles\glad.dir\glad.pdb
   TARGET_FILE = _deps\glad-build\libglad.a
-  TARGET_PDB = _deps\glad-build\libglad.pdb
+  TARGET_PDB = glad.a.dbg
 
 
 #############################################
@@ -760,8 +807,6 @@ build _deps/glm-build/glm/CMakeFiles/glm.dir/detail/glm.cpp.obj: CXX_COMPILER__g
   INCLUDES = -IC:/Github/Pacman-OpenGL/build-clangd/_deps/glm-src
   OBJECT_DIR = _deps\glm-build\glm\CMakeFiles\glm.dir
   OBJECT_FILE_DIR = _deps\glm-build\glm\CMakeFiles\glm.dir\detail
-  TARGET_COMPILE_PDB = _deps\glm-build\glm\CMakeFiles\glm.dir\glm.pdb
-  TARGET_PDB = _deps\glm-build\glm\libglm.pdb
 
 
 # =============================================================================
@@ -775,9 +820,8 @@ build _deps/glm-build/glm/libglm.a: CXX_STATIC_LIBRARY_LINKER__glm_ _deps/glm-bu
   OBJECT_DIR = _deps\glm-build\glm\CMakeFiles\glm.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_COMPILE_PDB = _deps\glm-build\glm\CMakeFiles\glm.dir\glm.pdb
   TARGET_FILE = _deps\glm-build\glm\libglm.a
-  TARGET_PDB = _deps\glm-build\glm\libglm.pdb
+  TARGET_PDB = glm.a.dbg
 
 
 #############################################
@@ -874,7 +918,7 @@ build update_mappings: phony _deps/glfw-build/src/update_mappings
 #############################################
 # Folder: C:/Github/Pacman-OpenGL/build-clangd
 
-build all: phony PacmanOpenGL.exe copy_shaders _deps/glfw-build/all _deps/glad-build/all _deps/glm-build/all
+build all: phony PacmanOpenGL.exe copy_assets _deps/glfw-build/all _deps/glad-build/all _deps/glm-build/all
 
 # =============================================================================
 
@@ -918,14 +962,14 @@ build _deps/glm-build/glm/all: phony _deps/glm-build/glm/libglm.a
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | C$:/Github/Pacman-OpenGL/CMakeLists.txt C$:/Program$ Files/CMake/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCCompilerABI.c C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXCompilerABI.cpp C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDependentOption.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCXXCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerSupport.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineRCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseImplicitIncludeInfo.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseImplicitLinkInfo.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseLibraryArchitecture.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCompilerCommon.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestRCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ADSP-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ARMCC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ARMClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/AppleClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Borland-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Bruce-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Clang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Clang-DetermineCompilerInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Compaq-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Cray-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CrayClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Embarcadero-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Fujitsu-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GHS-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-FindBinUtils.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/HP-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/HP-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IAR-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Intel-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/LCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/MSVC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/NVHPC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/NVIDIA-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/OrangeC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/PGI-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/PathScale-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SCO-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SDCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SunPro-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TI-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TIClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Tasking-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Watcom-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XL-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XL-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XLClang-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/zOS-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindGit.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindOpenGL.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython/Support.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/GNUInstallDirs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CMakeDetermineLinkerId.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CheckSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/FeatureTesting.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Determine-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/WindowsPaths.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake CMakeCache.txt CMakeFiles/3.30.8/CMakeCCompiler.cmake CMakeFiles/3.30.8/CMakeCXXCompiler.cmake CMakeFiles/3.30.8/CMakeRCCompiler.cmake CMakeFiles/3.30.8/CMakeSystem.cmake _deps/glad-src/CMakeLists.txt _deps/glfw-src/CMakeLists.txt _deps/glfw-src/CMake/glfw3.pc.in _deps/glfw-src/CMake/glfw3Config.cmake.in _deps/glfw-src/src/CMakeLists.txt _deps/glm-src/CMakeLists.txt _deps/glm-src/glm/CMakeLists.txt
+build build.ninja: RERUN_CMAKE | C$:/Github/Pacman-OpenGL/CMakeLists.txt C$:/Program$ Files/CMake/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDependentOption.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindGit.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindOpenGL.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython/Support.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/GNUInstallDirs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CheckSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/WindowsPaths.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake CMakeCache.txt CMakeFiles/3.30.8/CMakeCCompiler.cmake CMakeFiles/3.30.8/CMakeCXXCompiler.cmake CMakeFiles/3.30.8/CMakeRCCompiler.cmake CMakeFiles/3.30.8/CMakeSystem.cmake _deps/glad-src/CMakeLists.txt _deps/glfw-src/CMakeLists.txt _deps/glfw-src/CMake/glfw3.pc.in _deps/glfw-src/CMake/glfw3Config.cmake.in _deps/glfw-src/src/CMakeLists.txt _deps/glm-src/CMakeLists.txt _deps/glm-src/glm/CMakeLists.txt
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build C$:/Github/Pacman-OpenGL/CMakeLists.txt C$:/Program$ Files/CMake/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCCompilerABI.c C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXCompilerABI.cpp C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCompilerIdDetection.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDependentOption.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCXXCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineCompilerSupport.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDetermineRCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeFindBinUtils.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseImplicitIncludeInfo.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseImplicitLinkInfo.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeParseLibraryArchitecture.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCCompiler.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestCompilerCommon.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeTestRCCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ADSP-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ARMCC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/ARMClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/AppleClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Borland-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Bruce-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Clang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Clang-DetermineCompilerInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Compaq-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Cray-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CrayClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Embarcadero-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Fujitsu-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GHS-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-FindBinUtils.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/HP-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/HP-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IAR-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMCPP-C-DetermineVersionInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMClang-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Intel-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/LCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/MSVC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/NVHPC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/NVIDIA-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/OrangeC-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/PGI-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/PathScale-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SCO-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SDCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SunPro-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TI-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TIClang-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Tasking-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/TinyCC-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/VisualAge-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/Watcom-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XL-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XL-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XLClang-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/zOS-C-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindGit.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindOpenGL.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython/Support.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/GNUInstallDirs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CMakeDetermineLinkerId.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CheckSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/FeatureTesting.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Determine-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/WindowsPaths.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake CMakeCache.txt CMakeFiles/3.30.8/CMakeCCompiler.cmake CMakeFiles/3.30.8/CMakeCXXCompiler.cmake CMakeFiles/3.30.8/CMakeRCCompiler.cmake CMakeFiles/3.30.8/CMakeSystem.cmake _deps/glad-src/CMakeLists.txt _deps/glfw-src/CMakeLists.txt _deps/glfw-src/CMake/glfw3.pc.in _deps/glfw-src/CMake/glfw3Config.cmake.in _deps/glfw-src/src/CMakeLists.txt _deps/glm-src/CMakeLists.txt _deps/glm-src/glm/CMakeLists.txt: phony
+build C$:/Github/Pacman-OpenGL/CMakeLists.txt C$:/Program$ Files/CMake/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeDependentOption.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeRCInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckCSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckIncludeFile.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/CheckLibraryExists.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Compiler/GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindGit.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindOpenGL.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPackageMessage.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindPython/Support.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/FindThreads.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/GNUInstallDirs.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Internal/CheckSourceCompiles.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/Windows.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/Platform/WindowsPaths.cmake C$:/Program$ Files/CMake/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake CMakeCache.txt CMakeFiles/3.30.8/CMakeCCompiler.cmake CMakeFiles/3.30.8/CMakeCXXCompiler.cmake CMakeFiles/3.30.8/CMakeRCCompiler.cmake CMakeFiles/3.30.8/CMakeSystem.cmake _deps/glad-src/CMakeLists.txt _deps/glfw-src/CMakeLists.txt _deps/glfw-src/CMake/glfw3.pc.in _deps/glfw-src/CMake/glfw3Config.cmake.in _deps/glfw-src/src/CMakeLists.txt _deps/glm-src/CMakeLists.txt _deps/glm-src/glm/CMakeLists.txt: phony
 
 
 #############################################

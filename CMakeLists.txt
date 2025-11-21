@@ -55,17 +55,51 @@ find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    
+    # Core modules
+    src/core/camera.cpp
+    src/core/window.cpp
+    
+    # Utilities
+    src/utils/bounds_utils.cpp
+    src/utils/file_utils.cpp
+    
+    # Rendering
+    src/rendering/gltf_loader.cpp
+    src/rendering/obj_loader.cpp
+    src/rendering/mesh.cpp
+    src/rendering/primitives.cpp
+    src/rendering/shader.cpp
+    src/rendering/texture_loader.cpp
+    
+    # Game modules
+    src/game/map/board.cpp
+    src/game/map/map_generator.cpp
+    src/game/player/player.cpp
+    src/game/player/dice/dice.cpp
 )
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
+set(DICE_MODEL ${CMAKE_CURRENT_SOURCE_DIR}/dice.glb)
+set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/dice.glb)
 
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${SHADER_DIR} ${BINARY_SHADER_DIR}
-    COMMENT "Copying runtime assets"
+    COMMENT "Copying shaders"
 )
 
-add_dependencies(${PROJECT_NAME} copy_shaders)
+# Copy dice model only if it exists
+if(EXISTS ${DICE_MODEL})
+    add_custom_target(copy_assets ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DICE_MODEL} ${BINARY_DICE_MODEL}
+        COMMENT "Copying dice model"
+    )
+    add_dependencies(${PROJECT_NAME} copy_shaders copy_assets)
+else()
+    message(STATUS "dice.glb not found in source directory - dice visualization will be disabled at runtime")
+    add_dependencies(${PROJECT_NAME} copy_shaders)
+endif()
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
