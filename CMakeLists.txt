@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(PacmanOpenGL VERSION 0.1.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -70,6 +72,8 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/external
         ${CMAKE_CURRENT_SOURCE_DIR}/external/cgltf
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include
+        ${glad_BINARY_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME}

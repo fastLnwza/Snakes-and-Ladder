@@ -1,7 +1,7 @@
-prefix=C:/Program Files/PacmanOpenGL
+prefix=C:/Program Files (x86)/PacmanOpenGL
 exec_prefix=${prefix}
-includedir=C:/Program Files/PacmanOpenGL/include
-libdir=C:/Program Files/PacmanOpenGL/lib
+includedir=C:/Program Files (x86)/PacmanOpenGL/include
+libdir=C:/Program Files (x86)/PacmanOpenGL/lib
 
 Name: GLFW
 Description: A multi-platform library for OpenGL, window and input

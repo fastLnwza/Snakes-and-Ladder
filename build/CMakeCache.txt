@@ -76,9 +76,6 @@ CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=/INCREMENTAL:NO
 //Flags used by the linker during RELWITHDEBINFO builds.
 CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
 
-//No help, variable specified on the command line.
-CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
-
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=C:/Github/Pacman-OpenGL/build/CMakeFiles/pkgRedirects
 
@@ -119,7 +116,7 @@ CMAKE_INSTALL_MANDIR:PATH=
 CMAKE_INSTALL_OLDINCLUDEDIR:PATH=/usr/include
 
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=C:/Program Files/PacmanOpenGL
+CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/PacmanOpenGL
 
 //Run-time variable data (LOCALSTATEDIR/run)
 CMAKE_INSTALL_RUNSTATEDIR:PATH=
@@ -157,7 +154,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELEASE:STRING=/INCREMENTAL:NO
 CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO:STRING=/debug /INCREMENTAL
 
 //Path to a program.
-CMAKE_MT:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe
+CMAKE_MT:FILEPATH=CMAKE_MT-NOTFOUND
 
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=
@@ -184,7 +181,7 @@ CMAKE_PROJECT_VERSION_PATCH:STATIC=0
 CMAKE_PROJECT_VERSION_TWEAK:STATIC=
 
 //RC compiler
-CMAKE_RC_COMPILER:FILEPATH=C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/rc.exe
+CMAKE_RC_COMPILER:FILEPATH=rc
 
 //Flags for Windows Resource Compiler during all build types.
 CMAKE_RC_FLAGS:STRING=-DWIN32
@@ -513,9 +510,9 @@ CMAKE_GENERATOR:INTERNAL=Visual Studio 17 2022
 //Generator instance identifier.
 CMAKE_GENERATOR_INSTANCE:INTERNAL=C:/Program Files/Microsoft Visual Studio/2022/Community
 //Name of generator platform.
-CMAKE_GENERATOR_PLATFORM:INTERNAL=x64
+CMAKE_GENERATOR_PLATFORM:INTERNAL=
 //Name of generator toolset.
-CMAKE_GENERATOR_TOOLSET:INTERNAL=host=x64
+CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Test CMAKE_HAVE_LIBC_PTHREAD
 CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=
 //Have library pthreads
@@ -635,7 +632,7 @@ OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: OPENGL_glu_LIBRARY
 OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
-_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files/PacmanOpenGL
+_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/PacmanOpenGL
 //Compiler reason failure
 _Python_Compiler_REASON_FAILURE:INTERNAL=
 //Development reason failure
