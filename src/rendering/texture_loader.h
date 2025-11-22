@@ -16,3 +16,5 @@ struct Texture
 Texture load_texture(const std::filesystem::path& path);
 void destroy_texture(Texture& texture);
 
+
+

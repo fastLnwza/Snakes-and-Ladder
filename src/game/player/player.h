@@ -22,8 +22,9 @@ namespace game::player
     };
 
     void initialize(PlayerState& state, const glm::vec3& start_position, float ground_y, float radius);
-    void update(PlayerState& state, float delta_time, bool space_just_pressed, int final_tile_index);
-    void roll_dice(PlayerState& state);
+    void update(PlayerState& state, float delta_time, bool space_just_pressed, int final_tile_index, bool can_start_walking = true);
+    void roll_dice(PlayerState& state);  // Kept for compatibility, does nothing now
+    void set_dice_result(PlayerState& state, int result);  // Set result after dice finishes rolling
     glm::vec3 get_position(const PlayerState& state);
     int get_current_tile(const PlayerState& state);
 }

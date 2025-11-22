@@ -34,6 +34,9 @@
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\texture_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\text_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

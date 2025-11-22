@@ -13,3 +13,5 @@ struct GLTFModel
 GLTFModel load_gltf_model(const std::filesystem::path& path);
 void destroy_gltf_model(GLTFModel& model);
 
+
+

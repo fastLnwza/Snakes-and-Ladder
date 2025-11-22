@@ -29,7 +29,9 @@ namespace game::player
 
         void schedule_step(PlayerState& state, int final_tile_index)
         {
-            if (state.steps_remaining <= 0 || state.is_stepping || state.current_tile_index >= final_tile_index)
+            // Only check if steps remaining and not already stepping
+            // Don't check final_tile_index here - let player walk the full dice result
+            if (state.steps_remaining <= 0 || state.is_stepping)
             {
                 return;
             }
@@ -63,22 +65,34 @@ namespace game::player
 
     void roll_dice(PlayerState& state)
     {
-        state.last_dice_result = get_dice_distribution()(get_rng());
-        state.steps_remaining = state.last_dice_result;
+        // Don't roll here - dice will roll its own number
+        // This function is kept for compatibility but does nothing
+        // The actual dice roll happens in dice::start_roll()
+        (void)state;  // Suppress unused parameter warning
+    }
+    
+    void set_dice_result(PlayerState& state, int result)
+    {
+        // Set the dice result after dice has finished rolling
+        state.last_dice_result = result;
+        state.steps_remaining = result;
     }
 
-    void update(PlayerState& state, float delta_time, bool space_just_pressed, int final_tile_index)
+    void update(PlayerState& state, float delta_time, bool space_just_pressed, int final_tile_index, bool can_start_walking)
     {
-        if (space_just_pressed && !state.is_stepping && state.current_tile_index < final_tile_index)
+        // Don't roll dice here - dice will be rolled when space is pressed in main.cpp
+        // The dice will roll its own number, and then we'll use that result
+        (void)space_just_pressed;  // Suppress unused parameter warning
+        
+        // Start walking only if can_start_walking is true and we have steps to take
+        // This ensures player waits for dice to finish before walking
+        // IMPORTANT: Use the dice result directly - walk exactly the number rolled
+        if (can_start_walking && !state.is_stepping && state.steps_remaining > 0)
         {
-            roll_dice(state);
-            state.steps_remaining = std::min(state.steps_remaining, final_tile_index - state.current_tile_index);
-            if (state.steps_remaining > 0)
-            {
-                schedule_step(state, final_tile_index);
-            }
+            schedule_step(state, final_tile_index);
         }
 
+        // Continue stepping if already started
         if (state.is_stepping)
         {
             state.step_timer += delta_time;
@@ -95,7 +109,8 @@ namespace game::player
                 ++state.current_tile_index;
                 --state.steps_remaining;
                 state.is_stepping = false;
-                if (state.steps_remaining > 0 && state.current_tile_index < final_tile_index)
+                // Continue walking if there are steps remaining - use dice result directly
+                if (state.steps_remaining > 0)
                 {
                     schedule_step(state, final_tile_index);
                 }

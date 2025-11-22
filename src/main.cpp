@@ -22,6 +22,7 @@
 #include "rendering/primitives.h"
 #include "rendering/shader.h"
 #include "rendering/texture_loader.h"
+#include "rendering/text_renderer.h"
 #include "utils/file_utils.h"
 
 int main(int argc, char* argv[])
@@ -185,6 +186,10 @@ int main(int argc, char* argv[])
         dice_state.scale = player_radius * 0.167f; // Reduced scale
         dice_state.rotation = glm::vec3(45.0f, 45.0f, 0.0f); // Initial rotation to make it visible
 
+        // Initialize text renderer for displaying dice result
+        TextRenderer text_renderer;
+        initialize_text_renderer(text_renderer);
+
         float last_time = 0.0f;
 
         // Main game loop
@@ -209,17 +214,59 @@ int main(int argc, char* argv[])
             // Check if dice should start rolling (before player update to catch the roll)
             int previous_dice_result = player_state.last_dice_result;
             
-            update(player_state, delta_time, space_just_pressed, final_tile_index);
-            player_state.previous_space_state = space_pressed;
-            
-            // Start dice roll animation when a new dice result is generated
-            if (player_state.last_dice_result != previous_dice_result && player_state.last_dice_result > 0)
+            // Start dice roll when space is pressed (dice will roll its own number)
+            if (space_just_pressed && !player_state.is_stepping && player_state.steps_remaining == 0 && !dice_state.is_rolling && !dice_state.is_falling)
             {
-                start_roll(dice_state, player_state.last_dice_result);
+                // Reset dice state completely
+                dice_state.is_displaying = false;
+                dice_state.is_rolling = false;
+                dice_state.is_falling = false;
+                dice_state.display_timer = 0.0f;
+                dice_state.roll_timer = 0.0f;
+                dice_state.result = 0;
+                dice_state.pending_result = 0;  // Clear pending result - will be set when rolling starts
+                
+                // Calculate target position at ground level (where dice will land)
+                glm::vec3 player_pos = get_position(player_state);
+                glm::vec3 target_pos = player_pos;
+                target_pos.y = player_ground_y;
+                
+                // Set ground level for dice physics
+                dice_state.ground_y = player_ground_y;
+                
+                // Start dice roll - dice will roll its own number randomly
+                const float fall_height = map_length * 0.4f; // Fall from 40% of map height
+                game::player::dice::start_roll(dice_state, target_pos, fall_height);
+                std::cout << "=== Started Dice Roll ===" << std::endl;
             }
             
-            // Update dice animation
-            update(dice_state, delta_time);
+            // Check if dice has finished rolling and get the result
+            // When dice stops, use that result for player movement
+            if (!dice_state.is_falling && !dice_state.is_rolling && dice_state.result > 0 && dice_state.is_displaying)
+            {
+                // Dice has finished - check if we need to update player with the result
+                if (player_state.last_dice_result != dice_state.result)
+                {
+                    // Set the dice result to player - this is the number that was actually rolled
+                    game::player::set_dice_result(player_state, dice_state.result);
+                    std::cout << "=== Dice Finished ===" << std::endl;
+                    std::cout << "Dice rolled: " << dice_state.result << std::endl;
+                    std::cout << "Player will move: " << player_state.steps_remaining << " steps" << std::endl;
+                    std::cout << "Current tile: " << get_current_tile(player_state) << std::endl;
+                }
+            }
+            
+            // Check if dice has finished: stopped bouncing AND result is set
+            bool dice_finished = !dice_state.is_falling && !dice_state.is_rolling && dice_state.result > 0 && dice_state.is_displaying;
+            
+            // Only allow player to start walking after dice finishes bouncing and shows result
+            update(player_state, delta_time, false, final_tile_index, dice_finished);  // Don't pass space_just_pressed here
+            player_state.previous_space_state = space_pressed;
+            
+            // Update dice animation with board bounds for bouncing
+            const float half_width = board_width * 0.5f;
+            const float half_height = board_height * 0.5f;
+            update(dice_state, delta_time, half_width, half_height);
 
             // Render
             glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
@@ -254,48 +301,49 @@ int main(int argc, char* argv[])
                 glDrawElements(GL_TRIANGLES, sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
             }
 
-            // Draw dice (always visible for now to test)
-            const std::vector<Mesh>* dice_meshes = nullptr;
-            if (has_dice_model)
+            // Draw dice when rolling, falling, or displaying result
+            if (dice_state.is_rolling || dice_state.is_falling || dice_state.is_displaying)
             {
-                if (is_obj_format)
+                const std::vector<Mesh>* dice_meshes = nullptr;
+                if (has_dice_model)
                 {
-                    if (!dice_model_obj.meshes.empty())
-                        dice_meshes = &dice_model_obj.meshes;
+                    if (is_obj_format)
+                    {
+                        if (!dice_model_obj.meshes.empty())
+                            dice_meshes = &dice_model_obj.meshes;
+                    }
+                    else
+                    {
+                        if (!dice_model_glb.meshes.empty())
+                            dice_meshes = &dice_model_glb.meshes;
+                    }
                 }
-                else
+                
+                if (dice_meshes && !dice_meshes->empty())
                 {
-                    if (!dice_model_glb.meshes.empty())
-                        dice_meshes = &dice_model_glb.meshes;
-                }
-            }
-            
-            if (dice_meshes && !dice_meshes->empty())
-            {
-                // Position dice at player's current tile center to ensure it's on the board
-                const int current_tile = get_current_tile(player_state);
-                // Clamp current_tile to valid range
-                const int clamped_tile = std::clamp(current_tile, 0, BOARD_COLUMNS * BOARD_ROWS - 1);
-                const glm::vec3 tile_center = tile_center_world(clamped_tile, player_ground_y);
-                
-                // Position dice above the tile center - ensure it stays on board
-                glm::vec3 dice_pos = tile_center;
-                dice_pos.y += player_radius * 1.5f; // Position above tile
-                
-                // Calculate board bounds using same logic as tile_center_world
-                const float half_width = board_width * 0.5f;
-                const float half_height = board_height * 0.5f;
-                const float dice_radius = dice_state.scale * 0.5f;
-                
-                // Clamp dice position to stay strictly within board bounds
-                dice_pos.x = std::clamp(dice_pos.x, -half_width + dice_radius, half_width - dice_radius);
-                dice_pos.z = std::clamp(dice_pos.z, -half_height + dice_radius, half_height - dice_radius);
-                
-                dice_state.position = dice_pos;
-                
-                const glm::mat4 dice_transform = get_transform(dice_state);
-                const glm::mat4 dice_mvp = projection * view * dice_transform;
-                glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(dice_mvp));
+                    // Use dice position - it already has offset to prevent sinking
+                    glm::vec3 render_pos = dice_state.position;
+                    // Dice position already accounts for scale * 1.5f offset in physics
+                    // Add extra visual offset when displaying to ensure corners don't sink into tiles
+                    if (dice_state.is_displaying && !dice_state.is_falling)
+                    {
+                        // Add extra offset to ensure dice (especially corners) don't sink
+                        render_pos.y += dice_state.scale * 0.3f; // Additional visual offset to prevent corner sinking
+                    }
+                    
+                    // Create transform with adjusted position
+                    glm::vec3 original_pos = dice_state.position;
+                    dice_state.position = render_pos;
+                    glm::mat4 dice_transform = game::player::dice::get_transform(dice_state);
+                    dice_state.position = original_pos; // Restore original position
+                    
+                    const glm::mat4 dice_mvp = projection * view * dice_transform;
+                    
+                    // Enable polygon offset to make dice render in front of decorations
+                    glEnable(GL_POLYGON_OFFSET_FILL);
+                    glPolygonOffset(-1.0f, -1.0f); // Negative offset to draw in front
+                    
+                    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(dice_mvp));
                 
                 // Enable texture if available
                 if (has_dice_texture && dice_texture.id != 0)
@@ -324,12 +372,71 @@ int main(int argc, char* argv[])
                 {
                     glBindTexture(GL_TEXTURE_2D, 0);
                 }
+                
+                // Disable polygon offset after drawing dice
+                glDisable(GL_POLYGON_OFFSET_FILL);
+                }
+            }
+
+            // Render UI text (dice result) in orthographic projection
+            // Show text when dice is rolling/falling/displaying OR always show steps remaining
+            if (dice_state.is_displaying || dice_state.is_rolling || dice_state.is_falling || player_state.steps_remaining > 0)
+            {
+                // Get window size
+                int window_width, window_height;
+                window.get_framebuffer_size(&window_width, &window_height);
+                
+                // Switch to orthographic projection for UI
+                glm::mat4 ortho_projection = glm::ortho(0.0f, static_cast<float>(window_width), 
+                                                        static_cast<float>(window_height), 0.0f, -1.0f, 1.0f);
+                glm::mat4 identity_view = glm::mat4(1.0f);
+                glm::mat4 ui_mvp = ortho_projection * identity_view;
+                
+                // Set UI matrices
+                glUseProgram(program);
+                glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(ui_mvp));
+                glUniform1i(use_texture_location, 0);
+                
+                // Disable depth test for UI and enable blending for better visibility
+                glDisable(GL_DEPTH_TEST);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                
+                // Prepare text strings (show dice result and steps to walk)
+                // Only show result AFTER dice has stopped bouncing - don't show pending result while rolling
+                int display_result = 0;
+                if (dice_state.result > 0 && dice_state.is_displaying)
+                {
+                    display_result = dice_state.result;  // Show result only after dice stops
+                }
+                else if (!dice_state.is_rolling && !dice_state.is_falling)
+                {
+                    display_result = player_state.last_dice_result;  // Show last result when not rolling
+                }
+                // Otherwise show 0 while rolling (dice hasn't stopped yet)
+                
+                std::string dice_text = std::to_string(display_result);
+                std::string steps_text = std::to_string(player_state.steps_remaining);
+                std::string info_text = dice_text + " : " + steps_text;
+                
+                // Render text at center of screen (top)
+                float center_x = window_width * 0.5f;
+                float top_y = window_height * 0.1f; // Top 10% of screen
+                
+                // Use bright yellow color for visibility
+                glm::vec3 text_color(1.0f, 1.0f, 0.0f); // Bright yellow
+                render_text(text_renderer, info_text, center_x, top_y, 4.0f, text_color, window_width, window_height);
+                
+                // Re-enable depth test and disable blending
+                glDisable(GL_BLEND);
+                glEnable(GL_DEPTH_TEST);
             }
 
             window.swap_buffers();
         }
 
         // Cleanup
+        destroy_text_renderer(text_renderer);
         if (has_dice_texture)
         {
             destroy_texture(dice_texture);

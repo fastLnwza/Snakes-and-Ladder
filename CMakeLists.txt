@@ -71,6 +71,7 @@ add_executable(${PROJECT_NAME}
     src/rendering/primitives.cpp
     src/rendering/shader.cpp
     src/rendering/texture_loader.cpp
+    src/rendering/text_renderer.cpp
     
     # Game modules
     src/game/map/board.cpp

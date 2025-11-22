@@ -343,6 +343,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\primitives.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\shader.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\texture_loader.cpp" />
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\text_renderer.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\board.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\player.cpp" />
