@@ -16,3 +16,5 @@ void initialize_text_renderer(TextRenderer& renderer);
 void destroy_text_renderer(TextRenderer& renderer);
 void render_text(const TextRenderer& renderer, const std::string& text, float x, float y, float scale, const glm::vec3& color, int window_width, int window_height);
 
+
+

@@ -7,7 +7,6 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <limits>
 #include <string>
 #include <glm/gtc/constants.hpp>
 
@@ -115,6 +114,24 @@ namespace game::map
             }
         }
 
+        void append_start_icon(std::vector<Vertex>& vertices,
+                               std::vector<unsigned int>& indices,
+                               const glm::vec3& tile_center,
+                               float tile_size)
+        {
+            // Create a green triangle marker for start point
+            const float triangle_size = tile_size * 0.25f;
+            const float triangle_height = tile_size * 0.3f;
+            const glm::vec3 triangle_center = tile_center + glm::vec3(tile_size * 0.18f, tile_size * 0.02f, -tile_size * 0.18f);
+            
+            append_pyramid(vertices,
+                           indices,
+                           triangle_center,
+                           triangle_size,
+                           triangle_height,
+                           {0.22f, 0.85f, 0.32f}); // Bright green for start triangle
+        }
+
         void append_activity_icon(std::vector<Vertex>& vertices,
                                   std::vector<unsigned int>& indices,
                                   ActivityKind kind,
@@ -196,6 +213,33 @@ namespace game::map
                                tile_size * 0.18f,
                                tile_size * 0.18f,
                                {0.95f, 0.85f, 0.35f});
+                break;
+            }
+            case ActivityKind::MiniGame:
+            {
+                const float orb_radius = tile_size * 0.2f;
+                const auto [orb_vertices, orb_indices] = build_sphere(orb_radius, 20, 14, {0.72f, 0.35f, 0.92f});
+                const std::size_t offset = vertices.size();
+                const glm::vec3 orb_center = tile_center + glm::vec3(0.0f, tile_size * 0.22f, 0.0f);
+                for (auto vertex : orb_vertices)
+                {
+                    vertex.position += orb_center;
+                    vertices.push_back(vertex);
+                }
+                for (unsigned int idx : orb_indices)
+                {
+                    indices.push_back(static_cast<unsigned int>(offset + idx));
+                }
+
+                const glm::vec3 ring_color = {0.32f, 0.78f, 0.95f};
+                append_box_prism(vertices,
+                                 indices,
+                                 tile_center.x,
+                                 tile_center.z,
+                                 tile_size * 0.45f,
+                                 tile_size * 0.08f,
+                                 tile_size * 0.05f,
+                                 ring_color);
                 break;
             }
             case ActivityKind::None:
@@ -325,8 +369,8 @@ namespace game::map
         
         const float board_width = static_cast<float>(BOARD_COLUMNS) * TILE_SIZE;
         const float board_height = static_cast<float>(BOARD_ROWS) * TILE_SIZE;
-        const float plaza_margin = TILE_SIZE * 3.0f;
-        const float board_margin = TILE_SIZE * 0.5f;
+        const float plaza_margin = TILE_SIZE * 0.2f;  // Reduced margin so board fills plaza
+        const float board_margin = TILE_SIZE * 0.3f;  // Reduced margin
 
         const auto push_plane = [&](const std::vector<Vertex>& plane_vertices,
                                     const std::vector<unsigned int>& plane_indices,
@@ -438,7 +482,7 @@ namespace game::map
         const glm::vec3 snake_color = {0.78f, 0.28f, 0.28f};
 
         const float tile_surface_offset = 0.02f;
-        const float tile_size = TILE_SIZE * 0.92f;
+        const float tile_size = TILE_SIZE * 0.98f;  // Increased to fill board better
 
         for (int tile = 0; tile < BOARD_COLUMNS * BOARD_ROWS; ++tile)
         {
@@ -477,6 +521,13 @@ namespace game::map
             }
 
             append_tile_number(vertices, indices, tile, center, tile_size);
+            
+            // Add start icon for start tile
+            if (tile_kinds[tile] == TileKind::Start)
+            {
+                append_start_icon(vertices, indices, center, tile_size);
+            }
+            
             const ActivityKind activity = classify_activity_tile(tile);
             if (activity != ActivityKind::None)
             {

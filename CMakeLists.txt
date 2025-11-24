@@ -76,6 +76,7 @@ add_executable(${PROJECT_NAME}
     # Game modules
     src/game/map/board.cpp
     src/game/map/map_generator.cpp
+    src/game/minigame/qte_minigame.cpp
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
 )

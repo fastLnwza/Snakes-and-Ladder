@@ -123,12 +123,179 @@ void render_text(const TextRenderer& renderer, const std::string& text, float x,
     float text_width = text.length() * char_spacing;
     current_x -= text_width * 0.5f;
     
+    // Helper function to add a quad for letter rendering
+    auto add_letter_quad = [&](float x1, float y1, float x2, float y2, float base_x, float base_y, float w, float h)
+    {
+        size_t base_idx = vertices.size();
+        vertices.push_back({{base_x + x1 * w, base_y + y1 * h, -0.5f}, color, {0.0f, 0.0f}});
+        vertices.push_back({{base_x + x2 * w, base_y + y1 * h, -0.5f}, color, {1.0f, 0.0f}});
+        vertices.push_back({{base_x + x2 * w, base_y + y2 * h, -0.5f}, color, {1.0f, 1.0f}});
+        vertices.push_back({{base_x + x1 * w, base_y + y2 * h, -0.5f}, color, {0.0f, 1.0f}});
+        indices.push_back(base_idx); indices.push_back(base_idx + 1); indices.push_back(base_idx + 2);
+        indices.push_back(base_idx + 2); indices.push_back(base_idx + 3); indices.push_back(base_idx);
+    };
+    
     for (char c : text)
     {
+        float char_base_x = current_x;
+        float char_base_y = y - char_height * 0.5f;
+        const float line_w = 0.12f;
+        
         if (c >= '0' && c <= '9')
         {
-            create_digit_mesh(c, vertices, indices, current_x, y - char_height * 0.5f,
+            create_digit_mesh(c, vertices, indices, char_base_x, char_base_y,
                             char_width, char_height, color);
+        }
+        else if (c >= 'A' && c <= 'Z')
+        {
+            // Render uppercase letters using simple block style
+            char upper_c = c;
+            if (upper_c == 'M')
+            {
+                // M
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.5f - line_w * 0.5f, 0.3f, 0.5f + line_w * 0.5f, 0.7f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(1.0f - line_w, 0.0f, 1.0f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, 1.0f, line_w, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'I')
+            {
+                // I
+                add_letter_quad(0.4f, 0.0f, 0.6f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, 1.0f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 1.0f - line_w, 1.0f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'S')
+            {
+                // S
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, line_w, 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.9f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.5f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'F')
+            {
+                // F
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.7f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'A')
+            {
+                // A
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.9f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'L')
+            {
+                // L
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'N')
+            {
+                // N
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.5f - line_w * 0.5f, 0.2f, 0.5f + line_w * 0.5f, 0.8f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'O')
+            {
+                // O
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'E')
+            {
+                // E
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.7f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'B')
+            {
+                // B (Bonus)
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.8f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.8f - line_w, 0.0f, 0.8f, 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.8f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.8f - line_w, 0.5f, 0.8f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.8f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'U')
+            {
+                // U
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f - line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f - line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            // For other uppercase letters, render as simple blocks (fallback)
+            else
+            {
+                add_letter_quad(0.1f, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+        }
+        else if (c >= 'a' && c <= 'z')
+        {
+            // Convert lowercase to uppercase for rendering
+            char upper_c = c - 'a' + 'A';
+            // Render lowercase letters (same shapes as uppercase, just smaller or different position)
+            if (upper_c == 'I' || c == 'i')
+            {
+                add_letter_quad(0.4f, 0.0f, 0.6f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, 1.0f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 1.0f - line_w, 1.0f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'S' || c == 's')
+            {
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, line_w, 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.9f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.5f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'O' || c == 'o')
+            {
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'N' || c == 'n')
+            {
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.5f - line_w * 0.5f, 0.2f, 0.5f + line_w * 0.5f, 0.8f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'L' || c == 'l')
+            {
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 1.0f - line_w, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'A' || c == 'a')
+            {
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.9f - line_w, 0.0f, 0.9f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.9f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else if (upper_c == 'F' || c == 'f')
+            {
+                add_letter_quad(0.0f, 0.0f, line_w, 1.0f, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.0f, 0.9f, line_w, char_base_x, char_base_y, char_width, char_height);
+                add_letter_quad(0.1f, 0.5f - line_w * 0.5f, 0.7f, 0.5f + line_w * 0.5f, char_base_x, char_base_y, char_width, char_height);
+            }
+            else
+            {
+                // Fallback for other lowercase - render as simple block
+                add_letter_quad(0.2f, 0.2f, 0.8f, 0.8f, char_base_x, char_base_y, char_width, char_height);
+            }
         }
         else if (c == ':')
         {
@@ -153,6 +320,12 @@ void render_text(const TextRenderer& renderer, const std::string& text, float x,
             vertices.push_back({{dot_x, dot2_y + dot_size, -0.5f}, color, {0.0f, 1.0f}});
             indices.push_back(base); indices.push_back(base + 1); indices.push_back(base + 2);
             indices.push_back(base + 2); indices.push_back(base + 3); indices.push_back(base);
+        }
+        else if (c == '+')
+        {
+            // Draw plus sign
+            add_letter_quad(0.4f, 0.0f, 0.6f, 1.0f, char_base_x, char_base_y, char_width, char_height);
+            add_letter_quad(0.1f, 0.45f, 0.9f, 0.55f, char_base_x, char_base_y, char_width, char_height);
         }
         else if (c == ' ')
         {

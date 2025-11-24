@@ -1,10 +1,21 @@
 #include "board.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 namespace game::map
 {
+    namespace
+    {
+        constexpr std::array<int, 4> MINI_GAME_TILES = {7, 28, 55, 82};
+
+        bool is_minigame_tile(int tile_index)
+        {
+            return std::find(MINI_GAME_TILES.begin(), MINI_GAME_TILES.end(), tile_index) != MINI_GAME_TILES.end();
+        }
+    }
+
     glm::vec3 tile_center_world(int tile_index, float height_offset)
     {
         const int row = tile_index / BOARD_COLUMNS;
@@ -44,6 +55,10 @@ namespace game::map
         if ((tile_index % 4) == 0)
         {
             return ActivityKind::Bonus;
+        }
+        if (is_minigame_tile(tile_index))
+        {
+            return ActivityKind::MiniGame;
         }
 
         return ActivityKind::None;

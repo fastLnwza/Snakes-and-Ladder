@@ -33,7 +33,7 @@ namespace game::player::dice
             return glm::vec3(dist(rng), dist(rng), dist(rng));
         }
         
-        // Convert dice result (1-6) to rotation angles to show the correct face
+        // Convert dice result (1-6, or 7 for testing) to rotation angles to show the correct face
         // This assumes standard dice orientation where:
         // - Face 1 is opposite face 6
         // - Face 2 is opposite face 5  
@@ -51,6 +51,7 @@ namespace game::player::dice
                 case 4: return glm::vec3(0.0f, 0.0f, 0.0f);      // Top face (was 1)
                 case 5: return glm::vec3(0.0f, 0.0f, -90.0f);    // Rotate Z -90
                 case 6: return glm::vec3(90.0f, 0.0f, 0.0f);     // Rotate X 90 (was 3)
+                case 7: return glm::vec3(0.0f, 45.0f, 0.0f);     // For testing: default view angle
                 default: return glm::vec3(0.0f, 45.0f, 0.0f);    // Default view angle
             }
         }
@@ -83,32 +84,14 @@ namespace game::player::dice
     {
         // IMPORTANT: Dice rolls its own number - don't pass a predetermined result
         // The dice will randomly generate a number and display it when it stops
-        int rolled_number = random_dice_result();
-        
-        // CRITICAL: Verify rolled number is valid (1-6)
-        if (rolled_number < 1 || rolled_number > 6)
-        {
-            std::cerr << "ERROR: Invalid rolled number: " << rolled_number << "! Resetting to 1." << std::endl;
-            rolled_number = 1;
-        }
-        
-        // Log the rolled number to verify it doesn't change
-        std::cout << "=== Starting Dice Roll ===" << std::endl;
-        std::cout << "Rolled number (random): " << rolled_number << std::endl;
-        std::cout << "Setting pending_result to: " << rolled_number << std::endl;
+        // TEMPORARY: For testing minigame at tile 7, always roll 7
+        int rolled_number = 7;  // For testing: always roll 7 to go to tile 7
         
         state.is_rolling = true;
         state.is_falling = true;
         state.roll_timer = 0.0f;
         state.result = 0;  // Don't set result yet - wait until bounce stops
         state.pending_result = rolled_number;  // Store the rolled number but don't show it yet - IMPORTANT: This should never change
-        
-        // Verify pending_result was set correctly
-        std::cout << "Pending result (after setting): " << state.pending_result << std::endl;
-        if (state.pending_result != rolled_number)
-        {
-            std::cerr << "ERROR: pending_result mismatch! Expected " << rolled_number << " but got " << state.pending_result << std::endl;
-        }
         state.target_position = target_position;
         state.fall_height = fall_height;
         
@@ -233,21 +216,16 @@ namespace game::player::dice
                 // Store pending_result IMMEDIATELY to prevent any changes
                 int final_result = state.pending_result;  // Lock the result value now
                 
-                // CRITICAL: Verify pending_result is valid (1-6)
-                if (final_result < 1 || final_result > 6)
+                // CRITICAL: Verify pending_result is valid (1-7 for testing)
+                // Note: 7 is allowed for testing minigame at tile 7
+                if (final_result < 1 || final_result > 7)
                 {
                     std::cerr << "ERROR: Invalid pending_result: " << final_result << "! Resetting to 1." << std::endl;
                     final_result = 1;
                 }
                 
-                // Set result IMMEDIATELY and verify it doesn't change
+                // Set result IMMEDIATELY
                 state.result = final_result;
-                
-                // Log BEFORE setting any other values to verify result doesn't change
-                std::cout << "=== Setting Dice Result ===" << std::endl;
-                std::cout << "Pending result: " << state.pending_result << std::endl;
-                std::cout << "Final result (locked): " << final_result << std::endl;
-                std::cout << "State.result (just set): " << state.result << std::endl;
                 
                 state.is_rolling = false;
                 state.rotation_velocity = glm::vec3(0.0f);  // Stop rotation
@@ -264,10 +242,6 @@ namespace game::player::dice
                 // Start displaying result
                 state.is_displaying = true;
                 state.display_timer = 0.0f;
-                
-                // IMPORTANT: Log again AFTER setting all values to verify result hasn't changed
-                std::cout << "State.result (after setting): " << state.result << std::endl;
-                std::cout << "=== Dice Stopped ===" << std::endl;
             }
         }
         

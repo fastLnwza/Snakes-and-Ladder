@@ -8,7 +8,7 @@ namespace game::map
 {
     constexpr int BOARD_COLUMNS = 10;
     constexpr int BOARD_ROWS = 10;
-    constexpr float TILE_SIZE = 4.0f;
+    constexpr float TILE_SIZE = 7.0f;  // Increased to make map and board bigger
 
     enum class TileKind
     {
@@ -42,7 +42,8 @@ namespace game::map
         Bonus,
         Slide,
         Portal,
-        Trap
+        Trap,
+        MiniGame
     };
 
     glm::vec3 tile_center_world(int tile_index, float height_offset = 0.0f);

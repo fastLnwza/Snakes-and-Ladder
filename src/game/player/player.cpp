@@ -84,15 +84,7 @@ namespace game::player
         // The dice will roll its own number, and then we'll use that result
         (void)space_just_pressed;  // Suppress unused parameter warning
         
-        // Start walking only if can_start_walking is true and we have steps to take
-        // This ensures player waits for dice to finish before walking
-        // IMPORTANT: Use the dice result directly - walk exactly the number rolled
-        if (can_start_walking && !state.is_stepping && state.steps_remaining > 0)
-        {
-            schedule_step(state, final_tile_index);
-        }
-
-        // Continue stepping if already started
+        // Continue stepping if already started (check this first)
         if (state.is_stepping)
         {
             state.step_timer += delta_time;
@@ -119,6 +111,13 @@ namespace game::player
         else
         {
             state.position.y = state.ground_y;
+            
+            // Start walking if we have steps remaining and can start
+            // This is a safeguard to ensure walking starts even if initial check missed it
+            if (can_start_walking && state.steps_remaining > 0 && !state.is_stepping)
+            {
+                schedule_step(state, final_tile_index);
+            }
         }
     }
 

@@ -3,7 +3,9 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,6 +16,7 @@
 #include "core/window.h"
 #include "game/map/board.h"
 #include "game/map/map_generator.h"
+#include "game/minigame/qte_minigame.h"
 #include "game/player/player.h"
 #include "game/player/dice/dice.h"
 #include "rendering/gltf_loader.h"
@@ -190,6 +193,13 @@ int main(int argc, char* argv[])
         TextRenderer text_renderer;
         initialize_text_renderer(text_renderer);
 
+        game::minigame::PrecisionTimingState minigame_state;
+        bool minigame_space_was_down = false;
+        int last_processed_tile = get_current_tile(player_state);
+        std::string minigame_message;
+        float minigame_message_timer = 0.0f;
+        float dice_display_timer = 0.0f; // Timer for showing dice result (10 seconds)
+
         float last_time = 0.0f;
 
         // Main game loop
@@ -210,12 +220,10 @@ int main(int argc, char* argv[])
             // Update player
             const bool space_pressed = window.is_key_pressed(GLFW_KEY_SPACE);
             const bool space_just_pressed = space_pressed && !player_state.previous_space_state;
-            
-            // Check if dice should start rolling (before player update to catch the roll)
-            int previous_dice_result = player_state.last_dice_result;
+            const bool minigame_running = game::minigame::is_running(minigame_state);
             
             // Start dice roll when space is pressed (dice will roll its own number)
-            if (space_just_pressed && !player_state.is_stepping && player_state.steps_remaining == 0 && !dice_state.is_rolling && !dice_state.is_falling)
+            if (space_just_pressed && !player_state.is_stepping && player_state.steps_remaining == 0 && !dice_state.is_rolling && !dice_state.is_falling && !minigame_running)
             {
                 // Reset dice state completely
                 dice_state.is_displaying = false;
@@ -237,36 +245,177 @@ int main(int argc, char* argv[])
                 // Start dice roll - dice will roll its own number randomly
                 const float fall_height = map_length * 0.4f; // Fall from 40% of map height
                 game::player::dice::start_roll(dice_state, target_pos, fall_height);
-                std::cout << "=== Started Dice Roll ===" << std::endl;
             }
             
             // Check if dice has finished rolling and get the result
             // When dice stops, use that result for player movement
-            if (!dice_state.is_falling && !dice_state.is_rolling && dice_state.result > 0 && dice_state.is_displaying)
+            const bool dice_ready = !dice_state.is_falling && !dice_state.is_rolling && dice_state.result > 0;
+            
+            // Transfer dice result to player as soon as dice is ready
+            if (dice_ready && player_state.last_dice_result != dice_state.result)
             {
-                // Dice has finished - check if we need to update player with the result
+                // Set the dice result to player - this is the number that was actually rolled
+                game::player::set_dice_result(player_state, dice_state.result);
+                // Start timer to show dice result for 10 seconds
+                dice_display_timer = 10.0f;
+            }
+            
+            // Update dice display timer
+            if (dice_display_timer > 0.0f)
+            {
+                dice_display_timer = std::max(0.0f, dice_display_timer - delta_time);
+            }
+            
+            // Safety check: ensure steps_remaining is set if dice is ready but result hasn't been transferred yet
+            // This handles edge cases where the result check might miss
+            if (dice_ready && player_state.steps_remaining == 0 && dice_state.result > 0)
+            {
                 if (player_state.last_dice_result != dice_state.result)
                 {
-                    // Set the dice result to player - this is the number that was actually rolled
                     game::player::set_dice_result(player_state, dice_state.result);
-                    std::cout << "=== Dice Finished ===" << std::endl;
-                    std::cout << "Dice rolled: " << dice_state.result << std::endl;
-                    std::cout << "Player will move: " << player_state.steps_remaining << " steps" << std::endl;
-                    std::cout << "Current tile: " << get_current_tile(player_state) << std::endl;
+                    dice_display_timer = 10.0f;
+                }
+            }
+            
+            // Always call advance to update timers (even when showing time or result)
+            if (minigame_running || minigame_state.is_showing_time || 
+                game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state))
+            {
+                game::minigame::advance(minigame_state, delta_time);
+            }
+            
+            if (minigame_running)
+            {
+                // Check if SPACE is pressed to stop the timer
+                const bool space_down = window.is_key_pressed(GLFW_KEY_SPACE);
+                const bool space_just_pressed_for_minigame = space_down && !minigame_space_was_down;
+                minigame_space_was_down = space_down;
+                
+                if (space_just_pressed_for_minigame)
+                {
+                    game::minigame::stop_timing(minigame_state);
+                }
+                else if (game::minigame::has_expired(minigame_state))
+                {
+                    // Time expired - automatic failure (over 10 seconds)
+                    game::minigame::stop_timing(minigame_state);
+                    // stop_timing will check if result is within acceptable range
+                    // If timer exceeded max_time, it will be marked as failure
+                }
+            }
+            else
+            {
+                minigame_space_was_down = false;
+            }
+
+            bool minigame_force_walk = false;
+            // Apply result once when time display finishes and result is ready
+            static bool result_applied = false;
+            if (!minigame_state.is_showing_time && 
+                (game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state)))
+            {
+                if (!result_applied)
+                {
+                    result_applied = true;
+                    if (game::minigame::is_success(minigame_state))
+                    {
+                        const int bonus = game::minigame::get_bonus_steps(minigame_state);
+                        player_state.steps_remaining += bonus;
+                        minigame_force_walk = true;
+                    }
+                    else if (game::minigame::is_failure(minigame_state))
+                    {
+                        // Failed - stay at current position, no penalty, just no bonus
+                        player_state.steps_remaining = 0;
+                        player_state.is_stepping = false;
+                    }
+                }
+                
+                // After showing result for 3 seconds, reset the minigame state
+                static float result_display_timer = 3.0f;
+                result_display_timer -= delta_time;
+                if (result_display_timer <= 0.0f)
+                {
+                    game::minigame::reset(minigame_state);
+                    result_applied = false;
+                    result_display_timer = 3.0f;
+                }
+            }
+            else
+            {
+                // Reset flag when minigame starts again
+                if (minigame_state.is_showing_time || game::minigame::is_running(minigame_state))
+                {
+                    result_applied = false;
                 }
             }
             
             // Check if dice has finished: stopped bouncing AND result is set
-            bool dice_finished = !dice_state.is_falling && !dice_state.is_rolling && dice_state.result > 0 && dice_state.is_displaying;
+            // Allow walking if:
+            // 1. Dice is ready AND minigame is not currently running AND player has steps to walk
+            // 2. OR minigame just finished and force walk is enabled (success case)
+            bool minigame_running_check = game::minigame::is_running(minigame_state);
+            bool dice_finished = dice_ready && !minigame_running_check;
+            bool has_steps_to_walk = player_state.steps_remaining > 0;
+            
+            // Player can walk if:
+            // - Dice finished AND has steps AND minigame not running
+            // - OR minigame force walk (success case)
+            bool can_walk_now = (dice_finished && has_steps_to_walk) || minigame_force_walk;
             
             // Only allow player to start walking after dice finishes bouncing and shows result
-            update(player_state, delta_time, false, final_tile_index, dice_finished);  // Don't pass space_just_pressed here
+            update(player_state, delta_time, false, final_tile_index, can_walk_now);
+            
             player_state.previous_space_state = space_pressed;
+            
+            // Final safeguard: If dice is ready, has steps, but player is not walking and not in minigame,
+            // force start walking immediately - this should always trigger if conditions are met
+            if (dice_ready && player_state.steps_remaining > 0 && 
+                !player_state.is_stepping && 
+                !minigame_running_check &&
+                !minigame_force_walk)
+            {
+                // Force start walking - this should catch all edge cases
+                update(player_state, delta_time, false, final_tile_index, true);
+            }
             
             // Update dice animation with board bounds for bouncing
             const float half_width = board_width * 0.5f;
             const float half_height = board_height * 0.5f;
             update(dice_state, delta_time, half_width, half_height);
+
+            if (minigame_message_timer > 0.0f)
+            {
+                minigame_message_timer = std::max(0.0f, minigame_message_timer - delta_time);
+            }
+
+            const int current_tile = get_current_tile(player_state);
+            // Only trigger minigame when landing on the tile (stopped), not when passing through
+            // Check if player has stopped (no steps remaining, not stepping, and tile changed)
+            if (current_tile != last_processed_tile)
+            {
+                // Only process tile when player has stopped (not walking through)
+                if (!player_state.is_stepping && player_state.steps_remaining == 0)
+                {
+                    last_processed_tile = current_tile;
+                    if (!game::minigame::is_running(minigame_state))
+                    {
+                        const ActivityKind tile_activity = classify_activity_tile(current_tile);
+                        if (tile_activity == ActivityKind::MiniGame && current_tile != 0)
+                        {
+                            game::minigame::start_precision_timing(minigame_state);
+                            minigame_space_was_down = false;
+                            minigame_message = "Precision Timing Challenge! Stop at 4.99";
+                            minigame_message_timer = 0.0f;
+                        }
+                    }
+                }
+                else
+                {
+                    // Player is passing through - just update last_processed_tile without triggering events
+                    last_processed_tile = current_tile;
+                }
+            }
 
             // Render
             glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
@@ -378,9 +527,14 @@ int main(int argc, char* argv[])
                 }
             }
 
-            // Render UI text (dice result) in orthographic projection
-            // Show text when dice is rolling/falling/displaying OR always show steps remaining
-            if (dice_state.is_displaying || dice_state.is_rolling || dice_state.is_falling || player_state.steps_remaining > 0)
+            // Render UI text (dice/minigame info) in orthographic projection
+            // ALWAYS show UI overlay if minigame message timer is active
+            const bool show_ui_overlay = dice_state.is_displaying || dice_state.is_rolling || dice_state.is_falling ||
+                                         player_state.steps_remaining > 0 || game::minigame::is_running(minigame_state) ||
+                                         minigame_message_timer > 0.0f;
+            
+            // Force show UI overlay if message timer is active
+            if (minigame_message_timer > 0.0f || show_ui_overlay)
             {
                 // Get window size
                 int window_width, window_height;
@@ -402,30 +556,85 @@ int main(int argc, char* argv[])
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 
-                // Prepare text strings (show dice result and steps to walk)
-                // Only show result AFTER dice has stopped bouncing - don't show pending result while rolling
-                int display_result = 0;
-                if (dice_state.result > 0 && dice_state.is_displaying)
-                {
-                    display_result = dice_state.result;  // Show result only after dice stops
-                }
-                else if (!dice_state.is_rolling && !dice_state.is_falling)
-                {
-                    display_result = player_state.last_dice_result;  // Show last result when not rolling
-                }
-                // Otherwise show 0 while rolling (dice hasn't stopped yet)
-                
-                std::string dice_text = std::to_string(display_result);
-                std::string steps_text = std::to_string(player_state.steps_remaining);
-                std::string info_text = dice_text + " : " + steps_text;
-                
                 // Render text at center of screen (top)
                 float center_x = window_width * 0.5f;
                 float top_y = window_height * 0.1f; // Top 10% of screen
+
+                // Priority order for UI display:
+                // 1. Minigame message (highest priority) - success/failure
+                // 2. Minigame running - timer display
+                // 3. Dice result - only if no minigame messages
                 
-                // Use bright yellow color for visibility
-                glm::vec3 text_color(1.0f, 1.0f, 0.0f); // Bright yellow
-                render_text(text_renderer, info_text, center_x, top_y, 4.0f, text_color, window_width, window_height);
+                // Show stopped time comparison "4.99 : X.XX" for 0.5 seconds after pressing SPACE (highest priority)
+                if (minigame_state.is_showing_time)
+                {
+                    // Show the comparison - format: "4.99 : X.XX" at center
+                    std::string time_text = game::minigame::get_display_text(minigame_state);
+                    glm::vec3 timing_color = {0.9f, 0.9f, 0.3f}; // Yellow
+                    render_text(text_renderer, time_text, center_x, top_y, 4.0f, timing_color, window_width, window_height);
+                }
+                // Show result message immediately after 3 seconds (when is_showing_time becomes false)
+                else if (!minigame_state.is_showing_time && 
+                         (game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state)))
+                {
+                    std::string result_text = game::minigame::get_display_text(minigame_state);
+                    glm::vec3 result_color;
+                    if (game::minigame::is_success(minigame_state))
+                    {
+                        result_color = glm::vec3(0.2f, 1.0f, 0.4f); // Green for success
+                    }
+                    else
+                    {
+                        result_color = glm::vec3(1.0f, 0.3f, 0.3f); // Red for failure
+                    }
+                    render_text(text_renderer, result_text, center_x, top_y, 4.0f, result_color, window_width, window_height);
+                }
+                // Show minigame result message (only if not showing from state above)
+                else if (minigame_message_timer > 0.0f && !minigame_message.empty())
+                {
+                    std::string display_msg = minigame_message;
+                    glm::vec3 msg_color;
+                    if (display_msg.find("โบนัส") != std::string::npos || 
+                        display_msg.find("+6") != std::string::npos ||
+                        display_msg.find("Bonus") != std::string::npos ||
+                        display_msg.find("โบน") != std::string::npos)
+                    {
+                        msg_color = glm::vec3(0.2f, 1.0f, 0.4f); // Green for success
+                    }
+                    else
+                    {
+                        msg_color = glm::vec3(1.0f, 0.3f, 0.3f); // Red for failure (Mission Fail)
+                    }
+                    
+                    // Render with medium text at center of screen
+                    render_text(text_renderer,
+                                display_msg,
+                                center_x,
+                                top_y,
+                                4.0f,  // Medium size text
+                                msg_color,
+                                window_width,
+                                window_height);
+                }
+                // Show minigame timer while running (only if no result message and not showing stopped time)
+                else if (game::minigame::is_running(minigame_state))
+                {
+                    // Show the current time counting up - format: "4.99 : X.XX" at center
+                    std::ostringstream oss;
+                    oss << std::fixed << std::setprecision(2);
+                    oss << "4.99 : " << minigame_state.timer;
+                    std::string timing_text = oss.str();
+                    
+                    glm::vec3 timing_color = {0.9f, 0.9f, 0.3f}; // Yellow
+                    render_text(text_renderer, timing_text, center_x, top_y, 3.5f, timing_color, window_width, window_height);
+                }
+                // Show dice result only if no minigame messages or minigame not running
+                else if (dice_display_timer > 0.0f && dice_state.result > 0)
+                {
+                    std::string dice_text = std::to_string(dice_state.result);
+                    glm::vec3 text_color(1.0f, 1.0f, 0.0f); // Bright yellow
+                    render_text(text_renderer, dice_text, center_x, top_y, 4.0f, text_color, window_width, window_height);
+                }
                 
                 // Re-enable depth test and disable blending
                 glDisable(GL_BLEND);
