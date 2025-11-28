@@ -459,7 +459,7 @@ int main(int argc, char* argv[])
                         minigame_message_timer = 0.0f;
 
                         const int display_tile = target_tile + 1;
-                        debug_warp_state.notification = "Warped to tile " + std::to_string(display_tile);
+                        debug_warp_state.notification = "Warped to " + std::to_string(display_tile);
                         debug_warp_state.notification_timer = 3.0f;
                         debug_warp_state.buffer.clear();
                         debug_warp_state.active = false;
@@ -467,7 +467,7 @@ int main(int argc, char* argv[])
                     }
                     catch (const std::exception&)
                     {
-                        debug_warp_state.notification = "Invalid tile";
+                        debug_warp_state.notification = "Invalid";
                         debug_warp_state.notification_timer = 3.0f;
                         debug_warp_state.buffer.clear();
                         debug_warp_state.active = false;
@@ -523,7 +523,11 @@ int main(int argc, char* argv[])
 
             if (game::minigame::tile_memory::is_result(tile_memory_state))
             {
-                if (!tile_memory_result_applied)
+                if (tile_memory_state.pending_next_round)
+                {
+                    tile_memory_result_applied = false;
+                }
+                else if (!tile_memory_result_applied)
                 {
                     tile_memory_result_applied = true;
                     if (game::minigame::tile_memory::is_success(tile_memory_state))
@@ -742,6 +746,9 @@ int main(int argc, char* argv[])
             // ALWAYS show UI overlay if minigame message timer is active
             const bool show_ui_overlay = dice_state.is_displaying || dice_state.is_rolling || dice_state.is_falling ||
                                          player_state.steps_remaining > 0 || game::minigame::is_running(minigame_state) ||
+                                         minigame_state.is_showing_time ||
+                                         game::minigame::is_success(minigame_state) ||
+                                         game::minigame::is_failure(minigame_state) ||
                                          game::minigame::tile_memory::is_active(tile_memory_state) ||
                                          debug_warp_state.active || debug_warp_state.notification_timer > 0.0f ||
                                          minigame_message_timer > 0.0f;
@@ -809,6 +816,12 @@ int main(int argc, char* argv[])
                     }
                     render_text(text_renderer, result_text, center_x, top_y, ui_primary_scale, result_color);
                 }
+                else if (game::minigame::is_running(minigame_state))
+                {
+                    std::string running_text = game::minigame::get_display_text(minigame_state);
+                    glm::vec3 timing_color = {0.9f, 0.9f, 0.3f};
+                    render_text(text_renderer, running_text, center_x, top_y, ui_primary_scale, timing_color);
+                }
                 // Show minigame result message (only if not showing from state above)
                 else if (game::minigame::tile_memory::is_active(tile_memory_state))
                 {
@@ -839,8 +852,7 @@ int main(int argc, char* argv[])
                 }
                 else if (debug_warp_state.active)
                 {
-                    const int max_display_tile = final_tile_index + 1;
-                    std::string prompt = "Warp to tile (1-" + std::to_string(max_display_tile) + ", 0=start): ";
+                    std::string prompt = "Warped to ";
                     if (debug_warp_state.buffer.empty())
                     {
                         prompt += "_";
@@ -849,7 +861,7 @@ int main(int argc, char* argv[])
                     {
                         prompt += debug_warp_state.buffer;
                     }
-                    prompt += "  [Enter to confirm]";
+                    prompt += "  [Enter]";
                     glm::vec3 debug_color = {0.3f, 0.85f, 1.0f};
                     render_text(text_renderer,
                                 prompt,

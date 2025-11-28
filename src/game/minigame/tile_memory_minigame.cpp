@@ -26,13 +26,50 @@ namespace game::minigame::tile_memory
             return std::clamp(length, MIN_SEQUENCE_LENGTH, MAX_SEQUENCE_LENGTH);
         }
 
-        void set_result(TileMemoryState& state, bool success)
+        std::string format_input_prompt(const TileMemoryState& state);
+        std::string format_sequence_hint(const TileMemoryState& state);
+
+        void begin_round(TileMemoryState& state, int sequence_length)
+        {
+            std::array<int, MAX_TILE_VALUE> tiles{};
+            for (int i = 0; i < MAX_TILE_VALUE; ++i)
+            {
+                tiles[i] = i + 1;
+            }
+
+            std::shuffle(tiles.begin(), tiles.end(), rng());
+            state.sequence.assign(tiles.begin(), tiles.begin() + sequence_length);
+            state.input_history.clear();
+            state.phase = Phase::ShowingSequence;
+            state.highlight_index = 0;
+            state.highlight_timer = 0.0f;
+            state.post_sequence_timer = state.post_sequence_delay;
+            state.input_time_limit = 5.0f + static_cast<float>(sequence_length) * 0.75f;
+            state.input_timer = state.input_time_limit;
+            state.result_text.clear();
+            state.result_timer = 0.0f;
+            state.display_text = format_sequence_hint(state);
+            state.pending_next_round = false;
+        }
+
+        void set_result(TileMemoryState& state, bool round_success)
         {
             state.phase = Phase::Result;
-            state.success = success;
             state.result_timer = RESULT_DISPLAY_TIME;
-            state.bonus_steps = success ? 4 : 0;
-            state.result_text = success ? "MEM SUCCESS +4" : "MEM FAIL";
+            const bool has_next_round = round_success && (state.current_round + 1 < state.total_rounds);
+            state.pending_next_round = has_next_round;
+
+            if (has_next_round)
+            {
+                state.result_text = "MEM ROUND " + std::to_string(state.current_round + 1) + " OK";
+            }
+            else
+            {
+                state.success = round_success;
+                state.bonus_steps = state.success ? 4 : 0;
+                state.result_text = state.success ? "MEM SUCCESS +4" : "MEM FAIL";
+            }
+
             state.display_text = state.result_text;
         }
 
@@ -56,8 +93,6 @@ namespace game::minigame::tile_memory
                     oss << " ";
                 }
             }
-            oss << " | T ";
-            oss << std::fixed << std::setprecision(1) << std::max(0.0f, state.input_timer) << "s";
             return oss.str();
         }
 
@@ -72,11 +107,10 @@ namespace game::minigame::tile_memory
             oss << "MEM SHOW: ";
             for (std::size_t i = 0; i < state.sequence.size(); ++i)
             {
-                if (static_cast<int>(i) == state.highlight_index)
-                {
-                    oss << "[" << state.sequence[i] << "]";
-                }
-                else if (static_cast<int>(i) < state.highlight_index)
+                const int index = static_cast<int>(i);
+                const bool revealed = index <= state.highlight_index;
+
+                if (revealed)
                 {
                     oss << state.sequence[i];
                 }
@@ -96,28 +130,16 @@ namespace game::minigame::tile_memory
 
     void start(TileMemoryState& state, int sequence_length)
     {
-        sequence_length = clamp_length(sequence_length);
-
-        std::array<int, MAX_TILE_VALUE> tiles{};
-        for (int i = 0; i < MAX_TILE_VALUE; ++i)
-        {
-            tiles[i] = i + 1;
-        }
-
-        std::shuffle(tiles.begin(), tiles.end(), rng());
-
-        state.sequence.assign(tiles.begin(), tiles.begin() + sequence_length);
-        state.input_history.clear();
-        state.phase = Phase::ShowingSequence;
-        state.highlight_index = 0;
-        state.highlight_timer = 0.0f;
-        state.input_time_limit = 5.0f + static_cast<float>(sequence_length) * 0.75f;
-        state.input_timer = state.input_time_limit;
+        const int first_length = clamp_length(sequence_length);
+        const int second_length = clamp_length(sequence_length + 1);
+        state.round_lengths = {first_length, second_length};
+        state.total_rounds = static_cast<int>(state.round_lengths.size());
+        state.current_round = 0;
         state.success = false;
-        state.display_text = format_sequence_hint(state);
-        state.result_text.clear();
-        state.result_timer = 0.0f;
+        state.pending_next_round = false;
         state.bonus_steps = 0;
+
+        begin_round(state, state.round_lengths[state.current_round]);
     }
 
     void advance(TileMemoryState& state, float delta_time)
@@ -142,6 +164,22 @@ namespace game::minigame::tile_memory
             }
 
             if (state.highlight_index >= static_cast<int>(state.sequence.size()))
+            {
+                state.highlight_index = static_cast<int>(state.sequence.size());
+                state.phase = Phase::SequencePause;
+                state.post_sequence_timer = state.post_sequence_delay;
+                state.display_text = format_sequence_hint(state);
+            }
+            else
+            {
+                state.display_text = format_sequence_hint(state);
+            }
+            break;
+        }
+        case Phase::SequencePause:
+        {
+            state.post_sequence_timer -= delta_time;
+            if (state.post_sequence_timer <= 0.0f)
             {
                 state.phase = Phase::WaitingInput;
                 state.input_timer = state.input_time_limit;
@@ -171,7 +209,16 @@ namespace game::minigame::tile_memory
             state.result_timer -= delta_time;
             if (state.result_timer <= 0.0f)
             {
-                reset(state);
+                if (state.pending_next_round)
+                {
+                    state.current_round++;
+                    state.pending_next_round = false;
+                    begin_round(state, state.round_lengths[state.current_round]);
+                }
+                else
+                {
+                    reset(state);
+                }
             }
             break;
         }
@@ -204,7 +251,9 @@ namespace game::minigame::tile_memory
 
     bool is_running(const TileMemoryState& state)
     {
-        return state.phase == Phase::ShowingSequence || state.phase == Phase::WaitingInput;
+        return state.phase == Phase::ShowingSequence ||
+               state.phase == Phase::SequencePause ||
+               state.phase == Phase::WaitingInput;
     }
 
     bool is_active(const TileMemoryState& state)
@@ -239,12 +288,15 @@ namespace game::minigame::tile_memory
         state.input_history.clear();
         state.highlight_index = 0;
         state.highlight_timer = 0.0f;
+        state.post_sequence_timer = 0.0f;
         state.input_timer = 0.0f;
         state.success = false;
+        state.pending_next_round = false;
         state.display_text.clear();
         state.result_text.clear();
         state.result_timer = 0.0f;
         state.bonus_steps = 0;
+        state.current_round = 0;
     }
 }
 
