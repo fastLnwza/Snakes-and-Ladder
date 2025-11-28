@@ -13,5 +13,6 @@ C:\Github\Pacman-OpenGL\src\rendering\text_renderer.cpp;C:\Github\Pacman-OpenGL\
 C:\Github\Pacman-OpenGL\src\game\map\board.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\board.obj
 C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\map_generator.obj
 C:\Github\Pacman-OpenGL\src\game\minigame\qte_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\qte_minigame.obj
+C:\Github\Pacman-OpenGL\src\game\minigame\tile_memory_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\tile_memory_minigame.obj
 C:\Github\Pacman-OpenGL\src\game\player\player.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\player.obj
 C:\Github\Pacman-OpenGL\src\game\player\dice\dice.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\dice.obj

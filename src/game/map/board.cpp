@@ -8,11 +8,12 @@ namespace game::map
 {
     namespace
     {
-        constexpr std::array<int, 4> MINI_GAME_TILES = {7, 28, 55, 82};
+        constexpr std::array<int, 2> PRECISION_MINIGAME_TILES = {7, 55};
+        constexpr std::array<int, 2> MEMORY_MINIGAME_TILES = {28, 82};
 
-        bool is_minigame_tile(int tile_index)
+        bool matches_tile(int tile_index, const std::array<int, 2>& tiles)
         {
-            return std::find(MINI_GAME_TILES.begin(), MINI_GAME_TILES.end(), tile_index) != MINI_GAME_TILES.end();
+            return std::find(tiles.begin(), tiles.end(), tile_index) != tiles.end();
         }
     }
 
@@ -56,7 +57,11 @@ namespace game::map
         {
             return ActivityKind::Bonus;
         }
-        if (is_minigame_tile(tile_index))
+        if (matches_tile(tile_index, MEMORY_MINIGAME_TILES))
+        {
+            return ActivityKind::MemoryGame;
+        }
+        if (matches_tile(tile_index, PRECISION_MINIGAME_TILES))
         {
             return ActivityKind::MiniGame;
         }

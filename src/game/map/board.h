@@ -43,7 +43,8 @@ namespace game::map
         Slide,
         Portal,
         Trap,
-        MiniGame
+        MiniGame,
+        MemoryGame
     };
 
     glm::vec3 tile_center_world(int tile_index, float height_offset = 0.0f);

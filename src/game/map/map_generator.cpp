@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+#include <cctype>
 #include <glm/gtc/constants.hpp>
 
 namespace game::map
@@ -17,6 +18,9 @@ namespace game::map
         constexpr int DIGIT_ROWS = 5;
         constexpr int DIGIT_COLS = 3;
         using DigitGlyph = std::array<uint8_t, DIGIT_ROWS>;
+        constexpr int LETTER_ROWS = 5;
+        constexpr int LETTER_COLS = 3;
+        using LetterGlyph = std::array<uint8_t, LETTER_ROWS>;
         
         constexpr std::array<DigitGlyph, 10> DIGIT_GLYPHS = {{
             DigitGlyph{0b111, 0b101, 0b101, 0b101, 0b111}, // 0
@@ -30,6 +34,27 @@ namespace game::map
             DigitGlyph{0b111, 0b101, 0b111, 0b101, 0b111}, // 8
             DigitGlyph{0b111, 0b101, 0b111, 0b001, 0b111}, // 9
         }};
+
+        constexpr LetterGlyph LETTER_GLYPH_M = {0b101, 0b111, 0b101, 0b101, 0b101};
+        constexpr LetterGlyph LETTER_GLYPH_G = {0b111, 0b100, 0b101, 0b101, 0b111};
+        constexpr LetterGlyph LETTER_GLYPH_P = {0b111, 0b101, 0b111, 0b100, 0b100};
+        constexpr LetterGlyph LETTER_GLYPH_T = {0b111, 0b010, 0b010, 0b010, 0b010};
+        constexpr LetterGlyph LETTER_GLYPH_E = {0b111, 0b100, 0b111, 0b100, 0b111};
+        constexpr LetterGlyph LETTER_GLYPH_L = {0b100, 0b100, 0b100, 0b100, 0b111};
+
+        const LetterGlyph* lookup_letter(char c)
+        {
+            switch (c)
+            {
+            case 'M': return &LETTER_GLYPH_M;
+            case 'G': return &LETTER_GLYPH_G;
+            case 'P': return &LETTER_GLYPH_P;
+            case 'T': return &LETTER_GLYPH_T;
+            case 'E': return &LETTER_GLYPH_E;
+            case 'L': return &LETTER_GLYPH_L;
+            default: return nullptr;
+            }
+        }
 
         void append_digit_glyph(std::vector<Vertex>& vertices,
                                 std::vector<unsigned int>& indices,
@@ -79,11 +104,83 @@ namespace game::map
             }
         }
 
+        void append_letter_glyph(std::vector<Vertex>& vertices,
+                                 std::vector<unsigned int>& indices,
+                                 char letter,
+                                 const glm::vec3& center,
+                                 float cell_size,
+                                 const glm::vec3& color)
+        {
+            const LetterGlyph* glyph = lookup_letter(letter);
+            if (!glyph)
+            {
+                return;
+            }
+
+            const float total_width = static_cast<float>(LETTER_COLS) * cell_size;
+            const float total_height = static_cast<float>(LETTER_ROWS) * cell_size;
+            const float origin_x = center.x - total_width * 0.5f + cell_size * 0.5f;
+            const float origin_z = center.z - total_height * 0.5f + cell_size * 0.5f;
+            const float patch_size = cell_size * 0.75f;
+
+            for (int row = 0; row < LETTER_ROWS; ++row)
+            {
+                for (int col = 0; col < LETTER_COLS; ++col)
+                {
+                    const bool filled = (((*glyph)[row] >> (LETTER_COLS - 1 - col)) & 1U) != 0U;
+                    if (!filled)
+                    {
+                        continue;
+                    }
+
+                    glm::vec3 patch_center(origin_x + static_cast<float>(col) * cell_size,
+                                           center.y,
+                                           origin_z + static_cast<float>(row) * cell_size);
+
+                    const auto [patch_verts, patch_indices] = build_plane(patch_size, patch_size, color, color);
+                    const std::size_t vertex_offset = vertices.size();
+                    for (auto vertex : patch_verts)
+                    {
+                        vertex.position += patch_center;
+                        vertices.push_back(vertex);
+                    }
+                    for (unsigned int idx : patch_indices)
+                    {
+                        indices.push_back(static_cast<unsigned int>(vertex_offset + idx));
+                    }
+                }
+            }
+        }
+
+        void append_letter_label(std::vector<Vertex>& vertices,
+                                 std::vector<unsigned int>& indices,
+                                 const std::string& text,
+                                 const glm::vec3& start_center,
+                                 float cell_size,
+                                 const glm::vec3& color)
+        {
+            if (text.empty())
+            {
+                return;
+            }
+
+            const float glyph_width = static_cast<float>(LETTER_COLS) * cell_size;
+            const float letter_gap = cell_size * 0.7f;
+
+            for (std::size_t i = 0; i < text.size(); ++i)
+            {
+                glm::vec3 letter_center = start_center;
+                letter_center.x += static_cast<float>(i) * (glyph_width + letter_gap);
+                append_letter_glyph(vertices, indices, static_cast<char>(std::toupper(text[i])), letter_center, cell_size, color);
+            }
+        }
+
         void append_tile_number(std::vector<Vertex>& vertices,
                                 std::vector<unsigned int>& indices,
                                 int tile_index,
                                 const glm::vec3& tile_center,
-                                float tile_size)
+                                float tile_size,
+                                const glm::vec3& digit_color)
         {
             const std::string label = std::to_string(tile_index + 1);
             const int digit_count = static_cast<int>(label.size());
@@ -92,7 +189,6 @@ namespace game::map
                 return;
             }
 
-            const glm::vec3 digit_color = {0.95f, 0.95f, 0.92f};
             const float cell_size = tile_size * 0.05f;
             const float glyph_width = static_cast<float>(DIGIT_COLS) * cell_size;
             const float glyph_height = static_cast<float>(DIGIT_ROWS) * cell_size;
@@ -240,6 +336,45 @@ namespace game::map
                                  tile_size * 0.08f,
                                  tile_size * 0.05f,
                                  ring_color);
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.25f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices,
+                                    indices,
+                                    "PT",
+                                    label_start,
+                                    tile_size * 0.035f,
+                                    glm::vec3(0.95f, 0.95f, 0.95f));
+                break;
+            }
+            case ActivityKind::MemoryGame:
+            {
+                const glm::vec3 tile_color = {0.95f, 0.58f, 0.82f};
+                const glm::vec3 highlight_color = {0.98f, 0.9f, 0.32f};
+                const float square_size = tile_size * 0.18f;
+                const float square_height = tile_size * 0.08f;
+                for (int i = 0; i < 3; ++i)
+                {
+                    const float offset = (static_cast<float>(i) - 1.0f) * square_size * 0.85f;
+                    const glm::vec3 center = tile_center + glm::vec3(offset, square_height * (0.5f + 0.2f * i), -tile_size * 0.15f);
+                    append_box_prism(vertices,
+                                     indices,
+                                     center.x,
+                                     center.z,
+                                     square_size,
+                                     square_size,
+                                     square_height,
+                                     (i == 1) ? highlight_color : tile_color);
+                }
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices,
+                                    indices,
+                                    "MEM",
+                                    label_start,
+                                    tile_size * 0.03f,
+                                    glm::vec3(0.98f, 0.95f, 0.6f));
                 break;
             }
             case ActivityKind::None:
@@ -480,6 +615,8 @@ namespace game::map
         const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
         const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
         const glm::vec3 snake_color = {0.78f, 0.28f, 0.28f};
+        const glm::vec3 digit_color_default = {0.95f, 0.95f, 0.92f};
+        const glm::vec3 digit_color_minigame = {0.95f, 0.25f, 0.25f};
 
         const float tile_surface_offset = 0.02f;
         const float tile_size = TILE_SIZE * 0.98f;  // Increased to fill board better
@@ -520,7 +657,14 @@ namespace game::map
                 indices.push_back(static_cast<unsigned int>(tile_offset + idx));
             }
 
-            append_tile_number(vertices, indices, tile, center, tile_size);
+            const ActivityKind activity = classify_activity_tile(tile);
+            glm::vec3 digit_color = digit_color_default;
+            if (activity == ActivityKind::MiniGame || activity == ActivityKind::MemoryGame)
+            {
+                digit_color = digit_color_minigame;
+            }
+
+            append_tile_number(vertices, indices, tile, center, tile_size, digit_color);
             
             // Add start icon for start tile
             if (tile_kinds[tile] == TileKind::Start)
@@ -528,7 +672,6 @@ namespace game::map
                 append_start_icon(vertices, indices, center, tile_size);
             }
             
-            const ActivityKind activity = classify_activity_tile(tile);
             if (activity != ActivityKind::None)
             {
                 append_activity_icon(vertices, indices, activity, center, tile_size);

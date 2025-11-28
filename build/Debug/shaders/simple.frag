@@ -7,30 +7,33 @@ out vec4 outColor;
 
 uniform sampler2D uTexture;
 uniform bool uUseTexture;
+uniform bool uDiceTextureMode;
 
 void main()
 {
     if (uUseTexture)
     {
         vec4 texColor = texture(uTexture, fragTexCoord);
-        
-        // Convert colored background (red) to white, keep black pips
-        // Use brightness to detect black pips vs colored background
-        float avgColor = (texColor.r + texColor.g + texColor.b) / 3.0;
-        float maxChannel = max(max(texColor.r, texColor.g), texColor.b);
-        
-        // If very dark (black pips), show black
-        // Otherwise show white (convert red/colored background to white)
-        // Use both avgColor and maxChannel to better detect dark vs bright areas
-        if (avgColor < 0.2 && maxChannel < 0.3)
+
+        if (uDiceTextureMode)
         {
-            // Very dark -> black pips
-            outColor = vec4(0.0, 0.0, 0.0, 1.0);
+            // Convert colored background (red) to white, keep black pips
+            float avgColor = (texColor.r + texColor.g + texColor.b) / 3.0;
+            float maxChannel = max(max(texColor.r, texColor.g), texColor.b);
+            if (avgColor < 0.2 && maxChannel < 0.3)
+            {
+                outColor = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+            else
+            {
+                outColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
         }
         else
         {
-            // Everything else (including red background and any colored areas) -> white
-            outColor = vec4(1.0, 1.0, 1.0, 1.0);
+            // For font textures (GL_RED format), use red channel as alpha
+            float alpha = texColor.r;
+            outColor = vec4(fragColor, alpha);
         }
     }
     else

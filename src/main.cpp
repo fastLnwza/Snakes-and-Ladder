@@ -2,10 +2,12 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,6 +19,7 @@
 #include "game/map/board.h"
 #include "game/map/map_generator.h"
 #include "game/minigame/qte_minigame.h"
+#include "game/minigame/tile_memory_minigame.h"
 #include "game/player/player.h"
 #include "game/player/dice/dice.h"
 #include "rendering/gltf_loader.h"
@@ -60,12 +63,17 @@ int main(int argc, char* argv[])
         const GLint mvp_location = glGetUniformLocation(program, "uMVP");
         const GLint use_texture_location = glGetUniformLocation(program, "uUseTexture");
         const GLint texture_location = glGetUniformLocation(program, "uTexture");
+        const GLint dice_texture_mode_location = glGetUniformLocation(program, "uDiceTextureMode");
         
         // Set texture sampler to use texture unit 0
         glUseProgram(program);
         if (texture_location >= 0)
         {
             glUniform1i(texture_location, 0); // Bind to texture unit 0
+        }
+        if (dice_texture_mode_location >= 0)
+        {
+            glUniform1i(dice_texture_mode_location, 0);
         }
 
         glEnable(GL_DEPTH_TEST);
@@ -191,16 +199,50 @@ int main(int argc, char* argv[])
 
         // Initialize text renderer for displaying dice result
         TextRenderer text_renderer;
-        initialize_text_renderer(text_renderer);
+        std::filesystem::path font_path = executable_dir / "pixel-game.regular.otf";
+        if (!std::filesystem::exists(font_path))
+        {
+            std::filesystem::path source_font = std::filesystem::path(__FILE__).parent_path().parent_path() / "pixel-game.regular.otf";
+            if (std::filesystem::exists(source_font))
+            {
+                font_path = source_font;
+            }
+        }
+        if (!std::filesystem::exists(font_path))
+        {
+            throw std::runtime_error("Font pixel-game.regular.otf not found.");
+        }
+        if (!initialize_text_renderer(text_renderer, font_path.string(), 72))
+        {
+            throw std::runtime_error("Failed to initialize text renderer.");
+        }
 
         game::minigame::PrecisionTimingState minigame_state;
-        bool minigame_space_was_down = false;
+        game::minigame::tile_memory::TileMemoryState tile_memory_state;
+        bool precision_space_was_down = false;
+        std::array<bool, 9> tile_memory_previous_keys{};
         int last_processed_tile = get_current_tile(player_state);
         std::string minigame_message;
         float minigame_message_timer = 0.0f;
         float dice_display_timer = 0.0f; // Timer for showing dice result (10 seconds)
 
         float last_time = 0.0f;
+        bool precision_result_applied = false;
+        float precision_result_display_timer = 3.0f;
+        bool tile_memory_result_applied = false;
+
+        struct DebugWarpState
+        {
+            bool active = false;
+            std::string buffer;
+            std::array<bool, 10> digit_previous{};
+            bool prev_toggle = false;
+            bool prev_enter = false;
+            bool prev_backspace = false;
+            float notification_timer = 0.0f;
+            std::string notification;
+        };
+        DebugWarpState debug_warp_state;
 
         // Main game loop
         last_time = static_cast<float>(glfwGetTime());
@@ -220,7 +262,10 @@ int main(int argc, char* argv[])
             // Update player
             const bool space_pressed = window.is_key_pressed(GLFW_KEY_SPACE);
             const bool space_just_pressed = space_pressed && !player_state.previous_space_state;
-            const bool minigame_running = game::minigame::is_running(minigame_state);
+            const bool precision_running = game::minigame::is_running(minigame_state);
+            const bool tile_memory_running = game::minigame::tile_memory::is_running(tile_memory_state);
+            const bool tile_memory_active = game::minigame::tile_memory::is_active(tile_memory_state);
+            const bool minigame_running = precision_running || tile_memory_running;
             
             // Start dice roll when space is pressed (dice will roll its own number)
             if (space_just_pressed && !player_state.is_stepping && player_state.steps_remaining == 0 && !dice_state.is_rolling && !dice_state.is_falling && !minigame_running)
@@ -278,18 +323,25 @@ int main(int argc, char* argv[])
             }
             
             // Always call advance to update timers (even when showing time or result)
-            if (minigame_running || minigame_state.is_showing_time || 
-                game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state))
+            const bool precision_should_advance =
+                precision_running || minigame_state.is_showing_time ||
+                game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state);
+            if (precision_should_advance)
             {
                 game::minigame::advance(minigame_state, delta_time);
             }
+
+            if (tile_memory_active)
+            {
+                game::minigame::tile_memory::advance(tile_memory_state, delta_time);
+            }
             
-            if (minigame_running)
+            if (precision_running)
             {
                 // Check if SPACE is pressed to stop the timer
                 const bool space_down = window.is_key_pressed(GLFW_KEY_SPACE);
-                const bool space_just_pressed_for_minigame = space_down && !minigame_space_was_down;
-                minigame_space_was_down = space_down;
+                const bool space_just_pressed_for_minigame = space_down && !precision_space_was_down;
+                precision_space_was_down = space_down;
                 
                 if (space_just_pressed_for_minigame)
                 {
@@ -305,18 +357,140 @@ int main(int argc, char* argv[])
             }
             else
             {
-                minigame_space_was_down = false;
+                precision_space_was_down = false;
+            }
+
+            if (tile_memory_running)
+            {
+                for (int key_index = 0; key_index < 9; ++key_index)
+                {
+                    const int glfw_key = GLFW_KEY_1 + key_index;
+                    const bool key_down = window.is_key_pressed(glfw_key);
+                    const bool key_just_pressed = key_down && !tile_memory_previous_keys[key_index];
+                    if (key_just_pressed)
+                    {
+                        game::minigame::tile_memory::submit_choice(tile_memory_state, key_index + 1);
+                    }
+                    tile_memory_previous_keys[key_index] = key_down;
+                }
+            }
+            else
+            {
+                tile_memory_previous_keys.fill(false);
+            }
+
+            if (debug_warp_state.notification_timer > 0.0f)
+            {
+                debug_warp_state.notification_timer = std::max(0.0f, debug_warp_state.notification_timer - delta_time);
+            }
+
+            const bool t_key_down = window.is_key_pressed(GLFW_KEY_T);
+            if (t_key_down && !debug_warp_state.prev_toggle && !minigame_running)
+            {
+                debug_warp_state.active = !debug_warp_state.active;
+                if (!debug_warp_state.active)
+                {
+                    debug_warp_state.buffer.clear();
+                    debug_warp_state.digit_previous.fill(false);
+                }
+            }
+            debug_warp_state.prev_toggle = t_key_down;
+
+            if (debug_warp_state.active && minigame_running)
+            {
+                debug_warp_state.active = false;
+                debug_warp_state.buffer.clear();
+                debug_warp_state.digit_previous.fill(false);
+            }
+
+            if (debug_warp_state.active)
+            {
+                for (int digit = 0; digit <= 9; ++digit)
+                {
+                    const int key = GLFW_KEY_0 + digit;
+                    const bool key_down = window.is_key_pressed(key);
+                    const bool key_just_pressed = key_down && !debug_warp_state.digit_previous[digit];
+                    if (key_just_pressed && debug_warp_state.buffer.size() < 3)
+                    {
+                        debug_warp_state.buffer.push_back(static_cast<char>('0' + digit));
+                    }
+                    debug_warp_state.digit_previous[digit] = key_down;
+                }
+
+                const bool backspace_down = window.is_key_pressed(GLFW_KEY_BACKSPACE);
+                if (backspace_down && !debug_warp_state.prev_backspace && !debug_warp_state.buffer.empty())
+                {
+                    debug_warp_state.buffer.pop_back();
+                }
+                debug_warp_state.prev_backspace = backspace_down;
+
+                const bool enter_down = window.is_key_pressed(GLFW_KEY_ENTER) ||
+                                        window.is_key_pressed(GLFW_KEY_KP_ENTER);
+                if (enter_down && !debug_warp_state.prev_enter && !debug_warp_state.buffer.empty())
+                {
+                    try
+                    {
+                        int requested_tile = std::stoi(debug_warp_state.buffer);
+                        int zero_based_tile = (requested_tile <= 0) ? 0 : requested_tile - 1;
+                        int target_tile = std::clamp(zero_based_tile, 0, final_tile_index);
+                        game::player::warp_to_tile(player_state, target_tile);
+                        last_processed_tile = -1;
+                        player_state.previous_space_state = false;
+
+                        dice_state.is_rolling = false;
+                        dice_state.is_falling = false;
+                        dice_state.is_displaying = false;
+                        dice_state.result = 0;
+                        dice_state.pending_result = 0;
+                        dice_state.roll_timer = 0.0f;
+                        dice_state.velocity = glm::vec3(0.0f);
+                        dice_state.rotation_velocity = glm::vec3(0.0f);
+                        dice_state.position = tile_center_world(target_tile) + glm::vec3(0.0f, player_ground_y + 3.0f, 0.0f);
+                        dice_state.target_position = dice_state.position;
+                        dice_display_timer = 0.0f;
+
+                        game::minigame::reset(minigame_state);
+                        game::minigame::tile_memory::reset(tile_memory_state);
+                        precision_result_applied = false;
+                        tile_memory_result_applied = false;
+                        precision_result_display_timer = 3.0f;
+                        tile_memory_previous_keys.fill(false);
+                        minigame_message.clear();
+                        minigame_message_timer = 0.0f;
+
+                        const int display_tile = target_tile + 1;
+                        debug_warp_state.notification = "Warped to tile " + std::to_string(display_tile);
+                        debug_warp_state.notification_timer = 3.0f;
+                        debug_warp_state.buffer.clear();
+                        debug_warp_state.active = false;
+                        debug_warp_state.digit_previous.fill(false);
+                    }
+                    catch (const std::exception&)
+                    {
+                        debug_warp_state.notification = "Invalid tile";
+                        debug_warp_state.notification_timer = 3.0f;
+                        debug_warp_state.buffer.clear();
+                        debug_warp_state.active = false;
+                        debug_warp_state.digit_previous.fill(false);
+                    }
+                }
+                debug_warp_state.prev_enter = enter_down;
+            }
+            else
+            {
+                debug_warp_state.digit_previous.fill(false);
+                debug_warp_state.prev_backspace = false;
+                debug_warp_state.prev_enter = false;
             }
 
             bool minigame_force_walk = false;
             // Apply result once when time display finishes and result is ready
-            static bool result_applied = false;
             if (!minigame_state.is_showing_time && 
                 (game::minigame::is_success(minigame_state) || game::minigame::is_failure(minigame_state)))
             {
-                if (!result_applied)
+                if (!precision_result_applied)
                 {
-                    result_applied = true;
+                    precision_result_applied = true;
                     if (game::minigame::is_success(minigame_state))
                     {
                         const int bonus = game::minigame::get_bonus_steps(minigame_state);
@@ -332,29 +506,49 @@ int main(int argc, char* argv[])
                 }
                 
                 // After showing result for 3 seconds, reset the minigame state
-                static float result_display_timer = 3.0f;
-                result_display_timer -= delta_time;
-                if (result_display_timer <= 0.0f)
+                precision_result_display_timer -= delta_time;
+                if (precision_result_display_timer <= 0.0f)
                 {
                     game::minigame::reset(minigame_state);
-                    result_applied = false;
-                    result_display_timer = 3.0f;
+                    precision_result_applied = false;
+                    precision_result_display_timer = 3.0f;
                 }
             }
-            else
+            else if (minigame_state.is_showing_time || game::minigame::is_running(minigame_state))
             {
                 // Reset flag when minigame starts again
-                if (minigame_state.is_showing_time || game::minigame::is_running(minigame_state))
+                precision_result_applied = false;
+                precision_result_display_timer = 3.0f;
+            }
+
+            if (game::minigame::tile_memory::is_result(tile_memory_state))
+            {
+                if (!tile_memory_result_applied)
                 {
-                    result_applied = false;
+                    tile_memory_result_applied = true;
+                    if (game::minigame::tile_memory::is_success(tile_memory_state))
+                    {
+                        const int bonus = game::minigame::tile_memory::get_bonus_steps(tile_memory_state);
+                        player_state.steps_remaining += bonus;
+                        minigame_force_walk = true;
+                    }
+                    else
+                    {
+                        player_state.steps_remaining = 0;
+                        player_state.is_stepping = false;
+                    }
                 }
+            }
+            else if (!game::minigame::tile_memory::is_active(tile_memory_state))
+            {
+                tile_memory_result_applied = false;
             }
             
             // Check if dice has finished: stopped bouncing AND result is set
             // Allow walking if:
             // 1. Dice is ready AND minigame is not currently running AND player has steps to walk
             // 2. OR minigame just finished and force walk is enabled (success case)
-            bool minigame_running_check = game::minigame::is_running(minigame_state);
+            bool minigame_running_check = minigame_running;
             bool dice_finished = dice_ready && !minigame_running_check;
             bool has_steps_to_walk = player_state.steps_remaining > 0;
             
@@ -398,14 +592,22 @@ int main(int argc, char* argv[])
                 if (!player_state.is_stepping && player_state.steps_remaining == 0)
                 {
                     last_processed_tile = current_tile;
-                    if (!game::minigame::is_running(minigame_state))
+                    if (!game::minigame::is_running(minigame_state) &&
+                        !game::minigame::tile_memory::is_active(tile_memory_state))
                     {
                         const ActivityKind tile_activity = classify_activity_tile(current_tile);
                         if (tile_activity == ActivityKind::MiniGame && current_tile != 0)
                         {
                             game::minigame::start_precision_timing(minigame_state);
-                            minigame_space_was_down = false;
+                            precision_space_was_down = false;
                             minigame_message = "Precision Timing Challenge! Stop at 4.99";
+                            minigame_message_timer = 0.0f;
+                        }
+                        else if (tile_activity == ActivityKind::MemoryGame && current_tile != 0)
+                        {
+                            game::minigame::tile_memory::start(tile_memory_state);
+                            tile_memory_previous_keys.fill(false);
+                            minigame_message = "จำลำดับ! ใช้ปุ่ม 1-9";
                             minigame_message_timer = 0.0f;
                         }
                     }
@@ -499,6 +701,10 @@ int main(int argc, char* argv[])
                 {
                     glUseProgram(program); // Make sure shader is active
                     glUniform1i(use_texture_location, 1); // Enable texture
+                    if (dice_texture_mode_location >= 0)
+                    {
+                        glUniform1i(dice_texture_mode_location, 1);
+                    }
                     glUniform1i(texture_location, 0); // Set sampler to texture unit 0
                     glActiveTexture(GL_TEXTURE0);
                     glBindTexture(GL_TEXTURE_2D, dice_texture.id);
@@ -520,6 +726,11 @@ int main(int argc, char* argv[])
                 if (has_dice_texture)
                 {
                     glBindTexture(GL_TEXTURE_2D, 0);
+                    if (dice_texture_mode_location >= 0)
+                    {
+                        glUniform1i(dice_texture_mode_location, 0);
+                    }
+                    glUniform1i(use_texture_location, 0);
                 }
                 
                 // Disable polygon offset after drawing dice
@@ -531,6 +742,8 @@ int main(int argc, char* argv[])
             // ALWAYS show UI overlay if minigame message timer is active
             const bool show_ui_overlay = dice_state.is_displaying || dice_state.is_rolling || dice_state.is_falling ||
                                          player_state.steps_remaining > 0 || game::minigame::is_running(minigame_state) ||
+                                         game::minigame::tile_memory::is_active(tile_memory_state) ||
+                                         debug_warp_state.active || debug_warp_state.notification_timer > 0.0f ||
                                          minigame_message_timer > 0.0f;
             
             // Force show UI overlay if message timer is active
@@ -549,7 +762,12 @@ int main(int argc, char* argv[])
                 // Set UI matrices
                 glUseProgram(program);
                 glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(ui_mvp));
-                glUniform1i(use_texture_location, 0);
+                glUniform1i(use_texture_location, 1);
+                if (dice_texture_mode_location >= 0)
+                {
+                    glUniform1i(dice_texture_mode_location, 0);
+                }
+                glActiveTexture(GL_TEXTURE0);
                 
                 // Disable depth test for UI and enable blending for better visibility
                 glDisable(GL_DEPTH_TEST);
@@ -559,6 +777,8 @@ int main(int argc, char* argv[])
                 // Render text at center of screen (top)
                 float center_x = window_width * 0.5f;
                 float top_y = window_height * 0.1f; // Top 10% of screen
+                const float ui_primary_scale = 3.2f;
+                const float ui_secondary_scale = 2.8f;
 
                 // Priority order for UI display:
                 // 1. Minigame message (highest priority) - success/failure
@@ -571,7 +791,7 @@ int main(int argc, char* argv[])
                     // Show the comparison - format: "4.99 : X.XX" at center
                     std::string time_text = game::minigame::get_display_text(minigame_state);
                     glm::vec3 timing_color = {0.9f, 0.9f, 0.3f}; // Yellow
-                    render_text(text_renderer, time_text, center_x, top_y, 4.0f, timing_color, window_width, window_height);
+                    render_text(text_renderer, time_text, center_x, top_y, ui_primary_scale, timing_color);
                 }
                 // Show result message immediately after 3 seconds (when is_showing_time becomes false)
                 else if (!minigame_state.is_showing_time && 
@@ -587,9 +807,67 @@ int main(int argc, char* argv[])
                     {
                         result_color = glm::vec3(1.0f, 0.3f, 0.3f); // Red for failure
                     }
-                    render_text(text_renderer, result_text, center_x, top_y, 4.0f, result_color, window_width, window_height);
+                    render_text(text_renderer, result_text, center_x, top_y, ui_primary_scale, result_color);
                 }
                 // Show minigame result message (only if not showing from state above)
+                else if (game::minigame::tile_memory::is_active(tile_memory_state))
+                {
+                    std::string memory_text = game::minigame::tile_memory::get_display_text(tile_memory_state);
+                    glm::vec3 memory_color;
+                    if (game::minigame::tile_memory::is_result(tile_memory_state))
+                    {
+                        if (game::minigame::tile_memory::is_success(tile_memory_state))
+                        {
+                            memory_color = glm::vec3(0.2f, 1.0f, 0.4f);
+                        }
+                        else
+                        {
+                            memory_color = glm::vec3(1.0f, 0.3f, 0.3f);
+                        }
+                    }
+                    else
+                    {
+                        memory_color = glm::vec3(0.9f, 0.9f, 0.3f);
+                    }
+
+                    render_text(text_renderer,
+                                memory_text,
+                                center_x,
+                                top_y,
+                                ui_primary_scale,
+                                memory_color);
+                }
+                else if (debug_warp_state.active)
+                {
+                    const int max_display_tile = final_tile_index + 1;
+                    std::string prompt = "Warp to tile (1-" + std::to_string(max_display_tile) + ", 0=start): ";
+                    if (debug_warp_state.buffer.empty())
+                    {
+                        prompt += "_";
+                    }
+                    else
+                    {
+                        prompt += debug_warp_state.buffer;
+                    }
+                    prompt += "  [Enter to confirm]";
+                    glm::vec3 debug_color = {0.3f, 0.85f, 1.0f};
+                    render_text(text_renderer,
+                                prompt,
+                                center_x,
+                                top_y,
+                                ui_secondary_scale,
+                                debug_color);
+                }
+                else if (debug_warp_state.notification_timer > 0.0f && !debug_warp_state.notification.empty())
+                {
+                    glm::vec3 debug_color = {0.3f, 0.85f, 1.0f};
+                    render_text(text_renderer,
+                                debug_warp_state.notification,
+                                center_x,
+                                top_y,
+                                ui_secondary_scale,
+                                debug_color);
+                }
                 else if (minigame_message_timer > 0.0f && !minigame_message.empty())
                 {
                     std::string display_msg = minigame_message;
@@ -611,10 +889,8 @@ int main(int argc, char* argv[])
                                 display_msg,
                                 center_x,
                                 top_y,
-                                4.0f,  // Medium size text
-                                msg_color,
-                                window_width,
-                                window_height);
+                                ui_primary_scale,
+                                msg_color);
                 }
                 // Show minigame timer while running (only if no result message and not showing stopped time)
                 else if (game::minigame::is_running(minigame_state))
@@ -626,19 +902,25 @@ int main(int argc, char* argv[])
                     std::string timing_text = oss.str();
                     
                     glm::vec3 timing_color = {0.9f, 0.9f, 0.3f}; // Yellow
-                    render_text(text_renderer, timing_text, center_x, top_y, 3.5f, timing_color, window_width, window_height);
+                    render_text(text_renderer, timing_text, center_x, top_y, ui_secondary_scale, timing_color);
                 }
                 // Show dice result only if no minigame messages or minigame not running
                 else if (dice_display_timer > 0.0f && dice_state.result > 0)
                 {
                     std::string dice_text = std::to_string(dice_state.result);
                     glm::vec3 text_color(1.0f, 1.0f, 0.0f); // Bright yellow
-                    render_text(text_renderer, dice_text, center_x, top_y, 4.0f, text_color, window_width, window_height);
+                    render_text(text_renderer, dice_text, center_x, top_y, ui_primary_scale, text_color);
                 }
                 
                 // Re-enable depth test and disable blending
                 glDisable(GL_BLEND);
                 glEnable(GL_DEPTH_TEST);
+                glUniform1i(use_texture_location, 0);
+                if (dice_texture_mode_location >= 0)
+                {
+                    glUniform1i(dice_texture_mode_location, 0);
+                }
+                glBindTexture(GL_TEXTURE_2D, 0);
             }
 
             window.swap_buffers();

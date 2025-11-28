@@ -51,6 +51,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
+FetchContent_Declare(
+    freetype
+    GIT_REPOSITORY https://github.com/freetype/freetype.git
+    GIT_TAG VER-2-13-2
+)
+FetchContent_MakeAvailable(freetype)
+
 find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
@@ -77,6 +84,7 @@ add_executable(${PROJECT_NAME}
     src/game/map/board.cpp
     src/game/map/map_generator.cpp
     src/game/minigame/qte_minigame.cpp
+    src/game/minigame/tile_memory_minigame.cpp
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
 )
@@ -85,6 +93,8 @@ set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
 set(DICE_MODEL ${CMAKE_CURRENT_SOURCE_DIR}/dice.glb)
 set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/dice.glb)
+set(FONT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/pixel-game.regular.otf)
+set(BINARY_FONT_FILE ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pixel-game.regular.otf)
 
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${SHADER_DIR} ${BINARY_SHADER_DIR}
@@ -103,6 +113,14 @@ else()
     add_dependencies(${PROJECT_NAME} copy_shaders)
 endif()
 
+if(EXISTS ${FONT_FILE})
+    add_custom_target(copy_font ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FONT_FILE} ${BINARY_FONT_FILE}
+        COMMENT "Copying UI font"
+    )
+    add_dependencies(${PROJECT_NAME} copy_font)
+endif()
+
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -118,6 +136,7 @@ target_link_libraries(${PROJECT_NAME}
         glfw
         OpenGL::GL
         glm::glm
+        freetype
 )
 
 if(APPLE)

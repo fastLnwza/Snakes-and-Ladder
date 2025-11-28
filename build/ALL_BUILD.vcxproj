@@ -177,11 +177,21 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{08A85F12-44E1-3844-A27F-BD9BBD6A839A}</Project>
       <Name>PacmanOpenGL</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\Github\Pacman-OpenGL\build\copy_font.vcxproj">
+      <Project>{FF2FEF78-7476-3758-97C3-DDF5C6AAA45F}</Project>
+      <Name>copy_font</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
     <ProjectReference Include="C:\Github\Pacman-OpenGL\build\copy_shaders.vcxproj">
       <Project>{713CD3B5-B05E-32B1-80D8-A526FB4BE6BD}</Project>
       <Name>copy_shaders</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Github\Pacman-OpenGL\build\_deps\freetype-build\freetype.vcxproj">
+      <Project>{010066AE-97FC-3C5F-9146-B2C453CED859}</Project>
+      <Name>freetype</Name>
     </ProjectReference>
     <ProjectReference Include="C:\Github\Pacman-OpenGL\build\_deps\glad-build\glad.vcxproj">
       <Project>{0482238B-793A-3F33-8754-4B432EC94C00}</Project>

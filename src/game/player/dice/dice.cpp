@@ -82,10 +82,8 @@ namespace game::player::dice
 
     void start_roll(DiceState& state, const glm::vec3& target_position, float fall_height)
     {
-        // IMPORTANT: Dice rolls its own number - don't pass a predetermined result
-        // The dice will randomly generate a number and display it when it stops
-        // TEMPORARY: For testing minigame at tile 7, always roll 7
-        int rolled_number = 7;  // For testing: always roll 7 to go to tile 7
+        // Dice rolls its own number - get a random result here
+        const int rolled_number = random_dice_result();
         
         state.is_rolling = true;
         state.is_falling = true;

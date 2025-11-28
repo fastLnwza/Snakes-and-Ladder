@@ -78,6 +78,25 @@ namespace game::player
         state.steps_remaining = result;
     }
 
+    void warp_to_tile(PlayerState& state, int tile_index)
+    {
+        const int final_tile_index = BOARD_COLUMNS * BOARD_ROWS - 1;
+        const int clamped_tile = std::clamp(tile_index, 0, final_tile_index);
+
+        state.current_tile_index = clamped_tile;
+        state.steps_remaining = 0;
+        state.last_dice_result = 0;
+        state.is_stepping = false;
+        state.step_timer = 0.0f;
+
+        glm::vec3 tile_position = tile_center_world(clamped_tile);
+        tile_position.y = state.ground_y;
+
+        state.position = tile_position;
+        state.step_start_position = tile_position;
+        state.step_end_position = tile_position;
+    }
+
     void update(PlayerState& state, float delta_time, bool space_just_pressed, int final_tile_index, bool can_start_walking)
     {
         // Don't roll dice here - dice will be rolled when space is pressed in main.cpp

@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
@@ -107,10 +107,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;NOMINMAX;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -118,7 +118,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>_deps\glad-build\Debug\glad.lib;_deps\glfw-build\src\Debug\glfw3.lib;opengl32.lib;_deps\glm-build\glm\Debug\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>_deps\glad-build\Debug\glad.lib;_deps\glfw-build\src\Debug\glfw3.lib;opengl32.lib;_deps\glm-build\glm\Debug\glm.lib;_deps\freetype-build\Debug\freetyped.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -133,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
@@ -155,10 +155,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -166,7 +166,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>_deps\glad-build\Release\glad.lib;_deps\glfw-build\src\Release\glfw3.lib;opengl32.lib;_deps\glm-build\glm\Release\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>_deps\glad-build\Release\glad.lib;_deps\glfw-build\src\Release\glfw3.lib;opengl32.lib;_deps\glm-build\glm\Release\glm.lib;_deps\freetype-build\Release\freetype.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -181,7 +181,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
@@ -203,10 +203,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -214,7 +214,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>_deps\glad-build\MinSizeRel\glad.lib;_deps\glfw-build\src\MinSizeRel\glfw3.lib;opengl32.lib;_deps\glm-build\glm\MinSizeRel\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>_deps\glad-build\MinSizeRel\glad.lib;_deps\glfw-build\src\MinSizeRel\glfw3.lib;opengl32.lib;_deps\glm-build\glm\MinSizeRel\glm.lib;_deps\freetype-build\MinSizeRel\freetype.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -229,7 +229,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ConformanceMode>true</ConformanceMode>
@@ -250,10 +250,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;NOMINMAX;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Github\Pacman-OpenGL\src;C:\Github\Pacman-OpenGL\external;C:\Github\Pacman-OpenGL\external\cgltf;C:\Github\Pacman-OpenGL\external\glad\include;C:\Github\Pacman-OpenGL\build\_deps\glad-build\include;C:\Github\Pacman-OpenGL\build\_deps\glfw-src\include;C:\Github\Pacman-OpenGL\build\_deps\glm-src;C:\Github\Pacman-OpenGL\build\_deps\freetype-build\include;C:\Github\Pacman-OpenGL\build\_deps\freetype-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -261,7 +261,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>_deps\glad-build\RelWithDebInfo\glad.lib;_deps\glfw-build\src\RelWithDebInfo\glfw3.lib;opengl32.lib;_deps\glm-build\glm\RelWithDebInfo\glm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>_deps\glad-build\RelWithDebInfo\glad.lib;_deps\glfw-build\src\RelWithDebInfo\glfw3.lib;opengl32.lib;_deps\glm-build\glm\RelWithDebInfo\glm.lib;_deps\freetype-build\RelWithDebInfo\freetype.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -347,6 +347,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\board.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\qte_minigame.cpp" />
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\tile_memory_minigame.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\player.cpp" />
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\dice\dice.cpp" />
   </ItemGroup>
@@ -357,11 +358,21 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="C:\Github\Pacman-OpenGL\build\copy_font.vcxproj">
+      <Project>{FF2FEF78-7476-3758-97C3-DDF5C6AAA45F}</Project>
+      <Name>copy_font</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
     <ProjectReference Include="C:\Github\Pacman-OpenGL\build\copy_shaders.vcxproj">
       <Project>{713CD3B5-B05E-32B1-80D8-A526FB4BE6BD}</Project>
       <Name>copy_shaders</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Github\Pacman-OpenGL\build\_deps\freetype-build\freetype.vcxproj">
+      <Project>{010066AE-97FC-3C5F-9146-B2C453CED859}</Project>
+      <Name>freetype</Name>
     </ProjectReference>
     <ProjectReference Include="C:\Github\Pacman-OpenGL\build\_deps\glad-build\glad.vcxproj">
       <Project>{0482238B-793A-3F33-8754-4B432EC94C00}</Project>

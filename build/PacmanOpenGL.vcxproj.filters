@@ -46,6 +46,9 @@
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\qte_minigame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\tile_memory_minigame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
