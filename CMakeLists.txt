@@ -1,8 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
 
+# Suppress CMake warnings from external dependencies
+if(POLICY CMP0146)
+    cmake_policy(SET CMP0146 NEW)  # Honor CMAKE_<LANG>_COMPILER_AR
+endif()
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)  # file(GENERATE) supports generator expressions
+endif()
+
 project(PacmanOpenGL VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Suppress deprecation warnings from external dependencies
+set(CMAKE_WARN_DEPRECATED OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,6 +26,9 @@ else()
 endif()
 
 include(FetchContent)
+
+# Suppress warnings from FetchContent dependencies
+set(FETCHCONTENT_QUIET ON)
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Disable GLFW examples" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Disable GLFW tests" FORCE)
@@ -72,21 +86,25 @@ add_executable(${PROJECT_NAME}
     src/utils/file_utils.cpp
     
     # Rendering
-    src/rendering/gltf_loader.cpp
-    src/rendering/obj_loader.cpp
-    src/rendering/mesh.cpp
-    src/rendering/primitives.cpp
-    src/rendering/shader.cpp
-    src/rendering/texture_loader.cpp
-    src/rendering/text_renderer.cpp
+    src/rendering/loaders/gltf_loader.cpp
+    src/rendering/loaders/obj_loader.cpp
+    src/rendering/loaders/texture_loader.cpp
+    src/rendering/geometry/mesh.cpp
+    src/rendering/geometry/primitives.cpp
+    src/rendering/shader/shader.cpp
+    src/rendering/text/text_renderer.cpp
     
     # Game modules
     src/game/map/board.cpp
     src/game/map/map_generator.cpp
     src/game/minigame/qte_minigame.cpp
     src/game/minigame/tile_memory_minigame.cpp
+    src/game/ui/ui_overlay.cpp
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
+    src/game/core/game_initializer.cpp
+    src/game/core/game_loop.cpp
+    src/game/core/game_renderer.cpp
 )
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)

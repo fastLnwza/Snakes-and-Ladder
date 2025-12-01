@@ -1,7 +1,7 @@
 #include "map_generator.h"
 
 #include "board.h"
-#include "rendering/primitives.h"
+#include "rendering/geometry/primitives.h"
 
 #include <algorithm>
 #include <array>
@@ -210,162 +210,16 @@ namespace game::map
             }
         }
 
-        void append_start_icon(std::vector<Vertex>& vertices,
-                               std::vector<unsigned int>& indices,
-                               const glm::vec3& tile_center,
-                               float tile_size)
-        {
-            // Create a green triangle marker for start point
-            const float triangle_size = tile_size * 0.25f;
-            const float triangle_height = tile_size * 0.3f;
-            const glm::vec3 triangle_center = tile_center + glm::vec3(tile_size * 0.18f, tile_size * 0.02f, -tile_size * 0.18f);
-            
-            append_pyramid(vertices,
-                           indices,
-                           triangle_center,
-                           triangle_size,
-                           triangle_height,
-                           {0.22f, 0.85f, 0.32f}); // Bright green for start triangle
-        }
-
         void append_activity_icon(std::vector<Vertex>& vertices,
                                   std::vector<unsigned int>& indices,
                                   ActivityKind kind,
                                   const glm::vec3& tile_center,
                                   float tile_size)
         {
-            const glm::vec3 base_center = tile_center + glm::vec3(tile_size * 0.18f, tile_size * 0.02f, -tile_size * 0.18f);
-
             switch (kind)
             {
-            case ActivityKind::Bonus:
-            {
-                const glm::vec3 gold_base_color(0.92f, 0.76f, 0.18f);
-                append_box_prism(vertices,
-                                 indices,
-                                 base_center.x,
-                                 base_center.z,
-                                 tile_size * 0.2f,
-                                 tile_size * 0.2f,
-                                 tile_size * 0.18f,
-                                 gold_base_color);
-                append_box_prism(vertices,
-                                 indices,
-                                 base_center.x,
-                                 base_center.z,
-                                 tile_size * 0.14f,
-                                 tile_size * 0.14f,
-                                 tile_size * 0.28f,
-                                 {1.0f, 0.92f, 0.44f});
-                break;
-            }
-            case ActivityKind::Trap:
-            {
-                const glm::vec3 trap_center = tile_center + glm::vec3(-tile_size * 0.15f, tile_center.y, tile_size * 0.15f);
-                append_pyramid(vertices,
-                               indices,
-                               trap_center,
-                               tile_size * 0.28f,
-                               tile_size * 0.4f,
-                               {0.86f, 0.34f, 0.26f});
-                break;
-            }
-            case ActivityKind::Portal:
-            {
-                const float radius = tile_size * 0.18f;
-                const auto [orb_vertices, orb_indices] = build_sphere(radius, 18, 12, {0.3f, 0.78f, 0.95f});
-                const std::size_t offset = vertices.size();
-                const glm::vec3 orb_center = tile_center + glm::vec3(0.0f, tile_size * 0.18f, 0.0f);
-                for (auto vertex : orb_vertices)
-                {
-                    vertex.position += orb_center;
-                    vertices.push_back(vertex);
-                }
-                for (unsigned int idx : orb_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(offset + idx));
-                }
-                break;
-            }
-            case ActivityKind::Slide:
-            {
-                const glm::vec3 ramp_center = tile_center + glm::vec3(tile_size * 0.2f, 0.0f, tile_size * 0.1f);
-                const auto [ramp_vertices, ramp_indices] =
-                    build_plane(tile_size * 0.5f, tile_size * 0.18f, {0.4f, 0.65f, 0.9f}, {0.35f, 0.7f, 0.95f});
-                const std::size_t offset = vertices.size();
-                for (auto vertex : ramp_vertices)
-                {
-                    vertex.position += ramp_center;
-                    vertices.push_back(vertex);
-                }
-                for (unsigned int idx : ramp_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(offset + idx));
-                }
-
-                append_pyramid(vertices,
-                               indices,
-                               ramp_center + glm::vec3(tile_size * 0.28f, tile_size * 0.02f, 0.0f),
-                               tile_size * 0.18f,
-                               tile_size * 0.18f,
-                               {0.95f, 0.85f, 0.35f});
-                break;
-            }
-            case ActivityKind::MiniGame:
-            {
-                const float orb_radius = tile_size * 0.2f;
-                const auto [orb_vertices, orb_indices] = build_sphere(orb_radius, 20, 14, {0.72f, 0.35f, 0.92f});
-                const std::size_t offset = vertices.size();
-                const glm::vec3 orb_center = tile_center + glm::vec3(0.0f, tile_size * 0.22f, 0.0f);
-                for (auto vertex : orb_vertices)
-                {
-                    vertex.position += orb_center;
-                    vertices.push_back(vertex);
-                }
-                for (unsigned int idx : orb_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(offset + idx));
-                }
-
-                const glm::vec3 ring_color = {0.32f, 0.78f, 0.95f};
-                append_box_prism(vertices,
-                                 indices,
-                                 tile_center.x,
-                                 tile_center.z,
-                                 tile_size * 0.45f,
-                                 tile_size * 0.08f,
-                                 tile_size * 0.05f,
-                                 ring_color);
-                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.25f,
-                                                                      tile_size * 0.04f,
-                                                                      tile_size * 0.25f);
-                append_letter_label(vertices,
-                                    indices,
-                                    "PT",
-                                    label_start,
-                                    tile_size * 0.035f,
-                                    glm::vec3(0.95f, 0.95f, 0.95f));
-                break;
-            }
             case ActivityKind::MemoryGame:
             {
-                const glm::vec3 tile_color = {0.95f, 0.58f, 0.82f};
-                const glm::vec3 highlight_color = {0.98f, 0.9f, 0.32f};
-                const float square_size = tile_size * 0.18f;
-                const float square_height = tile_size * 0.08f;
-                for (int i = 0; i < 3; ++i)
-                {
-                    const float offset = (static_cast<float>(i) - 1.0f) * square_size * 0.85f;
-                    const glm::vec3 center = tile_center + glm::vec3(offset, square_height * (0.5f + 0.2f * i), -tile_size * 0.15f);
-                    append_box_prism(vertices,
-                                     indices,
-                                     center.x,
-                                     center.z,
-                                     square_size,
-                                     square_size,
-                                     square_height,
-                                     (i == 1) ? highlight_color : tile_color);
-                }
                 const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
                                                                       tile_size * 0.04f,
                                                                       tile_size * 0.25f);
@@ -377,6 +231,11 @@ namespace game::map
                                     glm::vec3(0.98f, 0.95f, 0.6f));
                 break;
             }
+            case ActivityKind::MiniGame:
+            case ActivityKind::Bonus:
+            case ActivityKind::Trap:
+            case ActivityKind::Portal:
+            case ActivityKind::Slide:
             case ActivityKind::None:
             default:
                 break;
@@ -606,7 +465,10 @@ namespace game::map
 
         for (const auto& link : BOARD_LINKS)
         {
-            tile_kinds[link.start] = link.is_ladder ? TileKind::LadderBase : TileKind::SnakeHead;
+            if (link.is_ladder)
+            {
+                tile_kinds[link.start] = TileKind::LadderBase;
+            }
         }
 
         const glm::vec3 color_a = {0.18f, 0.28f, 0.45f};
@@ -614,7 +476,6 @@ namespace game::map
         const glm::vec3 start_color = {0.22f, 0.65f, 0.28f};
         const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
         const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
-        const glm::vec3 snake_color = {0.78f, 0.28f, 0.28f};
         const glm::vec3 digit_color_default = {0.95f, 0.95f, 0.92f};
         const glm::vec3 digit_color_minigame = {0.95f, 0.25f, 0.25f};
 
@@ -635,9 +496,6 @@ namespace game::map
                 break;
             case TileKind::LadderBase:
                 color = ladder_color;
-                break;
-            case TileKind::SnakeHead:
-                color = snake_color;
                 break;
             default:
                 break;
@@ -666,12 +524,6 @@ namespace game::map
 
             append_tile_number(vertices, indices, tile, center, tile_size, digit_color);
             
-            // Add start icon for start tile
-            if (tile_kinds[tile] == TileKind::Start)
-            {
-                append_start_icon(vertices, indices, center, tile_size);
-            }
-            
             if (activity != ActivityKind::None)
             {
                 append_activity_icon(vertices, indices, activity, center, tile_size);
@@ -684,45 +536,45 @@ namespace game::map
             {
                 append_ladder_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
             }
-            else
-            {
-                append_snake_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
-            }
         }
 
         const float marker_radius = 0.35f;
         const auto [marker_verts, marker_indices] = build_sphere(marker_radius, 12, 6, {1.0f, 1.0f, 1.0f});
 
+        // Only add markers for ladders, not for snakes
         for (const auto& link : BOARD_LINKS)
         {
-            const float elevation = marker_radius + tile_surface_offset;
-            const glm::vec3 start_center = tile_center_world(link.start, elevation);
-            const glm::vec3 end_center = tile_center_world(link.end, elevation);
+            if (link.is_ladder)
+            {
+                const float elevation = marker_radius + tile_surface_offset;
+                const glm::vec3 start_center = tile_center_world(link.start, elevation);
+                const glm::vec3 end_center = tile_center_world(link.end, elevation);
 
-            const std::size_t start_marker_offset = vertices.size();
-            for (const auto& v : marker_verts)
-            {
-                Vertex translated = v;
-                translated.position += start_center;
-                translated.color = link.color;
-                vertices.push_back(translated);
-            }
-            for (unsigned int idx : marker_indices)
-            {
-                indices.push_back(static_cast<unsigned int>(start_marker_offset + idx));
-            }
+                const std::size_t start_marker_offset = vertices.size();
+                for (const auto& v : marker_verts)
+                {
+                    Vertex translated = v;
+                    translated.position += start_center;
+                    translated.color = link.color;
+                    vertices.push_back(translated);
+                }
+                for (unsigned int idx : marker_indices)
+                {
+                    indices.push_back(static_cast<unsigned int>(start_marker_offset + idx));
+                }
 
-            const std::size_t end_marker_offset = vertices.size();
-            for (const auto& v : marker_verts)
-            {
-                Vertex translated = v;
-                translated.position += end_center;
-                translated.color = link.color;
-                vertices.push_back(translated);
-            }
-            for (unsigned int idx : marker_indices)
-            {
-                indices.push_back(static_cast<unsigned int>(end_marker_offset + idx));
+                const std::size_t end_marker_offset = vertices.size();
+                for (const auto& v : marker_verts)
+                {
+                    Vertex translated = v;
+                    translated.position += end_center;
+                    translated.color = link.color;
+                    vertices.push_back(translated);
+                }
+                for (unsigned int idx : marker_indices)
+                {
+                    indices.push_back(static_cast<unsigned int>(end_marker_offset + idx));
+                }
             }
         }
         
