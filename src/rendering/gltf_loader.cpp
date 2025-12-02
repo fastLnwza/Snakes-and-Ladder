@@ -7,7 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
 
-#include "rendering/geometry/mesh.h"
+#include "mesh.h"
 #include "utils/file_utils.h"
 
 GLTFModel load_gltf_model(const std::filesystem::path& path)

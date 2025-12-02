@@ -16,25 +16,25 @@
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\utils\file_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\loaders\gltf_loader.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\gltf_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\loaders\obj_loader.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\obj_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\loaders\texture_loader.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\geometry\mesh.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\primitives.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\geometry\primitives.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\shader\shader.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\texture_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\text\text_renderer.cpp">
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\rendering\text_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\board.cpp">
@@ -49,22 +49,10 @@
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\tile_memory_minigame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\ui\ui_overlay.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\player\dice\dice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\core\game_initializer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\core\game_loop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\core\game_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

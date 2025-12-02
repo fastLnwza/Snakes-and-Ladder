@@ -50,8 +50,5 @@ namespace game::map
     glm::vec3 tile_center_world(int tile_index, float height_offset = 0.0f);
     ActivityKind classify_activity_tile(int tile_index);
     bool check_wall_collision(const glm::vec3& position, float radius);
-    
-    // Returns the destination tile index if the given tile has a ladder or snake, otherwise returns -1
-    int get_link_destination(int tile_index);
 }
 

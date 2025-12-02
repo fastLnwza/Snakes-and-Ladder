@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "rendering/geometry/mesh.h"
+#include "mesh.h"
 #include "utils/file_utils.h"
 
 OBJModel load_obj_model(const std::filesystem::path& path)

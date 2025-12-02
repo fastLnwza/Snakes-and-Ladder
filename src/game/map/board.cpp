@@ -85,17 +85,5 @@ namespace game::map
 
         return false;
     }
-
-    int get_link_destination(int tile_index)
-    {
-        for (const auto& link : BOARD_LINKS)
-        {
-            if (link.start == tile_index)
-            {
-                return link.end;
-            }
-        }
-        return -1; // No ladder or snake found on this tile
-    }
 }
 
