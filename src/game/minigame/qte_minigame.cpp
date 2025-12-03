@@ -6,23 +6,6 @@
 
 namespace game::minigame
 {
-    namespace
-    {
-        constexpr float TIMER_SPEED_SCALE = 0.4f; // Slow the visual timer further
-
-        std::string format_two_part_time(float time_seconds)
-        {
-            if (time_seconds < 0.0f)
-            {
-                time_seconds = 0.0f;
-            }
-
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(2) << time_seconds;
-            return oss.str();
-        }
-    }
-
     void start_precision_timing(PrecisionTimingState& state)
     {
         state.status = PrecisionTimingStatus::Running;
@@ -31,17 +14,19 @@ namespace game::minigame
         state.target_time = 4.99f;
         state.max_time = 10.0f;
         state.bonus_steps = 0;
-        state.display_text = "Press SPACE to stop at " + format_two_part_time(state.target_time) + "!";
+        state.display_text = "Press SPACE to stop at 4.99!";
     }
 
     void advance(PrecisionTimingState& state, float delta_time)
     {
         if (state.status == PrecisionTimingStatus::Running)
         {
-            state.timer += delta_time * TIMER_SPEED_SCALE;
-            std::string base = format_two_part_time(state.target_time) +
-                               " : " + format_two_part_time(state.timer);
-            state.display_text = base + "  SPACE!";
+            state.timer += delta_time;
+            // Update display text to show current time
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2);
+            oss << "Time: " << state.timer << " | Target: 4.99 | Press SPACE!";
+            state.display_text = oss.str();
         }
         else if (state.is_showing_time)
         {
@@ -50,7 +35,8 @@ namespace game::minigame
             
             // Update display text to show comparison: "4.99 : X.XX"
             std::ostringstream oss;
-            oss << format_two_part_time(state.target_time) << " : " << format_two_part_time(state.stopped_time);
+            oss << std::fixed << std::setprecision(2);
+            oss << "4.99 : " << state.stopped_time;
             state.display_text = oss.str();
             
             // After 0.5 seconds, switch to showing result
@@ -75,7 +61,7 @@ namespace game::minigame
 
         // Show the stopped time first for 0.5 seconds, then show result
         state.is_showing_time = true;
-        state.time_display_timer = 1.5f;  // Show for longer to make results easier to read
+        state.time_display_timer = 0.5f;  // Show for 0.5 seconds
         
         // Store result message but don't show it yet
         std::ostringstream result_oss;
@@ -97,7 +83,10 @@ namespace game::minigame
         state.result_message = result_oss.str();
         
         // Display comparison: "4.99 : X.XX" to show target vs actual time
-        state.display_text = format_two_part_time(state.target_time) + " : " + format_two_part_time(state.stopped_time);
+        std::ostringstream time_oss;
+        time_oss << std::fixed << std::setprecision(2);
+        time_oss << "4.99 : " << state.stopped_time;
+        state.display_text = time_oss.str();
     }
 
     bool has_expired(const PrecisionTimingState& state)
