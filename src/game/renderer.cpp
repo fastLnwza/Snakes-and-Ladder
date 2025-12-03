@@ -134,11 +134,16 @@ namespace game
     {
         const bool precision_running = game::minigame::is_running(game_state.minigame_state);
         const bool tile_memory_active = game::minigame::tile_memory::is_active(game_state.tile_memory_state);
+        const bool precision_showing_time = game_state.minigame_state.is_showing_time;
+        const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
+                                         game::minigame::is_failure(game_state.minigame_state);
         const bool show_ui_overlay = game_state.dice_state.is_displaying || 
                                     game_state.dice_state.is_rolling || 
                                     game_state.dice_state.is_falling ||
                                     game_state.player_state.steps_remaining > 0 || 
                                     precision_running ||
+                                    precision_showing_time ||
+                                    precision_has_result ||
                                     tile_memory_active ||
                                     game_state.debug_warp_state.active || 
                                     game_state.debug_warp_state.notification_timer > 0.0f ||

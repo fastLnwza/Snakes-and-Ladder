@@ -31,14 +31,14 @@ namespace game::minigame
         }
         else if (state.is_showing_time)
         {
-            // Count down the time display timer
-            state.time_display_timer -= delta_time;
-            
             // Update display text to show comparison: "4.99 : X.XX"
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2);
             oss << "4.99 : " << state.stopped_time;
             state.display_text = oss.str();
+            
+            // Count down the time display timer
+            state.time_display_timer -= delta_time;
             
             // After 0.5 seconds, switch to showing result
             if (state.time_display_timer <= 0.0f)
@@ -46,6 +46,13 @@ namespace game::minigame
                 state.is_showing_time = false;
                 state.display_text = state.result_message;
             }
+        }
+        else if (!state.is_showing_time && 
+                 (state.status == PrecisionTimingStatus::Perfect || 
+                  state.status == PrecisionTimingStatus::Failure))
+        {
+            // Ensure display_text is set to result_message when not showing time
+            state.display_text = state.result_message;
         }
     }
 
