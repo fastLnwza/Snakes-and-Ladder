@@ -27,8 +27,7 @@ namespace game::map
         bool is_ladder = false;
     };
 
-    constexpr std::array<BoardLink, 6> BOARD_LINKS = {{
-        {2, 21, {0.35f, 0.75f, 0.38f}, true},
+    constexpr std::array<BoardLink, 5> BOARD_LINKS = {{
         {6, 17, {0.32f, 0.68f, 0.82f}, true},
         {20, 38, {0.46f, 0.78f, 0.36f}, true},
         {41, 62, {0.28f, 0.7f, 0.55f}, true},

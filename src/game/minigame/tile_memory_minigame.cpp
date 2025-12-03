@@ -39,7 +39,7 @@ namespace game::minigame::tile_memory
         std::string format_input_prompt(const TileMemoryState& state)
         {
             std::ostringstream oss;
-            oss << "MEM INPUT: ";
+            oss << "input ";
             const std::size_t total = state.sequence.size();
             for (std::size_t i = 0; i < total; ++i)
             {
@@ -56,8 +56,6 @@ namespace game::minigame::tile_memory
                     oss << " ";
                 }
             }
-            oss << " | T ";
-            oss << std::fixed << std::setprecision(1) << std::max(0.0f, state.input_timer) << "s";
             return oss.str();
         }
 
@@ -65,18 +63,14 @@ namespace game::minigame::tile_memory
         {
             if (state.sequence.empty())
             {
-                return "MEM READY...";
+                return "mem ready...";
             }
 
             std::ostringstream oss;
-            oss << "MEM SHOW: ";
+            oss << "mem ";
             for (std::size_t i = 0; i < state.sequence.size(); ++i)
             {
-                if (static_cast<int>(i) == state.highlight_index)
-                {
-                    oss << "[" << state.sequence[i] << "]";
-                }
-                else if (static_cast<int>(i) < state.highlight_index)
+                if (static_cast<int>(i) <= state.highlight_index)
                 {
                     oss << state.sequence[i];
                 }
@@ -92,32 +86,39 @@ namespace game::minigame::tile_memory
             }
             return oss.str();
         }
+
+        void start_round(TileMemoryState& state, int sequence_length)
+        {
+            sequence_length = clamp_length(sequence_length);
+
+            std::array<int, MAX_TILE_VALUE> tiles{};
+            for (int i = 0; i < MAX_TILE_VALUE; ++i)
+            {
+                tiles[i] = i + 1;
+            }
+
+            std::shuffle(tiles.begin(), tiles.end(), rng());
+
+            state.sequence.assign(tiles.begin(), tiles.begin() + sequence_length);
+            state.input_history.clear();
+            state.phase = Phase::ShowingSequence;
+            state.highlight_index = 0;
+            state.highlight_timer = 0.0f;
+            state.input_time_limit = 5.0f + static_cast<float>(sequence_length) * 0.75f;
+            state.input_timer = state.input_time_limit;
+            state.display_text = format_sequence_hint(state);
+        }
     }
 
     void start(TileMemoryState& state, int sequence_length)
     {
-        sequence_length = clamp_length(sequence_length);
-
-        std::array<int, MAX_TILE_VALUE> tiles{};
-        for (int i = 0; i < MAX_TILE_VALUE; ++i)
-        {
-            tiles[i] = i + 1;
-        }
-
-        std::shuffle(tiles.begin(), tiles.end(), rng());
-
-        state.sequence.assign(tiles.begin(), tiles.begin() + sequence_length);
-        state.input_history.clear();
-        state.phase = Phase::ShowingSequence;
-        state.highlight_index = 0;
-        state.highlight_timer = 0.0f;
-        state.input_time_limit = 5.0f + static_cast<float>(sequence_length) * 0.75f;
-        state.input_timer = state.input_time_limit;
+        (void)sequence_length;  // Ignore parameter, we use fixed rounds
+        state.current_round = 1;  // Start with round 1 (3 digits)
         state.success = false;
-        state.display_text = format_sequence_hint(state);
         state.result_text.clear();
         state.result_timer = 0.0f;
         state.bonus_steps = 0;
+        start_round(state, 3);  // First round: 3 digits
     }
 
     void advance(TileMemoryState& state, float delta_time)
@@ -195,8 +196,20 @@ namespace game::minigame::tile_memory
 
         if (state.input_history.size() >= state.sequence.size())
         {
-            set_result(state, true);
-            return;
+            // Check if we completed a round
+            if (state.current_round == 1)
+            {
+                // Round 1 complete, start round 2 (4 digits)
+                state.current_round = 2;
+                start_round(state, 4);  // Second round: 4 digits
+                return;
+            }
+            else
+            {
+                // Round 2 complete, game success
+                set_result(state, true);
+                return;
+            }
         }
 
         state.display_text = format_input_prompt(state);
@@ -245,6 +258,7 @@ namespace game::minigame::tile_memory
         state.result_text.clear();
         state.result_timer = 0.0f;
         state.bonus_steps = 0;
+        state.current_round = 0;
     }
 }
 

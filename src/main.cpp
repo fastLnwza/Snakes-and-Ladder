@@ -17,7 +17,7 @@
 #include "core/types.h"
 #include "core/window.h"
 #include "game/map/board.h"
-#include "game/map/map_generator.h"
+#include "game/map/map_manager.h"
 #include "game/minigame/qte_minigame.h"
 #include "game/minigame/tile_memory_minigame.h"
 #include "game/player/player.h"
@@ -80,13 +80,9 @@ int main(int argc, char* argv[])
 
         // Build map
         using namespace game::map;
-        const auto [map_vertices, map_indices] = build_snakes_ladders_map();
-        Mesh map_mesh = create_mesh(map_vertices, map_indices);
-
-        const float board_width = static_cast<float>(BOARD_COLUMNS) * TILE_SIZE;
-        const float board_height = static_cast<float>(BOARD_ROWS) * TILE_SIZE;
-        const float map_length = board_height;
-        const float map_min_dimension = std::min(board_width, board_height);
+        MapData map_data = initialize_map();
+        const float map_length = map_data.map_length;
+        const float map_min_dimension = map_data.map_min_dimension;
 
         // Create player
         using namespace game::player;
@@ -97,7 +93,7 @@ int main(int argc, char* argv[])
         const float player_ground_y = player_radius;
         PlayerState player_state;
         initialize(player_state, tile_center_world(0), player_ground_y, player_radius);
-        const int final_tile_index = BOARD_COLUMNS * BOARD_ROWS - 1;
+        const int final_tile_index = map_data.final_tile_index;
 
         // Load dice model from dice folder (support both GLB and OBJ)
         GLTFModel dice_model_glb;
@@ -458,8 +454,8 @@ int main(int argc, char* argv[])
                         minigame_message.clear();
                         minigame_message_timer = 0.0f;
 
-                        const int display_tile = target_tile + 1;
-                        debug_warp_state.notification = "Warped to tile " + std::to_string(display_tile);
+                        const int display_tile = requested_tile;
+                        debug_warp_state.notification = "wrap to " + std::to_string(display_tile) + " [enter]";
                         debug_warp_state.notification_timer = 3.0f;
                         debug_warp_state.buffer.clear();
                         debug_warp_state.active = false;
@@ -574,8 +570,8 @@ int main(int argc, char* argv[])
             }
             
             // Update dice animation with board bounds for bouncing
-            const float half_width = board_width * 0.5f;
-            const float half_height = board_height * 0.5f;
+            const float half_width = map_data.board_width * 0.5f;
+            const float half_height = map_data.board_height * 0.5f;
             update(dice_state, delta_time, half_width, half_height);
 
             if (minigame_message_timer > 0.0f)
@@ -592,25 +588,21 @@ int main(int argc, char* argv[])
                 if (!player_state.is_stepping && player_state.steps_remaining == 0)
                 {
                     last_processed_tile = current_tile;
-                    if (!game::minigame::is_running(minigame_state) &&
-                        !game::minigame::tile_memory::is_active(tile_memory_state))
-                    {
-                        const ActivityKind tile_activity = classify_activity_tile(current_tile);
-                        if (tile_activity == ActivityKind::MiniGame && current_tile != 0)
-                        {
-                            game::minigame::start_precision_timing(minigame_state);
-                            precision_space_was_down = false;
-                            minigame_message = "Precision Timing Challenge! Stop at 4.99";
-                            minigame_message_timer = 0.0f;
-                        }
-                        else if (tile_activity == ActivityKind::MemoryGame && current_tile != 0)
-                        {
-                            game::minigame::tile_memory::start(tile_memory_state);
-                            tile_memory_previous_keys.fill(false);
-                            minigame_message = "จำลำดับ! ใช้ปุ่ม 1-9";
-                            minigame_message_timer = 0.0f;
-                        }
-                    }
+                    
+                    // Check for ladder links and apply if found
+                    game::map::check_and_apply_ladder(player_state, current_tile, last_processed_tile);
+                    
+                    // Check tile activity and trigger minigames
+                    game::map::check_tile_activity(current_tile,
+                                                 last_processed_tile,
+                                                 game::minigame::is_running(minigame_state),
+                                                 game::minigame::tile_memory::is_active(tile_memory_state),
+                                                 minigame_state,
+                                                 tile_memory_state,
+                                                 minigame_message,
+                                                 minigame_message_timer,
+                                                 tile_memory_previous_keys,
+                                                 precision_space_was_down);
                 }
                 else
                 {
@@ -635,13 +627,7 @@ int main(int argc, char* argv[])
             glBindTexture(GL_TEXTURE_2D, 0);
 
             // Draw map
-            {
-                const glm::mat4 model(1.0f);
-                const glm::mat4 mvp = projection * view * model;
-                glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-                glBindVertexArray(map_mesh.vao);
-                glDrawElements(GL_TRIANGLES, map_mesh.index_count, GL_UNSIGNED_INT, nullptr);
-            }
+            game::map::render_map(map_data, projection, view, program, mvp_location);
 
             // Draw player
             {
@@ -839,8 +825,7 @@ int main(int argc, char* argv[])
                 }
                 else if (debug_warp_state.active)
                 {
-                    const int max_display_tile = final_tile_index + 1;
-                    std::string prompt = "Warp to tile (1-" + std::to_string(max_display_tile) + ", 0=start): ";
+                    std::string prompt = "wrap to ";
                     if (debug_warp_state.buffer.empty())
                     {
                         prompt += "_";
@@ -849,7 +834,7 @@ int main(int argc, char* argv[])
                     {
                         prompt += debug_warp_state.buffer;
                     }
-                    prompt += "  [Enter to confirm]";
+                    prompt += " [enter]";
                     glm::vec3 debug_color = {0.3f, 0.85f, 1.0f};
                     render_text(text_renderer,
                                 prompt,
@@ -895,11 +880,8 @@ int main(int argc, char* argv[])
                 // Show minigame timer while running (only if no result message and not showing stopped time)
                 else if (game::minigame::is_running(minigame_state))
                 {
-                    // Show the current time counting up - format: "4.99 : X.XX" at center
-                    std::ostringstream oss;
-                    oss << std::fixed << std::setprecision(2);
-                    oss << "4.99 : " << minigame_state.timer;
-                    std::string timing_text = oss.str();
+                    // Show the current time counting up with [space!] hint
+                    std::string timing_text = game::minigame::get_display_text(minigame_state);
                     
                     glm::vec3 timing_color = {0.9f, 0.9f, 0.3f}; // Yellow
                     render_text(text_renderer, timing_text, center_x, top_y, ui_secondary_scale, timing_color);
@@ -932,7 +914,7 @@ int main(int argc, char* argv[])
         {
             destroy_texture(dice_texture);
         }
-        destroy_mesh(map_mesh);
+        destroy_mesh(map_data.mesh);
         destroy_mesh(sphere_mesh);
         if (has_dice_model)
         {

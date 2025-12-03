@@ -446,55 +446,6 @@ namespace game::map
                                       glm::vec3(0.92f, 0.8f, 0.45f));
             }
         }
-
-        void append_snake_between_tiles(std::vector<Vertex>& vertices,
-                                        std::vector<unsigned int>& indices,
-                                        const BoardLink& link,
-                                        float surface_height)
-        {
-            glm::vec3 start = tile_center_world(link.start, surface_height + TILE_SIZE * 0.08f);
-            glm::vec3 end = tile_center_world(link.end, surface_height + TILE_SIZE * 0.08f);
-            const glm::vec3 delta = end - start;
-            const float span = glm::length(delta);
-            if (span < 1e-3f)
-            {
-                return;
-            }
-
-            const int segments = 12;
-            const float body_radius = TILE_SIZE * 0.22f;
-            const auto [body_vertices, body_indices] = build_sphere(body_radius, 14, 10, link.color);
-
-            for (int i = 0; i < segments; ++i)
-            {
-                const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
-                glm::vec3 position = glm::mix(start, end, t);
-                position.y += std::sin(t * glm::pi<float>()) * body_radius * 0.35f;
-
-                const std::size_t offset = vertices.size();
-                for (auto vertex : body_vertices)
-                {
-                    vertex.position += position;
-                    vertices.push_back(vertex);
-                }
-                for (unsigned int idx : body_indices)
-                {
-                    indices.push_back(static_cast<unsigned int>(offset + idx));
-                }
-            }
-
-            const auto [head_vertices, head_indices] = build_sphere(body_radius * 1.2f, 16, 12, link.color * 0.9f);
-            const std::size_t head_offset = vertices.size();
-            for (auto vertex : head_vertices)
-            {
-                vertex.position += start + glm::vec3(0.0f, body_radius * 0.6f, 0.0f);
-                vertices.push_back(vertex);
-            }
-            for (unsigned int idx : head_indices)
-            {
-                indices.push_back(static_cast<unsigned int>(head_offset + idx));
-            }
-        }
     }
 
     std::pair<std::vector<Vertex>, std::vector<unsigned int>> build_snakes_ladders_map()
@@ -606,7 +557,10 @@ namespace game::map
 
         for (const auto& link : BOARD_LINKS)
         {
-            tile_kinds[link.start] = link.is_ladder ? TileKind::LadderBase : TileKind::SnakeHead;
+            if (link.is_ladder)
+            {
+                tile_kinds[link.start] = TileKind::LadderBase;
+            }
         }
 
         const glm::vec3 color_a = {0.18f, 0.28f, 0.45f};
@@ -614,7 +568,6 @@ namespace game::map
         const glm::vec3 start_color = {0.22f, 0.65f, 0.28f};
         const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
         const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
-        const glm::vec3 snake_color = {0.78f, 0.28f, 0.28f};
         const glm::vec3 digit_color_default = {0.95f, 0.95f, 0.92f};
         const glm::vec3 digit_color_minigame = {0.95f, 0.25f, 0.25f};
 
@@ -635,9 +588,6 @@ namespace game::map
                 break;
             case TileKind::LadderBase:
                 color = ladder_color;
-                break;
-            case TileKind::SnakeHead:
-                color = snake_color;
                 break;
             default:
                 break;
@@ -665,17 +615,6 @@ namespace game::map
             }
 
             append_tile_number(vertices, indices, tile, center, tile_size, digit_color);
-            
-            // Add start icon for start tile
-            if (tile_kinds[tile] == TileKind::Start)
-            {
-                append_start_icon(vertices, indices, center, tile_size);
-            }
-            
-            if (activity != ActivityKind::None)
-            {
-                append_activity_icon(vertices, indices, activity, center, tile_size);
-            }
         }
 
         for (const auto& link : BOARD_LINKS)
@@ -683,46 +622,6 @@ namespace game::map
             if (link.is_ladder)
             {
                 append_ladder_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
-            }
-            else
-            {
-                append_snake_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
-            }
-        }
-
-        const float marker_radius = 0.35f;
-        const auto [marker_verts, marker_indices] = build_sphere(marker_radius, 12, 6, {1.0f, 1.0f, 1.0f});
-
-        for (const auto& link : BOARD_LINKS)
-        {
-            const float elevation = marker_radius + tile_surface_offset;
-            const glm::vec3 start_center = tile_center_world(link.start, elevation);
-            const glm::vec3 end_center = tile_center_world(link.end, elevation);
-
-            const std::size_t start_marker_offset = vertices.size();
-            for (const auto& v : marker_verts)
-            {
-                Vertex translated = v;
-                translated.position += start_center;
-                translated.color = link.color;
-                vertices.push_back(translated);
-            }
-            for (unsigned int idx : marker_indices)
-            {
-                indices.push_back(static_cast<unsigned int>(start_marker_offset + idx));
-            }
-
-            const std::size_t end_marker_offset = vertices.size();
-            for (const auto& v : marker_verts)
-            {
-                Vertex translated = v;
-                translated.position += end_center;
-                translated.color = link.color;
-                vertices.push_back(translated);
-            }
-            for (unsigned int idx : marker_indices)
-            {
-                indices.push_back(static_cast<unsigned int>(end_marker_offset + idx));
             }
         }
         

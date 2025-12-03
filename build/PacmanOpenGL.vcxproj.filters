@@ -43,6 +43,9 @@
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\map\map_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Github\Pacman-OpenGL\src\game\minigame\qte_minigame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

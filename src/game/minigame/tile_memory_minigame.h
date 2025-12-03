@@ -28,6 +28,7 @@ namespace game::minigame::tile_memory
         std::string result_text;
         float result_timer = 0.0f;
         int bonus_steps = 0;
+        int current_round = 0;  // 1 = first round (3 digits), 2 = second round (4 digits)
     };
 
     void start(TileMemoryState& state, int sequence_length = 3);

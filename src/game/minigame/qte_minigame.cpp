@@ -21,11 +21,12 @@ namespace game::minigame
     {
         if (state.status == PrecisionTimingStatus::Running)
         {
-            state.timer += delta_time;
+            // Slow down timer by 50% to make it easier
+            state.timer += delta_time * 0.5f;
             // Update display text to show current time
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2);
-            oss << "Time: " << state.timer << " | Target: 4.99 | Press SPACE!";
+            oss << "4.99:" << state.timer << " [space!]";
             state.display_text = oss.str();
         }
         else if (state.is_showing_time)
