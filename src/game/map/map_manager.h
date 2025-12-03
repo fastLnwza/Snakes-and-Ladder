@@ -14,6 +14,9 @@
 namespace game::minigame
 {
     struct PrecisionTimingState;
+    struct ReactionState;
+    struct MathQuizState;
+    struct PatternMatchingState;
 }
 
 namespace game::minigame::tile_memory
@@ -40,14 +43,18 @@ namespace game::map
     // Returns true if player was warped, false otherwise
     bool check_and_apply_ladder(player::PlayerState& player_state, int current_tile, int& last_processed_tile);
 
-    // Check tile activity and trigger appropriate minigame
-    // Returns true if a minigame was triggered
+    // Check tile activity and trigger appropriate minigame or special action
+    // Returns true if a minigame was triggered or special action was applied
     bool check_tile_activity(int current_tile, 
                             int& last_processed_tile,
                             bool minigame_running,
                             bool tile_memory_active,
+                            player::PlayerState& player_state,
                             game::minigame::PrecisionTimingState& minigame_state,
                             game::minigame::tile_memory::TileMemoryState& tile_memory_state,
+                            game::minigame::ReactionState& reaction_state,
+                            game::minigame::MathQuizState& math_state,
+                            game::minigame::PatternMatchingState& pattern_state,
                             std::string& minigame_message,
                             float& minigame_message_timer,
                             std::array<bool, 9>& tile_memory_previous_keys,

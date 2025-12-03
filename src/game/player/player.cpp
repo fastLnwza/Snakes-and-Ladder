@@ -39,7 +39,10 @@ namespace game::player
             state.step_start_position = tile_center_world(state.current_tile_index);
             state.step_start_position.y = state.ground_y;
 
-            state.step_end_position = tile_center_world(state.current_tile_index + 1);
+            const int next_tile = state.is_walking_backward ? 
+                std::max(0, state.current_tile_index - 1) : 
+                std::min(final_tile_index, state.current_tile_index + 1);
+            state.step_end_position = tile_center_world(next_tile);
             state.step_end_position.y = state.ground_y;
 
             state.is_stepping = true;
@@ -117,13 +120,30 @@ namespace game::player
             {
                 state.position = state.step_end_position;
                 state.position.y = state.ground_y;
-                ++state.current_tile_index;
+                
+                if (state.is_walking_backward)
+                {
+                    if (state.current_tile_index > 0)
+                    {
+                        --state.current_tile_index;
+                    }
+                }
+                else
+                {
+                    ++state.current_tile_index;
+                }
+                
                 --state.steps_remaining;
                 state.is_stepping = false;
                 // Continue walking if there are steps remaining - use dice result directly
                 if (state.steps_remaining > 0)
                 {
                     schedule_step(state, final_tile_index);
+                }
+                else
+                {
+                    // Reset backward flag when done walking
+                    state.is_walking_backward = false;
                 }
             }
         }
@@ -143,6 +163,19 @@ namespace game::player
     glm::vec3 get_position(const PlayerState& state)
     {
         return state.position;
+    }
+
+    void step_backward(PlayerState& state, int steps)
+    {
+        state.is_walking_backward = true;
+        state.steps_remaining = steps;
+    }
+
+    void skip_turn(PlayerState& state)
+    {
+        state.steps_remaining = 0;
+        state.last_dice_result = 0;
+        state.is_walking_backward = false;
     }
 
     int get_current_tile(const PlayerState& state)

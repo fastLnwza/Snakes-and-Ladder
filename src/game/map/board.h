@@ -43,7 +43,12 @@ namespace game::map
         Portal,
         Trap,
         MiniGame,
-        MemoryGame
+        MemoryGame,
+        ReactionGame,
+        MathGame,
+        PatternGame,
+        SkipTurn,
+        WalkBackward
     };
 
     glm::vec3 tile_center_world(int tile_index, float height_offset = 0.0f);

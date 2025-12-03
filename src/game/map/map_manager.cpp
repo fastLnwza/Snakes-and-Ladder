@@ -3,6 +3,9 @@
 #include "../../rendering/mesh.h"
 #include "../minigame/qte_minigame.h"
 #include "../minigame/tile_memory_minigame.h"
+#include "../minigame/reaction_minigame.h"
+#include "../minigame/math_minigame.h"
+#include "../minigame/pattern_minigame.h"
 #include "map_generator.h"
 
 #include <glad/glad.h>
@@ -46,18 +49,37 @@ namespace game::map
                             int& last_processed_tile,
                             bool minigame_running,
                             bool tile_memory_active,
+                            player::PlayerState& player_state,
                             game::minigame::PrecisionTimingState& minigame_state,
                             game::minigame::tile_memory::TileMemoryState& tile_memory_state,
+                            game::minigame::ReactionState& reaction_state,
+                            game::minigame::MathQuizState& math_state,
+                            game::minigame::PatternMatchingState& pattern_state,
                             std::string& minigame_message,
                             float& minigame_message_timer,
                             std::array<bool, 9>& tile_memory_previous_keys,
                             bool& precision_space_was_down)
     {
+        (void)last_processed_tile;  // Unused parameter
         if (!minigame_running && !tile_memory_active)
         {
             const ActivityKind tile_activity = classify_activity_tile(current_tile);
             
-            if (tile_activity == ActivityKind::MiniGame && current_tile != 0)
+            if (tile_activity == ActivityKind::SkipTurn && current_tile != 0)
+            {
+                player::skip_turn(player_state);
+                minigame_message = "Skip Turn!";
+                minigame_message_timer = 2.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::WalkBackward && current_tile != 0)
+            {
+                player::step_backward(player_state, 3);  // Walk backward 3 steps
+                minigame_message = "Walk Backward 3 steps!";
+                minigame_message_timer = 2.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::MiniGame && current_tile != 0)
             {
                 game::minigame::start_precision_timing(minigame_state);
                 precision_space_was_down = false;
@@ -70,6 +92,27 @@ namespace game::map
                 game::minigame::tile_memory::start(tile_memory_state);
                 tile_memory_previous_keys.fill(false);
                 minigame_message = "จำลำดับ! ใช้ปุ่ม 1-9";
+                minigame_message_timer = 0.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::ReactionGame && current_tile != 0)
+            {
+                game::minigame::start_reaction(reaction_state);
+                minigame_message = "Reaction Game! Wait for GO!";
+                minigame_message_timer = 0.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::MathGame && current_tile != 0)
+            {
+                game::minigame::start_math_quiz(math_state);
+                minigame_message = "Math Quiz!";
+                minigame_message_timer = 0.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::PatternGame && current_tile != 0)
+            {
+                game::minigame::start_pattern_matching(pattern_state);
+                minigame_message = "Pattern Matching!";
                 minigame_message_timer = 0.0f;
                 return true;
             }

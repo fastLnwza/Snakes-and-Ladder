@@ -10,10 +10,16 @@ C:\Github\Pacman-OpenGL\src\rendering\primitives.cpp;C:\Github\Pacman-OpenGL\bui
 C:\Github\Pacman-OpenGL\src\rendering\shader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\shader.obj
 C:\Github\Pacman-OpenGL\src\rendering\texture_loader.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\texture_loader.obj
 C:\Github\Pacman-OpenGL\src\rendering\text_renderer.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\text_renderer.obj
+C:\Github\Pacman-OpenGL\src\game\game_state.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\game_state.obj
+C:\Github\Pacman-OpenGL\src\game\game_loop.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\game_loop.obj
+C:\Github\Pacman-OpenGL\src\game\renderer.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\renderer.obj
 C:\Github\Pacman-OpenGL\src\game\map\board.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\board.obj
 C:\Github\Pacman-OpenGL\src\game\map\map_generator.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\map_generator.obj
 C:\Github\Pacman-OpenGL\src\game\map\map_manager.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\map_manager.obj
 C:\Github\Pacman-OpenGL\src\game\minigame\qte_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\qte_minigame.obj
 C:\Github\Pacman-OpenGL\src\game\minigame\tile_memory_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\tile_memory_minigame.obj
+C:\Github\Pacman-OpenGL\src\game\minigame\reaction_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\reaction_minigame.obj
+C:\Github\Pacman-OpenGL\src\game\minigame\math_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\math_minigame.obj
+C:\Github\Pacman-OpenGL\src\game\minigame\pattern_minigame.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\pattern_minigame.obj
 C:\Github\Pacman-OpenGL\src\game\player\player.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\player.obj
 C:\Github\Pacman-OpenGL\src\game\player\dice\dice.cpp;C:\Github\Pacman-OpenGL\build\PacmanOpenGL.dir\Debug\dice.obj

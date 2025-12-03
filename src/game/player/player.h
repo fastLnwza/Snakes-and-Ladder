@@ -15,6 +15,7 @@ namespace game::player
         int steps_remaining = 0;
         int last_dice_result = 0;
         bool previous_space_state = false;
+        bool is_walking_backward = false;  // Flag for backward movement
         
         float ground_y = 0.0f;
         float radius = 0.4f;
@@ -26,6 +27,8 @@ namespace game::player
     void roll_dice(PlayerState& state);  // Kept for compatibility, does nothing now
     void set_dice_result(PlayerState& state, int result);  // Set result after dice finishes rolling
     void warp_to_tile(PlayerState& state, int tile_index);
+    void step_backward(PlayerState& state, int steps);  // Walk backward by specified number of steps
+    void skip_turn(PlayerState& state);  // Skip the current turn
     glm::vec3 get_position(const PlayerState& state);
     int get_current_tile(const PlayerState& state);
 }

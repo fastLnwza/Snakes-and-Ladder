@@ -81,11 +81,17 @@ add_executable(${PROJECT_NAME}
     src/rendering/text_renderer.cpp
     
     # Game modules
+    src/game/game_state.cpp
+    src/game/game_loop.cpp
+    src/game/renderer.cpp
     src/game/map/board.cpp
     src/game/map/map_generator.cpp
     src/game/map/map_manager.cpp
     src/game/minigame/qte_minigame.cpp
     src/game/minigame/tile_memory_minigame.cpp
+    src/game/minigame/reaction_minigame.cpp
+    src/game/minigame/math_minigame.cpp
+    src/game/minigame/pattern_minigame.cpp
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
 )

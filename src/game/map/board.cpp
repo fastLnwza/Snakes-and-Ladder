@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 
 namespace game::map
 {
@@ -10,8 +9,18 @@ namespace game::map
     {
         constexpr std::array<int, 2> PRECISION_MINIGAME_TILES = {7, 55};
         constexpr std::array<int, 2> MEMORY_MINIGAME_TILES = {28, 82};
+        constexpr std::array<int, 2> REACTION_MINIGAME_TILES = {12, 48};
+        constexpr std::array<int, 2> MATH_MINIGAME_TILES = {33, 66};
+        constexpr std::array<int, 2> PATTERN_MINIGAME_TILES = {18, 72};
+        constexpr std::array<int, 3> SKIP_TURN_TILES = {15, 35, 65};
+        constexpr std::array<int, 3> WALK_BACKWARD_TILES = {25, 45, 75};
 
         bool matches_tile(int tile_index, const std::array<int, 2>& tiles)
+        {
+            return std::find(tiles.begin(), tiles.end(), tile_index) != tiles.end();
+        }
+
+        bool matches_tile(int tile_index, const std::array<int, 3>& tiles)
         {
             return std::find(tiles.begin(), tiles.end(), tile_index) != tiles.end();
         }
@@ -64,6 +73,30 @@ namespace game::map
         if (matches_tile(tile_index, PRECISION_MINIGAME_TILES))
         {
             return ActivityKind::MiniGame;
+        }
+        if (matches_tile(tile_index, MEMORY_MINIGAME_TILES))
+        {
+            return ActivityKind::MemoryGame;
+        }
+        if (matches_tile(tile_index, REACTION_MINIGAME_TILES))
+        {
+            return ActivityKind::ReactionGame;
+        }
+        if (matches_tile(tile_index, MATH_MINIGAME_TILES))
+        {
+            return ActivityKind::MathGame;
+        }
+        if (matches_tile(tile_index, PATTERN_MINIGAME_TILES))
+        {
+            return ActivityKind::PatternGame;
+        }
+        if (matches_tile(tile_index, SKIP_TURN_TILES))
+        {
+            return ActivityKind::SkipTurn;
+        }
+        if (matches_tile(tile_index, WALK_BACKWARD_TILES))
+        {
+            return ActivityKind::WalkBackward;
         }
 
         return ActivityKind::None;
