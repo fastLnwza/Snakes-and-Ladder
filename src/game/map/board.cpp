@@ -50,22 +50,7 @@ namespace game::map
             return ActivityKind::None;
         }
 
-        if (tile_index % 14 == 0)
-        {
-            return ActivityKind::Portal;
-        }
-        if ((tile_index + 5) % 11 == 0)
-        {
-            return ActivityKind::Slide;
-        }
-        if ((tile_index % 9) == 0)
-        {
-            return ActivityKind::Trap;
-        }
-        if ((tile_index % 4) == 0)
-        {
-            return ActivityKind::Bonus;
-        }
+        // Check minigame tiles first (highest priority)
         if (matches_tile(tile_index, MEMORY_MINIGAME_TILES))
         {
             return ActivityKind::MemoryGame;
@@ -73,10 +58,6 @@ namespace game::map
         if (matches_tile(tile_index, PRECISION_MINIGAME_TILES))
         {
             return ActivityKind::MiniGame;
-        }
-        if (matches_tile(tile_index, MEMORY_MINIGAME_TILES))
-        {
-            return ActivityKind::MemoryGame;
         }
         if (matches_tile(tile_index, REACTION_MINIGAME_TILES))
         {
@@ -97,6 +78,24 @@ namespace game::map
         if (matches_tile(tile_index, WALK_BACKWARD_TILES))
         {
             return ActivityKind::WalkBackward;
+        }
+
+        // Then check general activity patterns
+        if (tile_index % 14 == 0)
+        {
+            return ActivityKind::Portal;
+        }
+        if ((tile_index + 5) % 11 == 0)
+        {
+            return ActivityKind::Slide;
+        }
+        if ((tile_index % 9) == 0)
+        {
+            return ActivityKind::Trap;
+        }
+        if ((tile_index % 4) == 0)
+        {
+            return ActivityKind::Bonus;
         }
 
         return ActivityKind::None;

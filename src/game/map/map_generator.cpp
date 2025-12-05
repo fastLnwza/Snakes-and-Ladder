@@ -569,7 +569,7 @@ namespace game::map
         const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
         const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
         const glm::vec3 digit_color_default = {0.95f, 0.95f, 0.92f};
-        const glm::vec3 digit_color_minigame = {0.95f, 0.25f, 0.25f};
+        const glm::vec3 digit_color_minigame = {1.0f, 0.2f, 0.2f};  // Bright red for minigame tiles
 
         const float tile_surface_offset = 0.02f;
         const float tile_size = TILE_SIZE * 0.98f;  // Increased to fill board better
@@ -609,7 +609,11 @@ namespace game::map
 
             const ActivityKind activity = classify_activity_tile(tile);
             glm::vec3 digit_color = digit_color_default;
-            if (activity == ActivityKind::MiniGame || activity == ActivityKind::MemoryGame)
+            if (activity == ActivityKind::MiniGame || 
+                activity == ActivityKind::MemoryGame ||
+                activity == ActivityKind::ReactionGame ||
+                activity == ActivityKind::MathGame ||
+                activity == ActivityKind::PatternGame)
             {
                 digit_color = digit_color_minigame;
             }

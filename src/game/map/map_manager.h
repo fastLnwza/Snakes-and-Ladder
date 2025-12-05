@@ -57,7 +57,7 @@ namespace game::map
                             game::minigame::PatternMatchingState& pattern_state,
                             std::string& minigame_message,
                             float& minigame_message_timer,
-                            std::array<bool, 9>& tile_memory_previous_keys,
+                            std::array<bool, 10>& tile_memory_previous_keys,
                             bool& precision_space_was_down);
 
     // Render the map

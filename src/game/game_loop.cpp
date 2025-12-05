@@ -113,14 +113,28 @@ namespace game
             m_game_state.tile_memory_previous_keys.fill(false);
         }
 
-        // Handle reaction game input
+        // Handle reaction game input (Number Guessing - uses 1-9, submit immediately)
         if (reaction_running)
         {
-            const bool space_down = m_window.is_key_pressed(GLFW_KEY_SPACE);
-            const bool space_just_pressed_reaction = space_down && !m_game_state.precision_space_was_down;
-            if (space_just_pressed_reaction)
+            // Handle digit input (1-9) - submit immediately when key is pressed
+            for (int digit = 1; digit <= 9; ++digit)
             {
-                game::minigame::press_key(m_game_state.reaction_state);
+                const int key = GLFW_KEY_0 + digit;
+                const bool key_down = m_window.is_key_pressed(key);
+                const bool key_just_pressed = key_down && !m_game_state.tile_memory_previous_keys[digit];
+                if (key_just_pressed)
+                {
+                    game::minigame::submit_guess(m_game_state.reaction_state, digit);
+                }
+                m_game_state.tile_memory_previous_keys[digit] = key_down;
+            }
+        }
+        else
+        {
+            // Reset key states when game is not running
+            for (int digit = 1; digit <= 9; ++digit)
+            {
+                m_game_state.tile_memory_previous_keys[digit] = false;
             }
         }
 
@@ -415,7 +429,9 @@ namespace game
             game::minigame::tile_memory::advance(m_game_state.tile_memory_state, delta_time);
         }
 
-        if (game::minigame::is_running(m_game_state.reaction_state))
+        if (game::minigame::is_running(m_game_state.reaction_state) || 
+            game::minigame::is_failure(m_game_state.reaction_state) ||
+            game::minigame::is_success(m_game_state.reaction_state))
         {
             game::minigame::advance(m_game_state.reaction_state, delta_time);
         }

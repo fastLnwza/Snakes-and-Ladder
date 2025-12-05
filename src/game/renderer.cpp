@@ -5,6 +5,7 @@
 #include "../game/player/dice/dice.h"
 #include "../game/minigame/qte_minigame.h"
 #include "../game/minigame/tile_memory_minigame.h"
+#include "../game/minigame/reaction_minigame.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
@@ -134,17 +135,22 @@ namespace game
     {
         const bool precision_running = game::minigame::is_running(game_state.minigame_state);
         const bool tile_memory_active = game::minigame::tile_memory::is_active(game_state.tile_memory_state);
+        const bool reaction_running = game::minigame::is_running(game_state.reaction_state);
+        const bool reaction_has_result = game::minigame::is_success(game_state.reaction_state) || 
+                                         game::minigame::is_failure(game_state.reaction_state);
         const bool precision_showing_time = game_state.minigame_state.is_showing_time;
         const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
                                          game::minigame::is_failure(game_state.minigame_state);
         const bool show_ui_overlay = game_state.dice_state.is_displaying || 
-                                    game_state.dice_state.is_rolling || 
+                                    game_state.dice_state.is_rolling ||
                                     game_state.dice_state.is_falling ||
                                     game_state.player_state.steps_remaining > 0 || 
                                     precision_running ||
                                     precision_showing_time ||
                                     precision_has_result ||
                                     tile_memory_active ||
+                                    reaction_running ||
+                                    reaction_has_result ||
                                     game_state.debug_warp_state.active || 
                                     game_state.debug_warp_state.notification_timer > 0.0f ||
                                     game_state.minigame_message_timer > 0.0f;
@@ -243,6 +249,20 @@ namespace game
                 msg_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
             render_text(m_render_state.text_renderer, display_msg, center_x, top_y, ui_primary_scale, msg_color);
+        }
+        else if (reaction_running || reaction_has_result)
+        {
+            std::string reaction_text = game::minigame::get_display_text(game_state.reaction_state);
+            glm::vec3 reaction_color = {0.9f, 0.9f, 0.3f};
+            if (game::minigame::is_success(game_state.reaction_state))
+            {
+                reaction_color = glm::vec3(0.2f, 1.0f, 0.4f);
+            }
+            else if (game::minigame::is_failure(game_state.reaction_state))
+            {
+                reaction_color = glm::vec3(1.0f, 0.3f, 0.3f);
+            }
+            render_text(m_render_state.text_renderer, reaction_text, center_x, top_y, ui_secondary_scale, reaction_color);
         }
         else if (precision_running)
         {
