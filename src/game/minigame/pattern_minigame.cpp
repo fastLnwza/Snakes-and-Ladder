@@ -29,94 +29,155 @@ namespace game::minigame
         {
             state.pattern[i] = get_direction_distribution()(get_rng());
         }
-        state.player_input.fill(0);
-        state.input_index = 0;
+        state.input_buffer.clear();
+        state.title_timer = 0.0f;
+        state.title_duration = 3.0f;
         state.show_timer = 0.0f;
-        state.show_duration = 3.0f;
-        state.input_timer = 0.0f;
-        state.input_time_limit = 5.0f;
-        state.phase = PatternMatchingState::Phase::ShowingPattern;
+        state.show_duration = 5.0f;
+        state.phase = PatternMatchingState::Phase::ShowingTitle;
         state.success = false;
         state.bonus_steps = 0;
-        
-        std::ostringstream oss;
-        oss << "Pattern: ";
-        for (int i = 0; i < 4; ++i)
-        {
-            const char* dirs[] = {"", "↑", "↓", "←", "→"};
-            oss << dirs[state.pattern[i]] << " ";
-        }
-        state.display_text = oss.str();
+        state.display_text = "Pattern Matching!";
     }
 
     void advance(PatternMatchingState& state, float delta_time)
     {
         switch (state.phase)
         {
+        case PatternMatchingState::Phase::ShowingTitle:
+        {
+            state.title_timer += delta_time;
+            if (state.title_timer >= state.title_duration)
+            {
+                state.phase = PatternMatchingState::Phase::ShowingPattern;
+                state.show_timer = 0.0f;
+                // Generate pattern text using key letters (W S A D) that match the input keys
+                std::ostringstream oss;
+                for (int i = 0; i < 4; ++i)
+                {
+                    const char* dirs[] = {"", "W", "S", "A", "D"};
+                    oss << dirs[state.pattern[i]];
+                    if (i < 3) oss << " ";
+                }
+                state.display_text = oss.str();
+            }
+            break;
+        }
         case PatternMatchingState::Phase::ShowingPattern:
             state.show_timer += delta_time;
             if (state.show_timer >= state.show_duration)
             {
                 state.phase = PatternMatchingState::Phase::WaitingInput;
-                state.input_timer = state.input_time_limit;
-                state.display_text = "Repeat pattern! (WASD)";
+                state.input_buffer.clear();
+                state.display_text = "Input: ";
             }
             break;
         case PatternMatchingState::Phase::WaitingInput:
-            state.input_timer -= delta_time;
-            if (state.input_timer <= 0.0f)
+        {
+            // Update display text to show current input
+            std::string input_text = "Input: ";
+            input_text += state.input_buffer;
+            // Add underscores for remaining slots
+            int remaining = 4 - static_cast<int>(state.input_buffer.length());
+            for (int i = 0; i < remaining; ++i)
             {
-                state.phase = PatternMatchingState::Phase::Failure;
-                state.success = false;
-                state.bonus_steps = 0;
-                state.display_text = "Time's Up!";
+                input_text += "_";
+                if (i < remaining - 1) input_text += " ";
             }
+            state.display_text = input_text;
             break;
+        }
         default:
             break;
         }
     }
 
-    void submit_input(PatternMatchingState& state, int direction)
+    void add_char_input(PatternMatchingState& state, char c)
     {
         if (state.phase != PatternMatchingState::Phase::WaitingInput)
         {
             return;
         }
 
-        state.player_input[state.input_index] = direction;
-        state.input_index++;
-
-        // Check if pattern matches so far
-        bool matches = true;
-        for (int i = 0; i < state.input_index; ++i)
+        // Only accept W, S, A, D (case insensitive)
+        char upper_c = (c >= 'a' && c <= 'z') ? (c - 'a' + 'A') : c;
+        if (upper_c == 'W' || upper_c == 'S' || upper_c == 'A' || upper_c == 'D')
         {
-            if (state.player_input[i] != state.pattern[i])
+            if (state.input_buffer.length() < 4)
+            {
+                state.input_buffer += upper_c;
+            }
+        }
+    }
+
+    void delete_char(PatternMatchingState& state)
+    {
+        if (state.phase != PatternMatchingState::Phase::WaitingInput)
+        {
+            return;
+        }
+
+        if (!state.input_buffer.empty())
+        {
+            state.input_buffer.pop_back();
+        }
+    }
+
+    void submit_answer(PatternMatchingState& state)
+    {
+        if (state.phase != PatternMatchingState::Phase::WaitingInput)
+        {
+            return;
+        }
+
+        if (state.input_buffer.length() != 4)
+        {
+            // Not enough characters
+            return;
+        }
+
+        // Convert input buffer to pattern format (1=W, 2=S, 3=A, 4=D)
+        std::array<int, 4> player_pattern{};
+        for (size_t i = 0; i < state.input_buffer.length(); ++i)
+        {
+            char c = state.input_buffer[i];
+            if (c == 'W') player_pattern[i] = 1;
+            else if (c == 'S') player_pattern[i] = 2;
+            else if (c == 'A') player_pattern[i] = 3;
+            else if (c == 'D') player_pattern[i] = 4;
+        }
+
+        // Check if pattern matches
+        bool matches = true;
+        for (int i = 0; i < 4; ++i)
+        {
+            if (player_pattern[i] != state.pattern[i])
             {
                 matches = false;
                 break;
             }
         }
 
-        if (!matches)
-        {
-            state.phase = PatternMatchingState::Phase::Failure;
-            state.success = false;
-            state.bonus_steps = 0;
-            state.display_text = "Wrong Pattern!";
-        }
-        else if (state.input_index >= 4)
+        if (matches)
         {
             state.phase = PatternMatchingState::Phase::Success;
             state.success = true;
             state.bonus_steps = 5;
             state.display_text = "Perfect! +5 steps";
         }
+        else
+        {
+            state.phase = PatternMatchingState::Phase::Failure;
+            state.success = false;
+            state.bonus_steps = 0;
+            state.display_text = "Wrong Pattern!";
+        }
     }
 
     bool is_running(const PatternMatchingState& state)
     {
-        return state.phase == PatternMatchingState::Phase::ShowingPattern ||
+        return state.phase == PatternMatchingState::Phase::ShowingTitle ||
+               state.phase == PatternMatchingState::Phase::ShowingPattern ||
                state.phase == PatternMatchingState::Phase::WaitingInput;
     }
 
@@ -144,10 +205,9 @@ namespace game::minigame
     {
         state.phase = PatternMatchingState::Phase::Inactive;
         state.pattern.fill(0);
-        state.player_input.fill(0);
-        state.input_index = 0;
+        state.input_buffer.clear();
+        state.title_timer = 0.0f;
         state.show_timer = 0.0f;
-        state.input_timer = 0.0f;
         state.success = false;
         state.display_text.clear();
         state.bonus_steps = 0;

@@ -9,6 +9,7 @@ namespace game::minigame
         enum class Phase
         {
             Inactive,
+            ShowingTitle,
             ShowingQuestion,
             WaitingAnswer,
             Success,
@@ -21,6 +22,8 @@ namespace game::minigame
         char operation = '+';
         int correct_answer = 0;
         int player_answer = 0;
+        float title_timer = 0.0f;
+        float title_duration = 3.0f;
         float timer = 0.0f;
         float time_limit = 15.0f;
         bool success = false;

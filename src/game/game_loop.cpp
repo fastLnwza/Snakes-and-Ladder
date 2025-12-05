@@ -181,6 +181,7 @@ namespace game
         // Handle pattern game input
         if (pattern_running)
         {
+            // Handle character input (W, S, A, D)
             const bool w_down = m_window.is_key_pressed(GLFW_KEY_W);
             const bool s_down = m_window.is_key_pressed(GLFW_KEY_S);
             const bool a_down = m_window.is_key_pressed(GLFW_KEY_A);
@@ -188,25 +189,43 @@ namespace game
 
             if (w_down && !m_game_state.pattern_previous_keys[0])
             {
-                game::minigame::submit_input(m_game_state.pattern_state, 1);
+                game::minigame::add_char_input(m_game_state.pattern_state, 'W');
             }
             if (s_down && !m_game_state.pattern_previous_keys[1])
             {
-                game::minigame::submit_input(m_game_state.pattern_state, 2);
+                game::minigame::add_char_input(m_game_state.pattern_state, 'S');
             }
             if (a_down && !m_game_state.pattern_previous_keys[2])
             {
-                game::minigame::submit_input(m_game_state.pattern_state, 3);
+                game::minigame::add_char_input(m_game_state.pattern_state, 'A');
             }
             if (d_down && !m_game_state.pattern_previous_keys[3])
             {
-                game::minigame::submit_input(m_game_state.pattern_state, 4);
+                game::minigame::add_char_input(m_game_state.pattern_state, 'D');
             }
 
             m_game_state.pattern_previous_keys[0] = w_down;
             m_game_state.pattern_previous_keys[1] = s_down;
             m_game_state.pattern_previous_keys[2] = a_down;
             m_game_state.pattern_previous_keys[3] = d_down;
+
+            // Handle Backspace to delete
+            const bool backspace_down = m_window.is_key_pressed(GLFW_KEY_BACKSPACE);
+            if (backspace_down && !m_game_state.pattern_previous_keys[4])
+            {
+                game::minigame::delete_char(m_game_state.pattern_state);
+            }
+            m_game_state.pattern_previous_keys[4] = backspace_down;
+
+            // Handle Enter/Space to submit
+            const bool enter_down = m_window.is_key_pressed(GLFW_KEY_ENTER) || 
+                                    m_window.is_key_pressed(GLFW_KEY_KP_ENTER);
+            const bool space_down = m_window.is_key_pressed(GLFW_KEY_SPACE);
+            if ((enter_down || space_down) && !m_game_state.pattern_previous_keys[5])
+            {
+                game::minigame::submit_answer(m_game_state.pattern_state);
+            }
+            m_game_state.pattern_previous_keys[5] = (enter_down || space_down);
         }
 
         // Handle debug warp input

@@ -8,18 +8,29 @@ namespace game::minigame
 {
     void start_precision_timing(PrecisionTimingState& state)
     {
-        state.status = PrecisionTimingStatus::Running;
+        state.status = PrecisionTimingStatus::ShowingTitle;
+        state.title_timer = 0.0f;
+        state.title_duration = 3.0f;
         state.timer = 0.0f;
         state.stopped_time = 0.0f;
         state.target_time = 4.99f;
         state.max_time = 10.0f;
         state.bonus_steps = 0;
-        state.display_text = "Press SPACE to stop at 4.99!";
+        state.display_text = "Precision Timing Game";
     }
 
     void advance(PrecisionTimingState& state, float delta_time)
     {
-        if (state.status == PrecisionTimingStatus::Running)
+        if (state.status == PrecisionTimingStatus::ShowingTitle)
+        {
+            state.title_timer += delta_time;
+            if (state.title_timer >= state.title_duration)
+            {
+                state.status = PrecisionTimingStatus::Running;
+                state.display_text = "Press SPACE to stop at 4.99!";
+            }
+        }
+        else if (state.status == PrecisionTimingStatus::Running)
         {
             // Slow down timer by 50% to make it easier
             state.timer += delta_time * 0.5f;
@@ -104,7 +115,8 @@ namespace game::minigame
 
     bool is_running(const PrecisionTimingState& state)
     {
-        return state.status == PrecisionTimingStatus::Running;
+        return state.status == PrecisionTimingStatus::ShowingTitle ||
+               state.status == PrecisionTimingStatus::Running;
     }
 
     bool is_success(const PrecisionTimingState& state)
@@ -122,6 +134,7 @@ namespace game::minigame
     void reset(PrecisionTimingState& state)
     {
         state.status = PrecisionTimingStatus::Inactive;
+        state.title_timer = 0.0f;
         state.timer = 0.0f;
         state.stopped_time = 0.0f;
         state.display_text.clear();

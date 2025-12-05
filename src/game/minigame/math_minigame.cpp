@@ -29,9 +29,11 @@ namespace game::minigame
         state.operation = '+';
         state.correct_answer = state.num1 + state.num2;
         state.player_answer = 0;
+        state.title_timer = 0.0f;
+        state.title_duration = 3.0f;
         state.timer = 0.0f;
         state.time_limit = 15.0f;
-        state.phase = MathQuizState::Phase::ShowingQuestion;
+        state.phase = MathQuizState::Phase::ShowingTitle;
         state.success = false;
         state.bonus_steps = 0;
         state.input_buffer.clear();
@@ -40,12 +42,21 @@ namespace game::minigame
 
     void advance(MathQuizState& state, float delta_time)
     {
-        if (state.phase == MathQuizState::Phase::ShowingQuestion)
+        if (state.phase == MathQuizState::Phase::ShowingTitle)
+        {
+            state.title_timer += delta_time;
+            if (state.title_timer >= state.title_duration)
+            {
+                state.phase = MathQuizState::Phase::ShowingQuestion;
+                state.timer = 0.0f;
+            }
+        }
+        else if (state.phase == MathQuizState::Phase::ShowingQuestion)
         {
             state.timer += delta_time;
-            if (state.timer >= 3.0f)
+            if (state.timer >= 0.1f)  // Show question immediately after title
             {
-                // After 3 seconds, show the question
+                // After showing title, show the question
                 state.phase = MathQuizState::Phase::WaitingAnswer;
                 state.timer = 0.0f;
                 std::ostringstream oss;
@@ -142,7 +153,8 @@ namespace game::minigame
 
     bool is_running(const MathQuizState& state)
     {
-        return state.phase == MathQuizState::Phase::ShowingQuestion ||
+        return state.phase == MathQuizState::Phase::ShowingTitle ||
+               state.phase == MathQuizState::Phase::ShowingQuestion ||
                state.phase == MathQuizState::Phase::WaitingAnswer;
     }
 
@@ -222,6 +234,7 @@ namespace game::minigame
     void reset(MathQuizState& state)
     {
         state.phase = MathQuizState::Phase::Inactive;
+        state.title_timer = 0.0f;
         state.timer = 0.0f;
         state.success = false;
         state.display_text.clear();

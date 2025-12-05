@@ -10,6 +10,7 @@ namespace game::minigame
         enum class Phase
         {
             Inactive,
+            ShowingTitle,
             ShowingPattern,
             WaitingInput,
             Success,
@@ -18,12 +19,11 @@ namespace game::minigame
         
         Phase phase = Phase::Inactive;
         std::array<int, 4> pattern{};
-        std::array<int, 4> player_input{};
-        int input_index = 0;
+        std::string input_buffer;  // Text input buffer
+        float title_timer = 0.0f;
+        float title_duration = 3.0f;
         float show_timer = 0.0f;
-        float show_duration = 3.0f;
-        float input_timer = 0.0f;
-        float input_time_limit = 5.0f;
+        float show_duration = 10.0f;
         bool success = false;
         std::string display_text;
         int bonus_steps = 0;
@@ -31,7 +31,9 @@ namespace game::minigame
 
     void start_pattern_matching(PatternMatchingState& state);
     void advance(PatternMatchingState& state, float delta_time);
-    void submit_input(PatternMatchingState& state, int direction);
+    void add_char_input(PatternMatchingState& state, char c);
+    void delete_char(PatternMatchingState& state);
+    void submit_answer(PatternMatchingState& state);
     bool is_running(const PatternMatchingState& state);
     bool is_success(const PatternMatchingState& state);
     bool is_failure(const PatternMatchingState& state);

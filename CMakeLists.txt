@@ -17,6 +17,11 @@ endif()
 
 include(FetchContent)
 
+# Suppress CMake deprecation warnings from external dependencies
+# These warnings are from third-party libraries (freetype, glad) and don't affect functionality
+# They use older cmake_minimum_required syntax which is deprecated in newer CMake versions
+set(CMAKE_WARN_DEPRECATED OFF)
+
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Disable GLFW examples" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "Disable GLFW tests" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "Disable GLFW docs" FORCE)
@@ -57,6 +62,10 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/freetype/freetype.git
     GIT_TAG VER-2-13-2
 )
+
+# Disable HarfBuzz to avoid warning (it's optional for freetype)
+set(FT_DISABLE_HARFBUZZ TRUE CACHE BOOL "Disable HarfBuzz support" FORCE)
+
 FetchContent_MakeAvailable(freetype)
 
 find_package(OpenGL REQUIRED)

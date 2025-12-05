@@ -7,6 +7,7 @@
 #include "../game/minigame/tile_memory_minigame.h"
 #include "../game/minigame/reaction_minigame.h"
 #include "../game/minigame/math_minigame.h"
+#include "../game/minigame/pattern_minigame.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
@@ -142,6 +143,9 @@ namespace game
         const bool math_running = game::minigame::is_running(game_state.math_state);
         const bool math_has_result = game::minigame::is_success(game_state.math_state) || 
                                      game::minigame::is_failure(game_state.math_state);
+        const bool pattern_running = game::minigame::is_running(game_state.pattern_state);
+        const bool pattern_has_result = game::minigame::is_success(game_state.pattern_state) || 
+                                         game::minigame::is_failure(game_state.pattern_state);
         const bool precision_showing_time = game_state.minigame_state.is_showing_time;
         const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
                                          game::minigame::is_failure(game_state.minigame_state);
@@ -157,6 +161,8 @@ namespace game
                                     reaction_has_result ||
                                     math_running ||
                                     math_has_result ||
+                                    pattern_running ||
+                                    pattern_has_result ||
                                     game_state.debug_warp_state.active || 
                                     game_state.debug_warp_state.notification_timer > 0.0f ||
                                     game_state.minigame_message_timer > 0.0f;
@@ -238,6 +244,20 @@ namespace game
             glm::vec3 debug_color = {0.3f, 0.85f, 1.0f};
             render_text(m_render_state.text_renderer, game_state.debug_warp_state.notification, 
                        center_x, top_y, ui_secondary_scale, debug_color);
+        }
+        else if (pattern_running || pattern_has_result)
+        {
+            std::string pattern_text = game::minigame::get_display_text(game_state.pattern_state);
+            glm::vec3 pattern_color = {0.9f, 0.9f, 0.3f};
+            if (game::minigame::is_success(game_state.pattern_state))
+            {
+                pattern_color = glm::vec3(0.2f, 1.0f, 0.4f);
+            }
+            else if (game::minigame::is_failure(game_state.pattern_state))
+            {
+                pattern_color = glm::vec3(1.0f, 0.3f, 0.3f);
+            }
+            render_text(m_render_state.text_renderer, pattern_text, center_x, top_y, ui_secondary_scale, pattern_color);
         }
         else if (game_state.minigame_message_timer > 0.0f && !game_state.minigame_message.empty())
         {

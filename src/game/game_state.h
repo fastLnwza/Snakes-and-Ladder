@@ -65,7 +65,7 @@ namespace game
         // Minigame input tracking
         bool precision_space_was_down = false;
         std::array<bool, 10> tile_memory_previous_keys{};  // 0-9 for digit keys
-        std::array<bool, 4> pattern_previous_keys{};
+        std::array<bool, 6> pattern_previous_keys{};  // W, S, A, D, Backspace, Enter/Space
         std::string reaction_input_buffer;  // Buffer for number guessing input
         bool reaction_backspace_was_down = false;
         bool reaction_enter_was_down = false;

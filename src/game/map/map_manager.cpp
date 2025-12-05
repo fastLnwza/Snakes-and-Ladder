@@ -112,7 +112,7 @@ namespace game::map
             else if (tile_activity == ActivityKind::PatternGame && current_tile != 0)
             {
                 game::minigame::start_pattern_matching(pattern_state);
-                minigame_message = "Pattern Matching!";
+                minigame_message.clear();  // Clear minigame message to show pattern text instead
                 minigame_message_timer = 0.0f;
                 return true;
             }

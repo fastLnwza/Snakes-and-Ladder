@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <string>
 #include <cctype>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 namespace game::map
@@ -171,7 +172,7 @@ namespace game::map
             {
                 glm::vec3 letter_center = start_center;
                 letter_center.x += static_cast<float>(i) * (glyph_width + letter_gap);
-                append_letter_glyph(vertices, indices, static_cast<char>(std::toupper(text[i])), letter_center, cell_size, color);
+                append_letter_glyph(vertices, indices, static_cast<char>(std::toupper(text.at(i))), letter_center, cell_size, color);
             }
         }
 
