@@ -21,7 +21,7 @@ namespace game::minigame
         std::array<int, 4> pattern{};
         std::string input_buffer;  // Text input buffer
         float title_timer = 0.0f;
-        float title_duration = 3.0f;
+        float title_duration = 5.0f;
         float show_timer = 0.0f;
         float show_duration = 10.0f;
         bool success = false;

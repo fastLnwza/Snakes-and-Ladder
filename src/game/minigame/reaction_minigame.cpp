@@ -31,8 +31,10 @@ namespace game::minigame
 
     void start_reaction(ReactionState& state)
     {
-        state.phase = ReactionState::Phase::InitialMessage;
+        state.phase = ReactionState::Phase::ShowingTitle;
         state.timer = 0.0f;
+        state.title_timer = 0.0f;
+        state.title_duration = 5.0f;
         state.ai_thinking_time = 1.0f;
         state.result_display_time = 1.5f;
         
@@ -51,9 +53,11 @@ namespace game::minigame
         state.max_attempts = 3;
         
         state.success = false;
-        state.display_text = "Guess 1-9";
+        state.bonus_steps = 3;  // Set bonus for display
+        state.display_text = "Number Guessing Game Bonus +3";
         state.last_feedback.clear();
         state.guessed_number_text.clear();
+        state.input_buffer.clear();
         state.bonus_steps = 0;
     }
 
@@ -61,6 +65,18 @@ namespace game::minigame
     {
         switch (state.phase)
         {
+        case ReactionState::Phase::ShowingTitle:
+        {
+            state.title_timer += delta_time;
+            if (state.title_timer >= state.title_duration)
+            {
+                // After 3 seconds, transition to InitialMessage
+                state.phase = ReactionState::Phase::InitialMessage;
+                state.timer = 0.0f;
+                state.display_text = "Guess 1-9";
+            }
+            break;
+        }
         case ReactionState::Phase::InitialMessage:
         {
             state.timer += delta_time;
@@ -70,15 +86,27 @@ namespace game::minigame
                 state.phase = ReactionState::Phase::PlayerTurn;
                 state.timer = 0.0f;
                 state.player_attempts = 0;
+                state.input_buffer.clear();
                 std::stringstream ss;
                 ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input";
+                if (!state.input_buffer.empty())
+                {
+                    ss << " " << state.input_buffer;
+                }
                 state.display_text = ss.str();
             }
             break;
         }
         case ReactionState::Phase::PlayerTurn:
         {
-            // Player is waiting for input - nothing to do here
+            // Update display text with input buffer
+            std::stringstream ss;
+            ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input";
+            if (!state.input_buffer.empty())
+            {
+                ss << " " << state.input_buffer;
+            }
+            state.display_text = ss.str();
             break;
         }
         case ReactionState::Phase::ShowingGuess:
@@ -115,6 +143,7 @@ namespace game::minigame
             {
                 // After 1 second, show next guess prompt
                 state.phase = ReactionState::Phase::PlayerTurn;
+                state.input_buffer.clear();
                 std::stringstream ss;
                 ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input";
                 state.display_text = ss.str();
@@ -212,6 +241,51 @@ namespace game::minigame
         }
     }
 
+    void add_digit(ReactionState& state, char digit)
+    {
+        if (state.phase != ReactionState::Phase::PlayerTurn)
+        {
+            return;
+        }
+        // Only allow single digit (1-9)
+        if (state.input_buffer.empty() && digit >= '1' && digit <= '9')
+        {
+            state.input_buffer += digit;
+        }
+    }
+
+    void remove_digit(ReactionState& state)
+    {
+        if (state.phase != ReactionState::Phase::PlayerTurn)
+        {
+            return;
+        }
+        if (!state.input_buffer.empty())
+        {
+            state.input_buffer.pop_back();
+        }
+    }
+
+    void submit_buffer(ReactionState& state)
+    {
+        if (state.phase != ReactionState::Phase::PlayerTurn || state.input_buffer.empty())
+        {
+            return;
+        }
+
+        try
+        {
+            int guess = std::stoi(state.input_buffer);
+            submit_guess(state, guess);
+            state.input_buffer.clear();
+        }
+        catch (const std::exception&)
+        {
+            // Invalid input, clear buffer
+            state.input_buffer.clear();
+        }
+    }
+
     void submit_guess(ReactionState& state, int guess)
     {
         if (state.phase != ReactionState::Phase::PlayerTurn)
@@ -257,7 +331,8 @@ namespace game::minigame
 
     bool is_running(const ReactionState& state)
     {
-        return state.phase == ReactionState::Phase::InitialMessage ||
+        return state.phase == ReactionState::Phase::ShowingTitle ||
+               state.phase == ReactionState::Phase::InitialMessage ||
                state.phase == ReactionState::Phase::PlayerTurn || 
                state.phase == ReactionState::Phase::ShowingGuess ||
                state.phase == ReactionState::Phase::ShowingFeedback ||
@@ -289,6 +364,7 @@ namespace game::minigame
     {
         state.phase = ReactionState::Phase::Inactive;
         state.timer = 0.0f;
+        state.title_timer = 0.0f;
         state.target_number = 0;
         state.min_range = 1;
         state.max_range = 9;
@@ -302,6 +378,7 @@ namespace game::minigame
         state.display_text.clear();
         state.last_feedback.clear();
         state.guessed_number_text.clear();
+        state.input_buffer.clear();
         state.bonus_steps = 0;
     }
 }

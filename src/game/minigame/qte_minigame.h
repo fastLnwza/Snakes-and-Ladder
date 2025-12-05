@@ -21,7 +21,7 @@ namespace game::minigame
     {
         PrecisionTimingStatus status = PrecisionTimingStatus::Inactive;
         float title_timer = 0.0f;
-        float title_duration = 3.0f;
+        float title_duration = 5.0f;
         float timer = 0.0f;
         float stopped_time = 0.0f;
         float target_time = 4.99f;

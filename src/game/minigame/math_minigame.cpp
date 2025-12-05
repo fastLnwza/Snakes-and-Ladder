@@ -30,14 +30,14 @@ namespace game::minigame
         state.correct_answer = state.num1 + state.num2;
         state.player_answer = 0;
         state.title_timer = 0.0f;
-        state.title_duration = 3.0f;
+        state.title_duration = 5.0f;
         state.timer = 0.0f;
         state.time_limit = 15.0f;
         state.phase = MathQuizState::Phase::ShowingTitle;
         state.success = false;
-        state.bonus_steps = 0;
+        state.bonus_steps = 4;  // Set bonus for display
         state.input_buffer.clear();
-        state.display_text = "Math Quiz";
+        state.display_text = "Math Quiz Bonus +4";
     }
 
     void advance(MathQuizState& state, float delta_time)

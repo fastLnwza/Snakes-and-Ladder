@@ -7,5 +7,20 @@ Diagnostics:
   UnusedIncludes: None
   MissingIncludes: None
 
+CompileFlags:
+  Add:
+    - -Ibuild-clangd/_deps/glm-src
+    - -Ibuild/_deps/glm-src
+    - -Ibuild-clangd/_deps/glfw-src/include
+    - -Ibuild/_deps/glfw-src/include
+    - -Ibuild-clangd/_deps/glad-build/include
+    - -Ibuild/_deps/glad-build/include
+    - -Isrc
+    - -Iexternal
+    - -Iexternal/cgltf
+    - -Iexternal/glad/include
+
+
+
 
 

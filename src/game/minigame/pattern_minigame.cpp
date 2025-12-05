@@ -31,13 +31,13 @@ namespace game::minigame
         }
         state.input_buffer.clear();
         state.title_timer = 0.0f;
-        state.title_duration = 3.0f;
+        state.title_duration = 5.0f;
         state.show_timer = 0.0f;
         state.show_duration = 5.0f;
         state.phase = PatternMatchingState::Phase::ShowingTitle;
         state.success = false;
-        state.bonus_steps = 0;
-        state.display_text = "Pattern Matching!";
+        state.bonus_steps = 5;  // Set bonus for display
+        state.display_text = "Pattern Matching! Bonus +5";
     }
 
     void advance(PatternMatchingState& state, float delta_time)

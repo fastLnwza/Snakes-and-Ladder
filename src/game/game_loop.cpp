@@ -93,9 +93,10 @@ namespace game
             m_game_state.precision_space_was_down = false;
         }
 
-        // Handle tile memory input
+        // Handle tile memory input (uses buffer with Enter/Space to submit)
         if (tile_memory_running)
         {
+            // Handle digit input (1-9)
             for (int key_index = 0; key_index < 9; ++key_index)
             {
                 const int glfw_key = GLFW_KEY_1 + key_index;
@@ -103,20 +104,40 @@ namespace game
                 const bool key_just_pressed = key_down && !m_game_state.tile_memory_previous_keys[key_index];
                 if (key_just_pressed)
                 {
-                    game::minigame::tile_memory::submit_choice(m_game_state.tile_memory_state, key_index + 1);
+                    game::minigame::tile_memory::add_digit(m_game_state.tile_memory_state, static_cast<char>('1' + key_index));
                 }
                 m_game_state.tile_memory_previous_keys[key_index] = key_down;
             }
+
+            // Handle Backspace
+            const bool backspace_down = m_window.is_key_pressed(GLFW_KEY_BACKSPACE);
+            if (backspace_down && !m_game_state.tile_memory_backspace_was_down)
+            {
+                game::minigame::tile_memory::remove_digit(m_game_state.tile_memory_state);
+            }
+            m_game_state.tile_memory_backspace_was_down = backspace_down;
+
+            // Handle Enter/Space to submit
+            const bool space_down = m_window.is_key_pressed(GLFW_KEY_SPACE);
+            const bool enter_down = m_window.is_key_pressed(GLFW_KEY_ENTER) ||
+                                    m_window.is_key_pressed(GLFW_KEY_KP_ENTER);
+            if ((space_down || enter_down) && !m_game_state.tile_memory_enter_was_down)
+            {
+                game::minigame::tile_memory::submit_buffer(m_game_state.tile_memory_state);
+            }
+            m_game_state.tile_memory_enter_was_down = space_down || enter_down;
         }
         else
         {
             m_game_state.tile_memory_previous_keys.fill(false);
+            m_game_state.tile_memory_backspace_was_down = false;
+            m_game_state.tile_memory_enter_was_down = false;
         }
 
-        // Handle reaction game input (Number Guessing - uses 1-9, submit immediately)
+        // Handle reaction game input (Number Guessing - uses buffer with Enter/Space to submit)
         if (reaction_running)
         {
-            // Handle digit input (1-9) - submit immediately when key is pressed
+            // Handle digit input (1-9)
             for (int digit = 1; digit <= 9; ++digit)
             {
                 const int key = GLFW_KEY_0 + digit;
@@ -124,10 +145,28 @@ namespace game
                 const bool key_just_pressed = key_down && !m_game_state.tile_memory_previous_keys[digit];
                 if (key_just_pressed)
                 {
-                    game::minigame::submit_guess(m_game_state.reaction_state, digit);
+                    game::minigame::add_digit(m_game_state.reaction_state, static_cast<char>('0' + digit));
                 }
                 m_game_state.tile_memory_previous_keys[digit] = key_down;
             }
+
+            // Handle Backspace
+            const bool backspace_down = m_window.is_key_pressed(GLFW_KEY_BACKSPACE);
+            if (backspace_down && !m_game_state.reaction_backspace_was_down)
+            {
+                game::minigame::remove_digit(m_game_state.reaction_state);
+            }
+            m_game_state.reaction_backspace_was_down = backspace_down;
+
+            // Handle Enter/Space to submit
+            const bool space_down = m_window.is_key_pressed(GLFW_KEY_SPACE);
+            const bool enter_down = m_window.is_key_pressed(GLFW_KEY_ENTER) ||
+                                    m_window.is_key_pressed(GLFW_KEY_KP_ENTER);
+            if ((space_down || enter_down) && !m_game_state.reaction_enter_was_down)
+            {
+                game::minigame::submit_buffer(m_game_state.reaction_state);
+            }
+            m_game_state.reaction_enter_was_down = space_down || enter_down;
         }
         else
         {
@@ -136,6 +175,8 @@ namespace game
             {
                 m_game_state.tile_memory_previous_keys[digit] = false;
             }
+            m_game_state.reaction_backspace_was_down = false;
+            m_game_state.reaction_enter_was_down = false;
         }
 
         // Handle math game input (multi-digit)

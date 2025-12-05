@@ -197,6 +197,7 @@ namespace game
         float top_y = window_height * 0.1f;
         const float ui_primary_scale = 3.2f;
         const float ui_secondary_scale = 2.8f;
+        const float ui_title_scale = 2.0f;  // Smaller scale for game titles
 
         // Priority order for UI display
         if (game_state.minigame_state.is_showing_time)
@@ -229,7 +230,28 @@ namespace game
                     memory_color = glm::vec3(1.0f, 0.3f, 0.3f);
                 }
             }
-            render_text(m_render_state.text_renderer, memory_text, center_x, top_y, ui_primary_scale, memory_color);
+            
+            // Check if text contains "Bonus" - split into two lines
+            size_t bonus_pos = memory_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                std::string game_name = memory_text.substr(0, bonus_pos);
+                // Remove trailing space if exists
+                while (!game_name.empty() && game_name.back() == ' ')
+                {
+                    game_name.pop_back();
+                }
+                std::string bonus_text = memory_text.substr(bonus_pos);
+                float line_height = ui_title_scale * 50.0f;  // Approximate line height
+                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
+                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
+                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
+                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else
+            {
+                render_text(m_render_state.text_renderer, memory_text, center_x, top_y, ui_primary_scale, memory_color);
+            }
         }
         else if (game_state.debug_warp_state.active)
         {
@@ -257,7 +279,28 @@ namespace game
             {
                 pattern_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
-            render_text(m_render_state.text_renderer, pattern_text, center_x, top_y, ui_secondary_scale, pattern_color);
+            
+            // Check if text contains "Bonus" - split into two lines
+            size_t bonus_pos = pattern_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                std::string game_name = pattern_text.substr(0, bonus_pos);
+                // Remove trailing space if exists
+                while (!game_name.empty() && game_name.back() == ' ')
+                {
+                    game_name.pop_back();
+                }
+                std::string bonus_text = pattern_text.substr(bonus_pos);
+                float line_height = ui_title_scale * 50.0f;  // Approximate line height
+                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
+                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
+                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
+                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else
+            {
+                render_text(m_render_state.text_renderer, pattern_text, center_x, top_y, ui_secondary_scale, pattern_color);
+            }
         }
         else if (game_state.minigame_message_timer > 0.0f && !game_state.minigame_message.empty())
         {
@@ -288,7 +331,28 @@ namespace game
             {
                 reaction_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
-            render_text(m_render_state.text_renderer, reaction_text, center_x, top_y, ui_secondary_scale, reaction_color);
+            
+            // Check if text contains "Bonus" - split into two lines
+            size_t bonus_pos = reaction_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                std::string game_name = reaction_text.substr(0, bonus_pos);
+                // Remove trailing space if exists
+                while (!game_name.empty() && game_name.back() == ' ')
+                {
+                    game_name.pop_back();
+                }
+                std::string bonus_text = reaction_text.substr(bonus_pos);
+                float line_height = ui_title_scale * 50.0f;  // Approximate line height
+                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
+                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
+                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
+                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else
+            {
+                render_text(m_render_state.text_renderer, reaction_text, center_x, top_y, ui_secondary_scale, reaction_color);
+            }
         }
         else if (math_running || math_has_result)
         {
@@ -302,13 +366,55 @@ namespace game
             {
                 math_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
-            render_text(m_render_state.text_renderer, math_text, center_x, top_y, ui_secondary_scale, math_color);
+            
+            // Check if text contains "Bonus" - split into two lines
+            size_t bonus_pos = math_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                std::string game_name = math_text.substr(0, bonus_pos);
+                // Remove trailing space if exists
+                while (!game_name.empty() && game_name.back() == ' ')
+                {
+                    game_name.pop_back();
+                }
+                std::string bonus_text = math_text.substr(bonus_pos);
+                float line_height = ui_title_scale * 50.0f;  // Approximate line height
+                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
+                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
+                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
+                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else
+            {
+                render_text(m_render_state.text_renderer, math_text, center_x, top_y, ui_secondary_scale, math_color);
+            }
         }
         else if (precision_running)
         {
             std::string timing_text = game::minigame::get_display_text(game_state.minigame_state);
             glm::vec3 timing_color = {0.9f, 0.9f, 0.3f};
-            render_text(m_render_state.text_renderer, timing_text, center_x, top_y, ui_secondary_scale, timing_color);
+            
+            // Check if text contains "Bonus" - split into two lines
+            size_t bonus_pos = timing_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                std::string game_name = timing_text.substr(0, bonus_pos);
+                // Remove trailing space if exists
+                while (!game_name.empty() && game_name.back() == ' ')
+                {
+                    game_name.pop_back();
+                }
+                std::string bonus_text = timing_text.substr(bonus_pos);
+                float line_height = ui_title_scale * 50.0f;  // Approximate line height
+                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
+                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
+                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
+                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else
+            {
+                render_text(m_render_state.text_renderer, timing_text, center_x, top_y, ui_secondary_scale, timing_color);
+            }
         }
         else if (game_state.dice_display_timer > 0.0f && game_state.dice_state.result > 0)
         {

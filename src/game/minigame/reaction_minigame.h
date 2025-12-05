@@ -9,6 +9,7 @@ namespace game::minigame
         enum class Phase
         {
             Inactive,
+            ShowingTitle,    // Show game title for 3 seconds
             InitialMessage,  // Show "Guess 1-9" for 3 seconds
             PlayerTurn,      // Player guesses - showing input prompt
             ShowingGuess,    // Show the number player guessed for 2 seconds
@@ -21,6 +22,8 @@ namespace game::minigame
         
         Phase phase = Phase::Inactive;
         float timer = 0.0f;
+        float title_timer = 0.0f;
+        float title_duration = 5.0f;
         float ai_thinking_time = 1.0f;     // Time AI takes to "think"
         float result_display_time = 1.5f;   // Time to show result
         
@@ -41,12 +44,16 @@ namespace game::minigame
         std::string display_text;
         std::string last_feedback;          // "too low", "too high", "correct"
         std::string guessed_number_text;    // Store the guessed number for display
+        std::string input_buffer;           // Buffer for input (1-9)
         int bonus_steps = 0;
     };
 
     void start_reaction(ReactionState& state);
     void advance(ReactionState& state, float delta_time);
     void submit_guess(ReactionState& state, int guess);
+    void add_digit(ReactionState& state, char digit);
+    void remove_digit(ReactionState& state);
+    void submit_buffer(ReactionState& state);
     bool is_running(const ReactionState& state);
     bool is_success(const ReactionState& state);
     bool is_failure(const ReactionState& state);

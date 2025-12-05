@@ -113,12 +113,16 @@ namespace game::minigame::tile_memory
     void start(TileMemoryState& state, int sequence_length)
     {
         (void)sequence_length;  // Ignore parameter, we use fixed rounds
+        state.phase = Phase::ShowingTitle;
+        state.title_timer = 0.0f;
+        state.title_duration = 5.0f;
         state.current_round = 1;  // Start with round 1 (3 digits)
         state.success = false;
         state.result_text.clear();
         state.result_timer = 0.0f;
-        state.bonus_steps = 0;
-        start_round(state, 3);  // First round: 3 digits
+        state.bonus_steps = 4;  // Set bonus for display
+        state.input_buffer.clear();
+        state.display_text = "Tile Memory Game Bonus +4";
     }
 
     void advance(TileMemoryState& state, float delta_time)
@@ -127,6 +131,16 @@ namespace game::minigame::tile_memory
         {
         case Phase::Inactive:
             break;
+        case Phase::ShowingTitle:
+        {
+            state.title_timer += delta_time;
+            if (state.title_timer >= state.title_duration)
+            {
+                // After 3 seconds, start the first round
+                start_round(state, 3);  // First round: 3 digits
+            }
+            break;
+        }
         case Phase::ShowingSequence:
         {
             if (state.sequence.empty())
@@ -163,7 +177,30 @@ namespace game::minigame::tile_memory
             }
             else
             {
-                state.display_text = format_input_prompt(state);
+                // Update display text with input buffer
+                std::ostringstream oss;
+                oss << "input ";
+                const std::size_t total = state.sequence.size();
+                for (std::size_t i = 0; i < total; ++i)
+                {
+                    if (i < state.input_history.size())
+                    {
+                        oss << state.input_history[i];
+                    }
+                    else if (i < state.input_history.size() + state.input_buffer.length())
+                    {
+                        oss << state.input_buffer[i - state.input_history.size()];
+                    }
+                    else
+                    {
+                        oss << "_";
+                    }
+                    if (i + 1 < total)
+                    {
+                        oss << " ";
+                    }
+                }
+                state.display_text = oss.str();
             }
             break;
         }
@@ -177,6 +214,59 @@ namespace game::minigame::tile_memory
             break;
         }
         }
+    }
+
+    void add_digit(TileMemoryState& state, char digit)
+    {
+        if (state.phase != Phase::WaitingInput)
+        {
+            return;
+        }
+        // Only allow digits 1-9
+        if (digit >= '1' && digit <= '9')
+        {
+            // Check if we haven't exceeded the sequence length
+            if (state.input_history.size() + state.input_buffer.length() < state.sequence.size())
+            {
+                state.input_buffer += digit;
+            }
+        }
+    }
+
+    void remove_digit(TileMemoryState& state)
+    {
+        if (state.phase != Phase::WaitingInput)
+        {
+            return;
+        }
+        if (!state.input_buffer.empty())
+        {
+            state.input_buffer.pop_back();
+        }
+    }
+
+    void submit_buffer(TileMemoryState& state)
+    {
+        if (state.phase != Phase::WaitingInput || state.input_buffer.empty())
+        {
+            return;
+        }
+
+        // Process each digit in the buffer
+        for (char c : state.input_buffer)
+        {
+            if (c >= '1' && c <= '9')
+            {
+                int tile_choice = c - '0';
+                submit_choice(state, tile_choice);
+                // If game ended (success or failure), stop processing
+                if (state.phase == Phase::Result)
+                {
+                    break;
+                }
+            }
+        }
+        state.input_buffer.clear();
     }
 
     void submit_choice(TileMemoryState& state, int tile_choice)
@@ -201,6 +291,7 @@ namespace game::minigame::tile_memory
             {
                 // Round 1 complete, start round 2 (4 digits)
                 state.current_round = 2;
+                state.input_buffer.clear();
                 start_round(state, 4);  // Second round: 4 digits
                 return;
             }
@@ -211,13 +302,13 @@ namespace game::minigame::tile_memory
                 return;
             }
         }
-
-        state.display_text = format_input_prompt(state);
     }
 
     bool is_running(const TileMemoryState& state)
     {
-        return state.phase == Phase::ShowingSequence || state.phase == Phase::WaitingInput;
+        return state.phase == Phase::ShowingTitle ||
+               state.phase == Phase::ShowingSequence || 
+               state.phase == Phase::WaitingInput;
     }
 
     bool is_active(const TileMemoryState& state)
@@ -248,8 +339,10 @@ namespace game::minigame::tile_memory
     void reset(TileMemoryState& state)
     {
         state.phase = Phase::Inactive;
+        state.title_timer = 0.0f;
         state.sequence.clear();
         state.input_history.clear();
+        state.input_buffer.clear();
         state.highlight_index = 0;
         state.highlight_timer = 0.0f;
         state.input_timer = 0.0f;

@@ -10,13 +10,13 @@ namespace game::minigame
     {
         state.status = PrecisionTimingStatus::ShowingTitle;
         state.title_timer = 0.0f;
-        state.title_duration = 3.0f;
+        state.title_duration = 5.0f;
         state.timer = 0.0f;
         state.stopped_time = 0.0f;
         state.target_time = 4.99f;
         state.max_time = 10.0f;
-        state.bonus_steps = 0;
-        state.display_text = "Precision Timing Game";
+        state.bonus_steps = 6;  // Set bonus for display
+        state.display_text = "Precision Timing Game Bonus +6";
     }
 
     void advance(PrecisionTimingState& state, float delta_time)

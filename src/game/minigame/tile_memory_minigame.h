@@ -8,6 +8,7 @@ namespace game::minigame::tile_memory
     enum class Phase
     {
         Inactive,
+        ShowingTitle,
         ShowingSequence,
         WaitingInput,
         Result
@@ -16,8 +17,11 @@ namespace game::minigame::tile_memory
     struct TileMemoryState
     {
         Phase phase = Phase::Inactive;
+        float title_timer = 0.0f;
+        float title_duration = 5.0f;
         std::vector<int> sequence;
         std::vector<int> input_history;
+        std::string input_buffer;  // Buffer for input (1-9)
         int highlight_index = 0;
         float highlight_timer = 0.0f;
         float highlight_interval = 0.7f;
@@ -34,6 +38,9 @@ namespace game::minigame::tile_memory
     void start(TileMemoryState& state, int sequence_length = 3);
     void advance(TileMemoryState& state, float delta_time);
     void submit_choice(TileMemoryState& state, int tile_choice);
+    void add_digit(TileMemoryState& state, char digit);
+    void remove_digit(TileMemoryState& state);
+    void submit_buffer(TileMemoryState& state);
     bool is_running(const TileMemoryState& state);
     bool is_active(const TileMemoryState& state);
     bool is_result(const TileMemoryState& state);
