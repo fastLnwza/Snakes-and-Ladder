@@ -1,7 +1,7 @@
 #include "map_generator.h"
 
 #include "board.h"
-#include "rendering/primitives.h"
+#include "../../rendering/primitives.h"
 
 #include <algorithm>
 #include <array>

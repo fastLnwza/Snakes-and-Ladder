@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
-    add_compile_options(/W4 /permissive-)
+    # Add /FS flag directly to compile options to fix PDB file locking
+    add_compile_options(/W4 /permissive- /FS)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -95,6 +96,8 @@ add_executable(${PROJECT_NAME}
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
 )
+
+# /FS flag is already set via add_compile_options above
 
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
