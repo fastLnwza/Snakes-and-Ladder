@@ -69,6 +69,9 @@ namespace game
         std::string reaction_input_buffer;  // Buffer for number guessing input
         bool reaction_backspace_was_down = false;
         bool reaction_enter_was_down = false;
+        std::array<bool, 10> math_digit_previous{};  // 0-9 for digit keys in math quiz
+        bool math_backspace_was_down = false;
+        bool math_enter_was_down = false;
 
         // Game state tracking
         int last_processed_tile = 0;

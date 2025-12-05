@@ -6,6 +6,7 @@
 #include "../game/minigame/qte_minigame.h"
 #include "../game/minigame/tile_memory_minigame.h"
 #include "../game/minigame/reaction_minigame.h"
+#include "../game/minigame/math_minigame.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
@@ -138,6 +139,9 @@ namespace game
         const bool reaction_running = game::minigame::is_running(game_state.reaction_state);
         const bool reaction_has_result = game::minigame::is_success(game_state.reaction_state) || 
                                          game::minigame::is_failure(game_state.reaction_state);
+        const bool math_running = game::minigame::is_running(game_state.math_state);
+        const bool math_has_result = game::minigame::is_success(game_state.math_state) || 
+                                     game::minigame::is_failure(game_state.math_state);
         const bool precision_showing_time = game_state.minigame_state.is_showing_time;
         const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
                                          game::minigame::is_failure(game_state.minigame_state);
@@ -151,6 +155,8 @@ namespace game
                                     tile_memory_active ||
                                     reaction_running ||
                                     reaction_has_result ||
+                                    math_running ||
+                                    math_has_result ||
                                     game_state.debug_warp_state.active || 
                                     game_state.debug_warp_state.notification_timer > 0.0f ||
                                     game_state.minigame_message_timer > 0.0f;
@@ -263,6 +269,20 @@ namespace game
                 reaction_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
             render_text(m_render_state.text_renderer, reaction_text, center_x, top_y, ui_secondary_scale, reaction_color);
+        }
+        else if (math_running || math_has_result)
+        {
+            std::string math_text = game::minigame::get_display_text(game_state.math_state);
+            glm::vec3 math_color = {0.9f, 0.9f, 0.3f};
+            if (game::minigame::is_success(game_state.math_state))
+            {
+                math_color = glm::vec3(0.2f, 1.0f, 0.4f);
+            }
+            else if (game::minigame::is_failure(game_state.math_state))
+            {
+                math_color = glm::vec3(1.0f, 0.3f, 0.3f);
+            }
+            render_text(m_render_state.text_renderer, math_text, center_x, top_y, ui_secondary_scale, math_color);
         }
         else if (precision_running)
         {

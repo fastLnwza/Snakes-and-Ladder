@@ -138,20 +138,44 @@ namespace game
             }
         }
 
-        // Handle math game input
+        // Handle math game input (multi-digit)
         if (math_running)
         {
-            for (int key_index = 0; key_index < 9; ++key_index)
+            for (int digit = 0; digit <= 9; ++digit)
             {
-                const int glfw_key = GLFW_KEY_1 + key_index;
-                const bool key_down = m_window.is_key_pressed(glfw_key);
-                const bool key_just_pressed = key_down && !m_game_state.tile_memory_previous_keys[key_index];
-                if (key_just_pressed)
+                const int key = GLFW_KEY_0 + digit;
+                const bool key_down = m_window.is_key_pressed(key);
+                const bool key_just_pressed = key_down && !m_game_state.math_digit_previous[digit];
+                if (key_just_pressed && m_game_state.math_state.input_buffer.size() < 3)
                 {
-                    game::minigame::submit_answer(m_game_state.math_state, key_index + 1);
+                    game::minigame::add_digit(m_game_state.math_state, static_cast<char>('0' + digit));
                 }
-                m_game_state.tile_memory_previous_keys[key_index] = key_down;
+                m_game_state.math_digit_previous[digit] = key_down;
             }
+
+            const bool delete_down = m_window.is_key_pressed(GLFW_KEY_DELETE);
+            const bool backspace_down = m_window.is_key_pressed(GLFW_KEY_BACKSPACE);
+            if ((delete_down || backspace_down) && !m_game_state.math_backspace_was_down)
+            {
+                game::minigame::remove_digit(m_game_state.math_state);
+            }
+            m_game_state.math_backspace_was_down = delete_down || backspace_down;
+
+            const bool space_down = m_window.is_key_pressed(GLFW_KEY_SPACE);
+            const bool enter_down = m_window.is_key_pressed(GLFW_KEY_ENTER) ||
+                                    m_window.is_key_pressed(GLFW_KEY_KP_ENTER);
+            if ((space_down || enter_down) && !m_game_state.math_enter_was_down)
+            {
+                game::minigame::submit_buffer(m_game_state.math_state);
+            }
+            m_game_state.math_enter_was_down = space_down || enter_down;
+        }
+        else
+        {
+            // Reset key states when game is not running
+            m_game_state.math_digit_previous.fill(false);
+            m_game_state.math_backspace_was_down = false;
+            m_game_state.math_enter_was_down = false;
         }
 
         // Handle pattern game input
@@ -436,7 +460,9 @@ namespace game
             game::minigame::advance(m_game_state.reaction_state, delta_time);
         }
 
-        if (game::minigame::is_running(m_game_state.math_state))
+        if (game::minigame::is_running(m_game_state.math_state) ||
+            game::minigame::is_success(m_game_state.math_state) ||
+            game::minigame::is_failure(m_game_state.math_state))
         {
             game::minigame::advance(m_game_state.math_state, delta_time);
         }

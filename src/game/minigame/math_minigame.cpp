@@ -30,19 +30,39 @@ namespace game::minigame
         state.correct_answer = state.num1 + state.num2;
         state.player_answer = 0;
         state.timer = 0.0f;
-        state.time_limit = 5.0f;
-        state.phase = MathQuizState::Phase::WaitingAnswer;
+        state.time_limit = 15.0f;
+        state.phase = MathQuizState::Phase::ShowingQuestion;
         state.success = false;
         state.bonus_steps = 0;
-        
-        std::ostringstream oss;
-        oss << "Math: " << state.num1 << " + " << state.num2 << " = ? (1-9)";
-        state.display_text = oss.str();
+        state.input_buffer.clear();
+        state.display_text = "Math Quiz";
     }
 
     void advance(MathQuizState& state, float delta_time)
     {
-        if (state.phase == MathQuizState::Phase::WaitingAnswer)
+        if (state.phase == MathQuizState::Phase::ShowingQuestion)
+        {
+            state.timer += delta_time;
+            if (state.timer >= 3.0f)
+            {
+                // After 3 seconds, show the question
+                state.phase = MathQuizState::Phase::WaitingAnswer;
+                state.timer = 0.0f;
+                std::ostringstream oss;
+                oss << state.num1 << " + " << state.num2 << " =";
+                if (!state.input_buffer.empty())
+                {
+                    oss << " " << state.input_buffer;
+                }
+                else
+                {
+                    oss << "   ";
+                }
+                oss << " (T: " << static_cast<int>(state.time_limit) << "s)";
+                state.display_text = oss.str();
+            }
+        }
+        else if (state.phase == MathQuizState::Phase::WaitingAnswer)
         {
             state.timer += delta_time;
             if (state.timer >= state.time_limit)
@@ -51,6 +71,45 @@ namespace game::minigame
                 state.success = false;
                 state.bonus_steps = 0;
                 state.display_text = "Time's Up!";
+                state.timer = 0.0f;  // Reset timer for 2 second display
+            }
+            else
+            {
+                // Update display text with remaining time and input buffer
+                float remaining_time = state.time_limit - state.timer;
+                int remaining_seconds = static_cast<int>(remaining_time);
+                std::ostringstream oss;
+                oss << state.num1 << " + " << state.num2 << " =";
+                if (!state.input_buffer.empty())
+                {
+                    oss << " " << state.input_buffer;
+                }
+                else
+                {
+                    oss << "   ";
+                }
+                oss << " (T: " << remaining_seconds << "s)";
+                state.display_text = oss.str();
+            }
+        }
+        else if (state.phase == MathQuizState::Phase::Success)
+        {
+            // Show success message for 2 seconds
+            state.timer += delta_time;
+            if (state.timer >= 2.0f)
+            {
+                // After 2 seconds, reset the game
+                reset(state);
+            }
+        }
+        else if (state.phase == MathQuizState::Phase::Failure)
+        {
+            // Show failure message for 2 seconds
+            state.timer += delta_time;
+            if (state.timer >= 2.0f)
+            {
+                // After 2 seconds, reset the game
+                reset(state);
             }
         }
     }
@@ -69,6 +128,7 @@ namespace game::minigame
             state.success = true;
             state.bonus_steps = 4;
             state.display_text = "Correct! +4 steps";
+            state.timer = 0.0f;  // Reset timer for 2 second display
         }
         else
         {
@@ -76,12 +136,14 @@ namespace game::minigame
             state.success = false;
             state.bonus_steps = 0;
             state.display_text = "Wrong Answer!";
+            state.timer = 0.0f;  // Reset timer for 2 second display
         }
     }
 
     bool is_running(const MathQuizState& state)
     {
-        return state.phase == MathQuizState::Phase::WaitingAnswer;
+        return state.phase == MathQuizState::Phase::ShowingQuestion ||
+               state.phase == MathQuizState::Phase::WaitingAnswer;
     }
 
     bool is_success(const MathQuizState& state)
@@ -104,12 +166,66 @@ namespace game::minigame
         return state.bonus_steps;
     }
 
+    void add_digit(MathQuizState& state, char digit)
+    {
+        if (state.phase != MathQuizState::Phase::WaitingAnswer)
+        {
+            return;
+        }
+        if (state.input_buffer.size() < 3)  // Max 3 digits (up to 100)
+        {
+            state.input_buffer += digit;
+        }
+    }
+
+    void remove_digit(MathQuizState& state)
+    {
+        if (state.phase != MathQuizState::Phase::WaitingAnswer)
+        {
+            return;
+        }
+        if (!state.input_buffer.empty())
+        {
+            state.input_buffer.pop_back();
+        }
+    }
+
+    void submit_buffer(MathQuizState& state)
+    {
+        if (state.phase != MathQuizState::Phase::WaitingAnswer || state.input_buffer.empty())
+        {
+            return;
+        }
+
+        try
+        {
+            int answer = std::stoi(state.input_buffer);
+            // Validate range (1-100)
+            if (answer >= 1 && answer <= 100)
+            {
+                submit_answer(state, answer);
+                state.input_buffer.clear();
+            }
+            else
+            {
+                // Invalid range, clear buffer
+                state.input_buffer.clear();
+            }
+        }
+        catch (const std::exception&)
+        {
+            // Invalid input, clear buffer
+            state.input_buffer.clear();
+        }
+    }
+
     void reset(MathQuizState& state)
     {
         state.phase = MathQuizState::Phase::Inactive;
         state.timer = 0.0f;
         state.success = false;
         state.display_text.clear();
+        state.input_buffer.clear();
         state.bonus_steps = 0;
     }
 }

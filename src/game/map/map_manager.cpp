@@ -105,7 +105,7 @@ namespace game::map
             else if (tile_activity == ActivityKind::MathGame && current_tile != 0)
             {
                 game::minigame::start_math_quiz(math_state);
-                minigame_message = "Math Quiz!";
+                minigame_message.clear();  // Clear minigame message to show math quiz text instead
                 minigame_message_timer = 0.0f;
                 return true;
             }
