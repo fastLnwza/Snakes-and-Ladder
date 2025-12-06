@@ -47,12 +47,67 @@ namespace game
         // Handle menu input
         if (m_game_state.menu_state.is_active)
         {
-            const bool enter_pressed = m_window.is_key_pressed(GLFW_KEY_ENTER) || m_window.is_key_pressed(GLFW_KEY_SPACE);
-            if (enter_pressed)
+            // Handle arrow keys and WASD for navigation
+            static bool up_was_pressed = false;
+            static bool down_was_pressed = false;
+            static bool left_was_pressed = false;
+            static bool right_was_pressed = false;
+            static bool enter_was_pressed = false;
+            
+            const bool up_pressed = m_window.is_key_pressed(GLFW_KEY_UP) || m_window.is_key_pressed(GLFW_KEY_W);
+            const bool down_pressed = m_window.is_key_pressed(GLFW_KEY_DOWN) || m_window.is_key_pressed(GLFW_KEY_S);
+            const bool left_pressed = m_window.is_key_pressed(GLFW_KEY_LEFT) || m_window.is_key_pressed(GLFW_KEY_A);
+            const bool right_pressed = m_window.is_key_pressed(GLFW_KEY_RIGHT) || m_window.is_key_pressed(GLFW_KEY_D);
+            const bool enter_pressed = m_window.is_key_pressed(GLFW_KEY_ENTER);
+            const bool space_pressed = m_window.is_key_pressed(GLFW_KEY_SPACE);
+            
+            // Navigate menu options (only between Players and AI, not Start button)
+            if (up_pressed && !up_was_pressed)
+            {
+                m_game_state.menu_state.selected_option = (m_game_state.menu_state.selected_option - 1 + 2) % 2;
+            }
+            if (down_pressed && !down_was_pressed)
+            {
+                m_game_state.menu_state.selected_option = (m_game_state.menu_state.selected_option + 1) % 2;
+            }
+            
+            // Change values for selected option
+            if (m_game_state.menu_state.selected_option == 0)
+            {
+                // Number of players
+                if (left_pressed && !left_was_pressed)
+                {
+                    m_game_state.menu_state.num_players = std::max(1, m_game_state.menu_state.num_players - 1);
+                }
+                if (right_pressed && !right_was_pressed)
+                {
+                    m_game_state.menu_state.num_players = std::min(4, m_game_state.menu_state.num_players + 1);
+                }
+            }
+            else if (m_game_state.menu_state.selected_option == 1)
+            {
+                // AI toggle
+                if ((left_pressed && !left_was_pressed) || (right_pressed && !right_was_pressed) || 
+                    (enter_pressed && !enter_was_pressed))
+                {
+                    m_game_state.menu_state.use_ai = !m_game_state.menu_state.use_ai;
+                }
+            }
+            
+            // Start game with Space (regardless of selected option)
+            // Enter can also start game if not on AI option (Enter on AI option toggles AI)
+            if (space_pressed || (enter_pressed && !enter_was_pressed && m_game_state.menu_state.selected_option == 0))
             {
                 m_game_state.menu_state.is_active = false;
                 m_game_state.menu_state.start_game = true;
             }
+            
+            up_was_pressed = up_pressed;
+            down_was_pressed = down_pressed;
+            left_was_pressed = left_pressed;
+            right_was_pressed = right_pressed;
+            enter_was_pressed = enter_pressed;
+            
             return;
         }
 
