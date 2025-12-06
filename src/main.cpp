@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+ #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <filesystem>
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
         std::filesystem::path font_path = executable_dir / "pixel-game.regular.otf";
         if (!std::filesystem::exists(font_path))
         {
-            std::filesystem::path source_font = source_dir.parent_path() / "pixel-game.regular.otf";
+            std::filesystem::path source_font = source_dir.parent_path() / "assets" / "fonts" / "pixel-game.regular.otf";
             if (std::filesystem::exists(source_font))
             {
                 font_path = source_font;

@@ -112,7 +112,7 @@ set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
 set(DICE_MODEL ${CMAKE_CURRENT_SOURCE_DIR}/dice.glb)
 set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/dice.glb)
-set(FONT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/pixel-game.regular.otf)
+set(FONT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/pixel-game.regular.otf)
 set(BINARY_FONT_FILE ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pixel-game.regular.otf)
 
 add_custom_target(copy_shaders ALL
