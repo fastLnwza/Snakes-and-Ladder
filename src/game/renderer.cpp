@@ -9,10 +9,13 @@
 #include "../game/minigame/math_minigame.h"
 #include "../game/minigame/pattern_minigame.h"
 #include "../game/menu/menu_renderer.h"
+#include "../game/win/win_renderer.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
 #include <glad/glad.h>
+#include <iomanip>
+#include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -45,7 +48,11 @@ namespace game
         render_ui(window, game_state);
 
         // Render menu popup on top if active (transparent background, shows map behind)
-        if (game_state.menu_state.is_active)
+        if (game_state.win_state.is_active)
+        {
+            game::win::render_win_screen(window, &m_render_state, game_state.win_state);
+        }
+        else if (game_state.menu_state.is_active)
         {
             game::menu::render_menu(window, &m_render_state, game_state.menu_state);
         }
@@ -337,6 +344,20 @@ namespace game
             else if (game::minigame::is_failure(game_state.reaction_state))
             {
                 reaction_color = glm::vec3(1.0f, 0.3f, 0.3f);
+            }
+            
+            // Show time remaining when displaying guessed number
+            if (game_state.reaction_state.phase == game::minigame::ReactionState::Phase::ShowingGuess)
+            {
+                float time_remaining = game_state.reaction_state.guess_display_duration - game_state.reaction_state.timer;
+                if (time_remaining > 0.0f)
+                {
+                    std::stringstream time_ss;
+                    time_ss << std::fixed << std::setprecision(1) << time_remaining << "s";
+                    std::string time_text = time_ss.str();
+                    glm::vec3 time_color = {1.0f, 1.0f, 1.0f};
+                    render_text(m_render_state.text_renderer, time_text, center_x, top_y + 120.0f, ui_title_scale, time_color);
+                }
             }
             
             // Check if text contains "Bonus" - split into two lines

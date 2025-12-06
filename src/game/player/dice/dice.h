@@ -13,7 +13,7 @@ namespace game::player::dice
         glm::vec3 rotation_velocity{};
         float roll_duration = 1.0f;
         float roll_timer = 0.0f;
-        float display_duration = 10.0f;  // Time to display result after landing (10 seconds)
+        float display_duration = 3.0f;  // Time to display result after landing (3 seconds)
         float display_timer = 0.0f;  // Timer for displaying result
         bool is_rolling = false;
         bool is_falling = false;

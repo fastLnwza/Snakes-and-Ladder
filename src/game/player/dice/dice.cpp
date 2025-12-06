@@ -66,7 +66,7 @@ namespace game::player::dice
         state.rotation_velocity = glm::vec3(0.0f);
         state.roll_duration = 1.0f;
         state.roll_timer = 0.0f;
-        state.display_duration = 10.0f;  // 10 seconds to display result
+        state.display_duration = 3.0f;  // 3 seconds to display result
         state.display_timer = 0.0f;
         state.is_rolling = false;
         state.is_falling = false;

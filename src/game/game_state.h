@@ -15,6 +15,7 @@
 #include "minigame/math_minigame.h"
 #include "minigame/pattern_minigame.h"
 #include "menu/menu_state.h"
+#include "win/win_state.h"
 
 #include <array>
 #include <string>
@@ -96,6 +97,9 @@ namespace game
         // Menu
         game::menu::MenuState menu_state;
 
+        // Win screen
+        game::win::WinState win_state;
+
         // Timing
         float last_time = 0.0f;
     };
@@ -114,5 +118,6 @@ namespace game
     void cleanup_game_state(GameState& state);
 }
 
-// Include menu_renderer after RenderState is defined
+// Include menu_renderer and win_renderer after RenderState is defined
 #include "menu/menu_renderer.h"
+#include "win/win_renderer.h"

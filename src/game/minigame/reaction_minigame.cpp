@@ -37,6 +37,7 @@ namespace game::minigame
         state.title_duration = 5.0f;
         state.ai_thinking_time = 1.0f;
         state.result_display_time = 1.5f;
+        state.guess_display_duration = 2.0f;  // Show guessed number for 2 seconds
         
         // Generate random target number
         state.target_number = get_number_distribution()(get_rng());
@@ -111,9 +112,9 @@ namespace game::minigame
         }
         case ReactionState::Phase::ShowingGuess:
         {
-            // Show the guessed number for 2 seconds
+            // Show the guessed number for specified duration
             state.timer += delta_time;
-            if (state.timer >= 2.0f)
+            if (state.timer >= state.guess_display_duration)
             {
                 // After 2 seconds, check if this was the last attempt
                 if (state.player_attempts >= state.max_attempts)

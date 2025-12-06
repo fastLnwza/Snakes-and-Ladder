@@ -27,8 +27,8 @@ namespace game
     {
         handle_input(delta_time);
         
-        // Don't update game if menu is active
-        if (m_game_state.menu_state.is_active)
+        // Don't update game if menu or win screen is active
+        if (m_game_state.menu_state.is_active || m_game_state.win_state.is_active)
         {
             return;
         }
@@ -472,7 +472,7 @@ namespace game
         if (dice_ready && m_game_state.player_state.last_dice_result != m_game_state.dice_state.result)
         {
             set_dice_result(m_game_state.player_state, m_game_state.dice_state.result);
-            m_game_state.dice_display_timer = 10.0f;
+            m_game_state.dice_display_timer = 3.0f;
         }
 
         // Update dice display timer
@@ -487,7 +487,7 @@ namespace game
             if (m_game_state.player_state.last_dice_result != m_game_state.dice_state.result)
             {
                 set_dice_result(m_game_state.player_state, m_game_state.dice_state.result);
-                m_game_state.dice_display_timer = 10.0f;
+                m_game_state.dice_display_timer = 3.0f;
             }
         }
 
@@ -545,6 +545,15 @@ namespace game
             {
                 m_game_state.last_processed_tile = current_tile;
 
+                // Check for win condition
+                if (current_tile >= m_game_state.final_tile_index && !m_game_state.win_state.is_active)
+                {
+                    m_game_state.win_state.is_active = true;
+                    m_game_state.win_state.show_animation = true;
+                    m_game_state.win_state.animation_timer = 0.0f;
+                    m_game_state.win_state.winner_player = 1; // For now, always player 1
+                }
+
                 game::map::check_and_apply_ladder(m_game_state.player_state, current_tile, m_game_state.last_processed_tile);
 
                 const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
@@ -567,6 +576,12 @@ namespace game
             {
                 m_game_state.last_processed_tile = current_tile;
             }
+        }
+
+        // Update win screen animation
+        if (m_game_state.win_state.is_active && m_game_state.win_state.show_animation)
+        {
+            m_game_state.win_state.animation_timer += delta_time;
         }
     }
 

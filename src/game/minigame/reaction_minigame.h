@@ -26,6 +26,7 @@ namespace game::minigame
         float title_duration = 5.0f;
         float ai_thinking_time = 1.0f;     // Time AI takes to "think"
         float result_display_time = 1.5f;   // Time to show result
+        float guess_display_duration = 2.0f;  // Time to show guessed number (2 seconds)
         
         int target_number = 0;               // Number to guess (1-9)
         int min_range = 1;
