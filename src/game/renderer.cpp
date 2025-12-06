@@ -8,6 +8,7 @@
 #include "../game/minigame/reaction_minigame.h"
 #include "../game/minigame/math_minigame.h"
 #include "../game/minigame/pattern_minigame.h"
+#include "../game/menu/menu_renderer.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
@@ -42,6 +43,12 @@ namespace game
         render_player(projection, view, game_state);
         render_dice(projection, view, game_state);
         render_ui(window, game_state);
+
+        // Render menu popup on top if active (transparent background, shows map behind)
+        if (game_state.menu_state.is_active)
+        {
+            game::menu::render_menu(window, &m_render_state, game_state.menu_state);
+        }
     }
 
     void Renderer::render_map(const glm::mat4& projection, const glm::mat4& view, const GameState& game_state)

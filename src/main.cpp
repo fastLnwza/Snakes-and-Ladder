@@ -16,6 +16,7 @@
 #include "rendering/gltf_loader.h"
 #include "rendering/obj_loader.h"
 #include "utils/file_utils.h"
+#include "game/menu/menu_renderer.h"
 
 namespace
 {
@@ -162,6 +163,17 @@ int main(int argc, char* argv[])
             throw std::runtime_error("Failed to initialize text renderer.");
         }
 
+        // Load menu textures
+        std::filesystem::path assets_dir = source_dir.parent_path() / "assets";
+        if (!std::filesystem::exists(assets_dir))
+        {
+            assets_dir = executable_dir / "assets";
+        }
+        if (!game::menu::load_menu_textures(assets_dir))
+        {
+            std::cerr << "Warning: Failed to load menu textures, menu will not be displayed\n";
+        }
+
         // Initialize game loop and renderer
         game::GameLoop game_loop(window, camera, game_state, render_state);
         game::Renderer renderer(render_state);
@@ -191,6 +203,7 @@ int main(int argc, char* argv[])
         }
 
         // Cleanup
+        game::menu::destroy_menu_textures();
         game::cleanup_game_state(game_state);
         destroy_text_renderer(render_state.text_renderer);
         glDeleteProgram(program);

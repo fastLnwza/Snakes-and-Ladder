@@ -104,6 +104,7 @@ add_executable(${PROJECT_NAME}
     src/game/minigame/pattern_minigame.cpp
     src/game/player/player.cpp
     src/game/player/dice/dice.cpp
+    src/game/menu/menu_renderer.cpp
 )
 
 # /FS flag is already set via add_compile_options above

@@ -26,6 +26,13 @@ namespace game
     void GameLoop::update(float delta_time)
     {
         handle_input(delta_time);
+        
+        // Don't update game if menu is active
+        if (m_game_state.menu_state.is_active)
+        {
+            return;
+        }
+        
         update_minigames(delta_time);
         handle_minigame_results(delta_time);
         update_game_logic(delta_time);
@@ -36,6 +43,18 @@ namespace game
         using namespace game::player;
         using namespace game::player::dice;
         using namespace game::map;
+
+        // Handle menu input
+        if (m_game_state.menu_state.is_active)
+        {
+            const bool enter_pressed = m_window.is_key_pressed(GLFW_KEY_ENTER) || m_window.is_key_pressed(GLFW_KEY_SPACE);
+            if (enter_pressed)
+            {
+                m_game_state.menu_state.is_active = false;
+                m_game_state.menu_state.start_game = true;
+            }
+            return;
+        }
 
         const bool space_pressed = m_window.is_key_pressed(GLFW_KEY_SPACE);
         const bool space_just_pressed = space_pressed && !m_game_state.player_state.previous_space_state;

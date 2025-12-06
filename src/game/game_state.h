@@ -14,6 +14,7 @@
 #include "minigame/reaction_minigame.h"
 #include "minigame/math_minigame.h"
 #include "minigame/pattern_minigame.h"
+#include "menu/menu_state.h"
 
 #include <array>
 #include <string>
@@ -92,6 +93,9 @@ namespace game
         // Debug
         DebugWarpState debug_warp_state;
 
+        // Menu
+        game::menu::MenuState menu_state;
+
         // Timing
         float last_time = 0.0f;
     };
@@ -110,3 +114,5 @@ namespace game
     void cleanup_game_state(GameState& state);
 }
 
+// Include menu_renderer after RenderState is defined
+#include "menu/menu_renderer.h"
