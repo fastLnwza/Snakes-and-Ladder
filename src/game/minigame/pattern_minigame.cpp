@@ -46,21 +46,9 @@ namespace game::minigame
         {
         case PatternMatchingState::Phase::ShowingTitle:
         {
-            state.title_timer += delta_time;
-            if (state.title_timer >= state.title_duration)
-            {
-                state.phase = PatternMatchingState::Phase::ShowingPattern;
-                state.show_timer = 0.0f;
-                // Generate pattern text using key letters (W S A D) that match the input keys
-                std::ostringstream oss;
-                for (int i = 0; i < 4; ++i)
-                {
-                    const char* dirs[] = {"", "W", "S", "A", "D"};
-                    oss << dirs[state.pattern[i]];
-                    if (i < 3) oss << " ";
-                }
-                state.display_text = oss.str();
-            }
+            // Don't auto-advance - wait for Space key press (handled in game_loop)
+            // Keep showing title screen until Space is pressed
+            // Generate pattern text when transitioning (will be done in game_loop)
             break;
         }
         case PatternMatchingState::Phase::ShowingPattern:
@@ -85,6 +73,26 @@ namespace game::minigame
                 if (i < remaining - 1) input_text += " ";
             }
             state.display_text = input_text;
+            break;
+        }
+        case PatternMatchingState::Phase::Success:
+        {
+            // Show success message for 2 seconds
+            state.show_timer += delta_time;
+            if (state.show_timer >= 2.0f)
+            {
+                reset(state);
+            }
+            break;
+        }
+        case PatternMatchingState::Phase::Failure:
+        {
+            // Show failure message for 2 seconds
+            state.show_timer += delta_time;
+            if (state.show_timer >= 2.0f)
+            {
+                reset(state);
+            }
             break;
         }
         default:
@@ -164,6 +172,7 @@ namespace game::minigame
             state.success = true;
             state.bonus_steps = 5;
             state.display_text = "Perfect! +5 steps";
+            state.show_timer = 0.0f;  // Reset timer for 5 second display
         }
         else
         {
@@ -171,6 +180,7 @@ namespace game::minigame
             state.success = false;
             state.bonus_steps = 0;
             state.display_text = "Wrong Pattern!";
+            state.show_timer = 0.0f;  // Reset timer for 5 second display
         }
     }
 

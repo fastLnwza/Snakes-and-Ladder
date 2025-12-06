@@ -101,6 +101,7 @@ namespace game::minigame::tile_memory
 
             state.sequence.assign(tiles.begin(), tiles.begin() + sequence_length);
             state.input_history.clear();
+            state.input_buffer.clear(); // Clear input buffer when starting new round
             state.phase = Phase::ShowingSequence;
             state.highlight_index = 0;
             state.highlight_timer = 0.0f;
@@ -133,10 +134,11 @@ namespace game::minigame::tile_memory
             break;
         case Phase::ShowingTitle:
         {
-            state.title_timer += delta_time;
+            // Check if title timer has been set to skip (by Space key press in game_loop)
             if (state.title_timer >= state.title_duration)
             {
-                // After 3 seconds, start the first round
+                // After Space is pressed, start the first round
+                state.display_text.clear(); // Clear title/bonus text
                 start_round(state, 3);  // First round: 3 digits
             }
             break;
@@ -160,6 +162,7 @@ namespace game::minigame::tile_memory
             {
                 state.phase = Phase::WaitingInput;
                 state.input_timer = state.input_time_limit;
+                state.input_buffer.clear(); // Clear input buffer when entering WaitingInput phase
                 state.display_text = format_input_prompt(state);
             }
             else
@@ -252,14 +255,23 @@ namespace game::minigame::tile_memory
             return;
         }
 
-        // Process each digit in the buffer
-        for (char c : state.input_buffer)
+        // Process all digits in the buffer at once
+        // Submit each digit in order until we complete the sequence or find an error
+        for (std::size_t i = 0; i < state.input_buffer.length(); ++i)
         {
-            if (c >= '1' && c <= '9')
+            // Check if we've already completed the sequence
+            if (state.input_history.size() >= state.sequence.size())
             {
-                int tile_choice = c - '0';
+                break;
+            }
+            
+            char digit_char = state.input_buffer[i];
+            if (digit_char >= '1' && digit_char <= '9')
+            {
+                int tile_choice = digit_char - '0';
                 submit_choice(state, tile_choice);
-                // If game ended (success or failure), stop processing
+                
+                // If submit_choice resulted in failure, stop processing
                 if (state.phase == Phase::Result)
                 {
                     break;

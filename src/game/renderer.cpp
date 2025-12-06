@@ -10,6 +10,7 @@
 #include "../game/minigame/pattern_minigame.h"
 #include "../game/menu/menu_renderer.h"
 #include "../game/win/win_renderer.h"
+#include "../game/minigame/minigame_menu_renderer.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
 
@@ -213,12 +214,64 @@ namespace game
         const float ui_secondary_scale = 2.8f;
         const float ui_title_scale = 2.0f;  // Smaller scale for game titles
 
+        // Check if minigame is showing title screen - render menu
+        if (game_state.minigame_state.status == game::minigame::PrecisionTimingStatus::ShowingTitle)
+        {
+            game::minigame::menu::render_minigame_menu(window, &m_render_state,
+                "PRECISION TIMING GAME",
+                "Press SPACE to stop the timer at exactly 4.99!",
+                "Get as close as possible to 4.99 seconds",
+                6);
+            return;
+        }
+        else if (game_state.tile_memory_state.phase == game::minigame::tile_memory::Phase::ShowingTitle)
+        {
+            game::minigame::menu::render_minigame_menu(window, &m_render_state,
+                "TILE MEMORY GAME",
+                "Remember the sequence of numbers shown",
+                "Enter the numbers in the correct order",
+                4);
+            return;
+        }
+        else if (game_state.reaction_state.phase == game::minigame::ReactionState::Phase::ShowingTitle)
+        {
+            game::minigame::menu::render_minigame_menu(window, &m_render_state,
+                "NUMBER GUESSING GAME",
+                "Guess the number between 1 and 9",
+                "You have 3 attempts to guess correctly",
+                3);
+            return;
+        }
+        else if (game_state.math_state.phase == game::minigame::MathQuizState::Phase::ShowingTitle)
+        {
+            game::minigame::menu::render_minigame_menu(window, &m_render_state,
+                "MATH QUIZ",
+                "Solve the math problem correctly",
+                "Enter your answer using number keys",
+                4);
+            return;
+        }
+        else if (game_state.pattern_state.phase == game::minigame::PatternMatchingState::Phase::ShowingTitle)
+        {
+            game::minigame::menu::render_minigame_menu(window, &m_render_state,
+                "PATTERN MATCHING",
+                "Remember and repeat the pattern",
+                "Use W, S, A, D keys to match the pattern",
+                5);
+            return;
+        }
+
         // Priority order for UI display
         if (game_state.minigame_state.is_showing_time)
         {
             std::string time_text = game::minigame::get_display_text(game_state.minigame_state);
             glm::vec3 timing_color = {0.9f, 0.9f, 0.3f};
+            // Show (space) in green when showing time
+            float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+            const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+            const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
             render_text(m_render_state.text_renderer, time_text, center_x, top_y, ui_primary_scale, timing_color);
+            render_text(m_render_state.text_renderer, "(space)", center_x, top_y + line_height, space_scale, green_color);
         }
         else if (!game_state.minigame_state.is_showing_time && 
                  (game::minigame::is_success(game_state.minigame_state) || 
@@ -233,7 +286,8 @@ namespace game
         {
             std::string memory_text = game::minigame::tile_memory::get_display_text(game_state.tile_memory_state);
             glm::vec3 memory_color = glm::vec3(0.9f, 0.9f, 0.3f);
-            if (game::minigame::tile_memory::is_result(game_state.tile_memory_state))
+            bool is_result = game::minigame::tile_memory::is_result(game_state.tile_memory_state);
+            if (is_result)
             {
                 if (game::minigame::tile_memory::is_success(game_state.tile_memory_state))
                 {
@@ -262,6 +316,15 @@ namespace game
                 render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
                 render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
             }
+            else if (!is_result && game_state.tile_memory_state.phase == game::minigame::tile_memory::Phase::WaitingInput)
+            {
+                // Show (space) in green only when waiting for input
+                float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+                const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+                const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
+                render_text(m_render_state.text_renderer, memory_text, center_x, top_y, ui_secondary_scale, memory_color);
+                render_text(m_render_state.text_renderer, "(space)", center_x, top_y + line_height, space_scale, green_color);
+            }
             else
             {
                 render_text(m_render_state.text_renderer, memory_text, center_x, top_y, ui_primary_scale, memory_color);
@@ -285,6 +348,8 @@ namespace game
         {
             std::string pattern_text = game::minigame::get_display_text(game_state.pattern_state);
             glm::vec3 pattern_color = {0.9f, 0.9f, 0.3f};
+            bool is_result = game::minigame::is_success(game_state.pattern_state) || 
+                            game::minigame::is_failure(game_state.pattern_state);
             if (game::minigame::is_success(game_state.pattern_state))
             {
                 pattern_color = glm::vec3(0.2f, 1.0f, 0.4f);
@@ -311,6 +376,15 @@ namespace game
                 render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
                 render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
             }
+            else if (!is_result && pattern_text.find("Input:") != std::string::npos)
+            {
+                // Show (space) in green when showing input prompt
+                float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+                const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+                const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
+                render_text(m_render_state.text_renderer, pattern_text, center_x, top_y, ui_secondary_scale, pattern_color);
+                render_text(m_render_state.text_renderer, "(space)", center_x, top_y + line_height, space_scale, green_color);
+            }
             else
             {
                 render_text(m_render_state.text_renderer, pattern_text, center_x, top_y, ui_secondary_scale, pattern_color);
@@ -336,6 +410,15 @@ namespace game
         else if (reaction_running || reaction_has_result)
         {
             std::string reaction_text = game::minigame::get_display_text(game_state.reaction_state);
+            
+            // Skip displaying if text contains "Bonus" (title screen text)
+            size_t bonus_pos = reaction_text.find("Bonus");
+            if (bonus_pos != std::string::npos)
+            {
+                // Don't display title screen text
+                return;
+            }
+            
             glm::vec3 reaction_color = {0.9f, 0.9f, 0.3f};
             if (game::minigame::is_success(game_state.reaction_state))
             {
@@ -346,36 +429,17 @@ namespace game
                 reaction_color = glm::vec3(1.0f, 0.3f, 0.3f);
             }
             
-            // Show time remaining when displaying guessed number
-            if (game_state.reaction_state.phase == game::minigame::ReactionState::Phase::ShowingGuess)
+            // Check if text contains "\n" - split into two lines
+            size_t newline_pos = reaction_text.find("\n");
+            if (newline_pos != std::string::npos)
             {
-                float time_remaining = game_state.reaction_state.guess_display_duration - game_state.reaction_state.timer;
-                if (time_remaining > 0.0f)
-                {
-                    std::stringstream time_ss;
-                    time_ss << std::fixed << std::setprecision(1) << time_remaining << "s";
-                    std::string time_text = time_ss.str();
-                    glm::vec3 time_color = {1.0f, 1.0f, 1.0f};
-                    render_text(m_render_state.text_renderer, time_text, center_x, top_y + 120.0f, ui_title_scale, time_color);
-                }
-            }
-            
-            // Check if text contains "Bonus" - split into two lines
-            size_t bonus_pos = reaction_text.find("Bonus");
-            if (bonus_pos != std::string::npos)
-            {
-                std::string game_name = reaction_text.substr(0, bonus_pos);
-                // Remove trailing space if exists
-                while (!game_name.empty() && game_name.back() == ' ')
-                {
-                    game_name.pop_back();
-                }
-                std::string bonus_text = reaction_text.substr(bonus_pos);
-                float line_height = ui_title_scale * 50.0f;  // Approximate line height
-                glm::vec3 game_name_color = glm::vec3(0.9f, 0.9f, 0.3f);  // Yellow color for game name
-                glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
-                render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
-                render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+                std::string input_line = reaction_text.substr(0, newline_pos);
+                std::string space_line = reaction_text.substr(newline_pos + 1);
+                float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+                const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+                const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
+                render_text(m_render_state.text_renderer, input_line, center_x, top_y, ui_secondary_scale, reaction_color);
+                render_text(m_render_state.text_renderer, space_line, center_x, top_y + line_height, space_scale, green_color);
             }
             else
             {
@@ -386,6 +450,8 @@ namespace game
         {
             std::string math_text = game::minigame::get_display_text(game_state.math_state);
             glm::vec3 math_color = {0.9f, 0.9f, 0.3f};
+            bool is_result = game::minigame::is_success(game_state.math_state) || 
+                            game::minigame::is_failure(game_state.math_state);
             if (game::minigame::is_success(game_state.math_state))
             {
                 math_color = glm::vec3(0.2f, 1.0f, 0.4f);
@@ -412,6 +478,15 @@ namespace game
                 render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
                 render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
             }
+            else if (!is_result && math_text.find("=") != std::string::npos)
+            {
+                // Show (space) in green when showing question (not result)
+                float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+                const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+                const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
+                render_text(m_render_state.text_renderer, math_text, center_x, top_y, ui_secondary_scale, math_color);
+                render_text(m_render_state.text_renderer, "(space)", center_x, top_y + line_height, space_scale, green_color);
+            }
             else
             {
                 render_text(m_render_state.text_renderer, math_text, center_x, top_y, ui_secondary_scale, math_color);
@@ -421,6 +496,8 @@ namespace game
         {
             std::string timing_text = game::minigame::get_display_text(game_state.minigame_state);
             glm::vec3 timing_color = {0.9f, 0.9f, 0.3f};
+            bool is_result = game::minigame::is_success(game_state.minigame_state) || 
+                            game::minigame::is_failure(game_state.minigame_state);
             
             // Check if text contains "Bonus" - split into two lines
             size_t bonus_pos = timing_text.find("Bonus");
@@ -438,6 +515,15 @@ namespace game
                 glm::vec3 bonus_color = glm::vec3(0.2f, 1.0f, 0.4f);  // Green color for bonus
                 render_text(m_render_state.text_renderer, game_name, center_x, top_y, ui_title_scale, game_name_color);
                 render_text(m_render_state.text_renderer, bonus_text, center_x, top_y + line_height, ui_title_scale, bonus_color);
+            }
+            else if (!is_result && !game_state.minigame_state.is_showing_time && timing_text.find("4.99:") != std::string::npos)
+            {
+                // Show (space) in green when running (showing timer, not result)
+                float line_height = ui_title_scale * 70.0f;  // Increased spacing for (space) line
+                const float space_scale = ui_secondary_scale * 0.8f;  // Smaller scale for (space) line
+                const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color for (space)
+                render_text(m_render_state.text_renderer, timing_text, center_x, top_y, ui_secondary_scale, timing_color);
+                render_text(m_render_state.text_renderer, "(space)", center_x, top_y + line_height, space_scale, green_color);
             }
             else
             {

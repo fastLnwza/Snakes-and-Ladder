@@ -23,12 +23,8 @@ namespace game::minigame
     {
         if (state.status == PrecisionTimingStatus::ShowingTitle)
         {
-            state.title_timer += delta_time;
-            if (state.title_timer >= state.title_duration)
-            {
-                state.status = PrecisionTimingStatus::Running;
-                state.display_text = "Press SPACE to stop at 4.99!";
-            }
+            // Don't auto-advance - wait for Space key press (handled in game_loop)
+            // Keep showing title screen until Space is pressed
         }
         else if (state.status == PrecisionTimingStatus::Running)
         {
@@ -37,7 +33,7 @@ namespace game::minigame
             // Update display text to show current time
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2);
-            oss << "4.99:" << state.timer << " [space!]";
+            oss << "4.99:" << state.timer;
             state.display_text = oss.str();
         }
         else if (state.is_showing_time)

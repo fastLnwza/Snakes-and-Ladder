@@ -10,6 +10,7 @@ namespace game
             bool show_animation = false;  // Show win animation
             float animation_timer = 0.0f;  // Timer for animations
             int winner_player = 1;  // Which player won (1-based)
+            bool previous_space_state = false;  // For input debounce
         };
     }
 }

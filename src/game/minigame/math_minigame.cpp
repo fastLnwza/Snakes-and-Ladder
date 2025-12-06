@@ -44,12 +44,8 @@ namespace game::minigame
     {
         if (state.phase == MathQuizState::Phase::ShowingTitle)
         {
-            state.title_timer += delta_time;
-            if (state.title_timer >= state.title_duration)
-            {
-                state.phase = MathQuizState::Phase::ShowingQuestion;
-                state.timer = 0.0f;
-            }
+            // Don't auto-advance - wait for Space key press (handled in game_loop)
+            // Keep showing title screen until Space is pressed
         }
         else if (state.phase == MathQuizState::Phase::ShowingQuestion)
         {

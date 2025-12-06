@@ -85,7 +85,7 @@ namespace game
 
         // Result tracking
         bool precision_result_applied = false;
-        float precision_result_display_timer = 3.0f;
+        float precision_result_display_timer = 2.0f;
         bool tile_memory_result_applied = false;
         bool reaction_result_applied = false;
         bool math_result_applied = false;

@@ -68,14 +68,8 @@ namespace game::minigame
         {
         case ReactionState::Phase::ShowingTitle:
         {
-            state.title_timer += delta_time;
-            if (state.title_timer >= state.title_duration)
-            {
-                // After 3 seconds, transition to InitialMessage
-                state.phase = ReactionState::Phase::InitialMessage;
-                state.timer = 0.0f;
-                state.display_text = "Guess 1-9";
-            }
+            // Don't auto-advance - wait for Space key press (handled in game_loop)
+            // Keep showing title screen until Space is pressed
             break;
         }
         case ReactionState::Phase::InitialMessage:
@@ -89,11 +83,7 @@ namespace game::minigame
                 state.player_attempts = 0;
                 state.input_buffer.clear();
                 std::stringstream ss;
-                ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input";
-                if (!state.input_buffer.empty())
-                {
-                    ss << " " << state.input_buffer;
-                }
+                ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input _\n(space)";
                 state.display_text = ss.str();
             }
             break;
@@ -107,50 +97,48 @@ namespace game::minigame
             {
                 ss << " " << state.input_buffer;
             }
+            else
+            {
+                ss << " _";
+            }
+            ss << "\n(space)";
             state.display_text = ss.str();
             break;
         }
         case ReactionState::Phase::ShowingGuess:
         {
-            // Show the guessed number for specified duration
-            state.timer += delta_time;
-            if (state.timer >= state.guess_display_duration)
-            {
-                // After 2 seconds, check if this was the last attempt
-                if (state.player_attempts >= state.max_attempts)
-                {
-                    // Last attempt - show Mission failed directly, skip feedback
-                    state.phase = ReactionState::Phase::Failure;
-                    state.success = false;
-                    state.bonus_steps = 0;
-                    state.display_text = "Mission failed";
-                    state.timer = 0.0f;  // Reset timer for 3 second display
-                }
-                else
-                {
-                    // Still have attempts - show feedback
-                    state.phase = ReactionState::Phase::ShowingFeedback;
-                    state.display_text = state.last_feedback;
-                }
-                state.timer = 0.0f;
-            }
+            // This phase is no longer used - feedback is shown immediately after submit
+            // Keep for backward compatibility but should not be reached
             break;
         }
         case ReactionState::Phase::ShowingFeedback:
         {
-            // Show feedback for 1 second (only for attempts 1 and 2)
+            // Show feedback for 2 seconds
             state.timer += delta_time;
-            if (state.timer >= 1.0f)
+            if (state.timer >= 2.0f)
             {
-                // After 1 second, show next guess prompt
-                state.phase = ReactionState::Phase::PlayerTurn;
-                state.input_buffer.clear();
-                std::stringstream ss;
-                ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input";
-                state.display_text = ss.str();
-                state.last_feedback.clear();
-                state.guessed_number_text.clear();
-                state.timer = 0.0f;
+                // After 2 seconds, check if this was the last attempt
+                if (state.player_attempts >= state.max_attempts)
+                {
+                    // Last attempt - show Mission failed
+                    state.phase = ReactionState::Phase::Failure;
+                    state.success = false;
+                    state.bonus_steps = 0;
+                    state.display_text = "Mission failed";
+                    state.timer = 0.0f;
+                }
+                else
+                {
+                    // Still have attempts - show next guess prompt
+                    state.phase = ReactionState::Phase::PlayerTurn;
+                    state.input_buffer.clear();
+                    std::stringstream ss;
+                    ss << "Guess " << (state.player_attempts + 1) << "/" << state.max_attempts << " : input _\n(space)";
+                    state.display_text = ss.str();
+                    state.last_feedback.clear();
+                    state.guessed_number_text.clear();
+                    state.timer = 0.0f;
+                }
             }
             break;
         }
@@ -317,16 +305,24 @@ namespace game::minigame
         }
         else
         {
-            // Wrong guess - show the guessed number first, then check attempts
-            std::stringstream guess_ss;
-            guess_ss << "Guess " << state.player_attempts << "/" << state.max_attempts << " : input " << guess;
-            state.guessed_number_text = std::to_string(guess);
-            state.display_text = guess_ss.str();
-            state.last_feedback = (guess < state.target_number) ? "Too low" : "Too high";
-            
-            // Show the guessed number first, then check if mission failed after feedback
-            state.phase = ReactionState::Phase::ShowingGuess;
-            state.timer = 0.0f;
+            // Wrong guess - check if this was the last attempt (round 3)
+            if (state.player_attempts >= state.max_attempts)
+            {
+                // Last attempt (round 3) - show Mission failed immediately, skip feedback
+                state.phase = ReactionState::Phase::Failure;
+                state.success = false;
+                state.bonus_steps = 0;
+                state.display_text = "Mission failed";
+                state.timer = 0.0f;
+            }
+            else
+            {
+                // Still have attempts - show feedback for 2 seconds
+                state.last_feedback = (guess < state.target_number) ? "Too low" : "Too high";
+                state.display_text = state.last_feedback;
+                state.phase = ReactionState::Phase::ShowingFeedback;
+                state.timer = 0.0f;
+            }
         }
     }
 
