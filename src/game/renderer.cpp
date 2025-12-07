@@ -36,8 +36,10 @@ namespace game
 
         const float aspect_ratio = window.get_aspect_ratio();
         const glm::mat4 projection = camera.get_projection(aspect_ratio);
-        const glm::vec3 player_position = get_position(game_state.player_state);
-        const glm::mat4 view = camera.get_view(player_position, game_state.map_length);
+        // Use current player's position for camera
+        const auto& current_player = game_state.players[game_state.current_player_index];
+        const glm::vec3 camera_position = get_position(current_player);
+        const glm::mat4 view = camera.get_view(camera_position, game_state.map_length);
 
         glUseProgram(m_render_state.program);
         glUniform1i(m_render_state.use_texture_location, 0);
@@ -66,12 +68,16 @@ namespace game
 
     void Renderer::render_player(const glm::mat4& projection, const glm::mat4& view, const GameState& game_state)
     {
-        const glm::vec3 player_position = get_position(game_state.player_state);
-        const glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
-        const glm::mat4 mvp = projection * view * model;
-        glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-        glBindVertexArray(game_state.sphere_mesh.vao);
-        glDrawElements(GL_TRIANGLES, game_state.sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
+        // Render all active players
+        for (int i = 0; i < game_state.num_players; ++i)
+        {
+            const glm::vec3 player_position = get_position(game_state.players[i]);
+            const glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+            const glm::mat4 mvp = projection * view * model;
+            glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+            glBindVertexArray(game_state.sphere_mesh.vao);
+            glDrawElements(GL_TRIANGLES, game_state.sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
+        }
     }
 
     void Renderer::render_dice(const glm::mat4& projection, const glm::mat4& view, const GameState& game_state)
@@ -164,10 +170,11 @@ namespace game
         const bool precision_showing_time = game_state.minigame_state.is_showing_time;
         const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
                                          game::minigame::is_failure(game_state.minigame_state);
+        const auto& current_player = game_state.players[game_state.current_player_index];
         const bool show_ui_overlay = game_state.dice_state.is_displaying || 
                                     game_state.dice_state.is_rolling ||
                                     game_state.dice_state.is_falling ||
-                                    game_state.player_state.steps_remaining > 0 || 
+                                    current_player.steps_remaining > 0 || 
                                     precision_running ||
                                     precision_showing_time ||
                                     precision_has_result ||
@@ -535,6 +542,17 @@ namespace game
             std::string dice_text = std::to_string(game_state.dice_state.result);
             glm::vec3 text_color(1.0f, 1.0f, 0.0f);
             render_text(m_render_state.text_renderer, dice_text, center_x, top_y, ui_primary_scale, text_color);
+            
+            // Show current player info if multiple players
+            if (game_state.num_players > 1)
+            {
+                std::ostringstream player_info;
+                player_info << "Player " << (game_state.current_player_index + 1) << "/" << game_state.num_players;
+                const float player_info_scale = ui_secondary_scale * 0.6f;
+                const float player_info_y = top_y + ui_title_scale * 80.0f;
+                const glm::vec3 player_info_color(0.7f, 0.7f, 1.0f);  // Light blue
+                render_text(m_render_state.text_renderer, player_info.str(), center_x, player_info_y, player_info_scale, player_info_color);
+            }
         }
 
         glDisable(GL_BLEND);

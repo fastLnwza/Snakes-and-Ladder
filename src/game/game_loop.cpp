@@ -16,6 +16,18 @@
 
 namespace game
 {
+    // Helper function to get current player state
+    static game::player::PlayerState& get_current_player(GameState& game_state)
+    {
+        return game_state.players[game_state.current_player_index];
+    }
+    
+    // Helper function to switch to next player
+    static void switch_to_next_player(GameState& game_state)
+    {
+        game_state.current_player_index = (game_state.current_player_index + 1) % game_state.num_players;
+    }
+
     GameLoop::GameLoop(core::Window& window, core::Camera& camera, GameState& game_state, RenderState& render_state)
         : m_window(window)
         , m_camera(camera)
@@ -112,14 +124,31 @@ namespace game
                 }
             }
             
-            // Start game with Space (regardless of selected option)
-            // Enter can also start game if not on AI option (Enter on AI option toggles AI)
-            // Only start if Space was just pressed (not held down from previous screen)
-            if ((space_pressed && !menu_space_was_pressed) || (enter_pressed && !menu_enter_was_pressed && m_game_state.menu_state.selected_option == 0))
-            {
-                m_game_state.menu_state.is_active = false;
-                m_game_state.menu_state.start_game = true;
-            }
+             // Start game with Space (regardless of selected option)
+             // Enter can also start game if not on AI option (Enter on AI option toggles AI)
+             // Only start if Space was just pressed (not held down from previous screen)
+             if ((space_pressed && !menu_space_was_pressed) || (enter_pressed && !menu_enter_was_pressed && m_game_state.menu_state.selected_option == 0))
+             {
+                 // Set number of players from menu
+                 m_game_state.num_players = m_game_state.menu_state.num_players;
+                 m_game_state.current_player_index = 0;
+                 
+                 // Reset all players to starting position
+                 for (int i = 0; i < m_game_state.num_players; ++i)
+                 {
+                     game::player::warp_to_tile(m_game_state.players[i], 0);
+                     m_game_state.players[i].steps_remaining = 0;
+                     m_game_state.players[i].is_stepping = false;
+                     m_game_state.last_processed_tiles[i] = 0;
+                 }
+                 m_game_state.turn_finished = false;
+                 
+                 // Update camera target to first player's position
+                 m_game_state.camera_target_position = get_position(m_game_state.players[0]);
+                 
+                 m_game_state.menu_state.is_active = false;
+                 m_game_state.menu_state.start_game = true;
+             }
             
             menu_up_was_pressed = up_pressed;
             menu_down_was_pressed = down_pressed;
@@ -150,11 +179,18 @@ namespace game
                 m_game_state.win_state.is_active = false;
                 m_game_state.win_state.show_animation = false;
                 m_game_state.menu_state.is_active = true;
-                // Reset game state completely
-                game::player::warp_to_tile(m_game_state.player_state, 0);
-                m_game_state.player_state.steps_remaining = 0;
-                m_game_state.player_state.is_stepping = false;
+                 // Reset game state completely
+                 for (int i = 0; i < m_game_state.num_players; ++i)
+                 {
+                     game::player::warp_to_tile(m_game_state.players[i], 0);
+                     m_game_state.players[i].steps_remaining = 0;
+                     m_game_state.players[i].is_stepping = false;
+                 }
+                 m_game_state.current_player_index = 0;
                 m_game_state.last_processed_tile = 0;
+                
+                // Update camera target to first player's position
+                m_game_state.camera_target_position = get_position(m_game_state.players[0]);
                 
                 // Reset all minigames
                 game::minigame::reset(m_game_state.minigame_state);
@@ -202,7 +238,8 @@ namespace game
         }
 
         const bool space_pressed = m_window.is_key_pressed(GLFW_KEY_SPACE);
-        const bool space_just_pressed = space_pressed && !m_game_state.player_state.previous_space_state;
+        auto& current_player = get_current_player(m_game_state);
+        const bool space_just_pressed = space_pressed && !current_player.previous_space_state;
         
         // Handle minigame title screen - wait for Space to start
         if (m_game_state.minigame_state.status == game::minigame::PrecisionTimingStatus::ShowingTitle)
@@ -288,11 +325,16 @@ namespace game
         const bool minigame_running = precision_running || tile_memory_running || reaction_running || math_running || pattern_running;
 
         // Start dice roll
-        if (space_just_pressed && !m_game_state.player_state.is_stepping && 
-            m_game_state.player_state.steps_remaining == 0 && 
+        // Only allow rolling if player hasn't rolled yet this turn (last_dice_result == 0)
+        // This prevents player from rolling multiple times in the same turn
+        const bool has_not_rolled_this_turn = (current_player.last_dice_result == 0);
+        
+        if (space_just_pressed && !current_player.is_stepping && 
+            current_player.steps_remaining == 0 && 
             !m_game_state.dice_state.is_rolling && 
             !m_game_state.dice_state.is_falling && 
-            !minigame_running)
+            !minigame_running &&
+            has_not_rolled_this_turn)
         {
             m_game_state.dice_state.is_displaying = false;
             m_game_state.dice_state.is_rolling = false;
@@ -302,13 +344,17 @@ namespace game
             m_game_state.dice_state.result = 0;
             m_game_state.dice_state.pending_result = 0;
 
-            glm::vec3 player_pos = get_position(m_game_state.player_state);
+            glm::vec3 player_pos = get_position(current_player);
             glm::vec3 target_pos = player_pos;
             target_pos.y = m_game_state.player_ground_y;
             m_game_state.dice_state.ground_y = m_game_state.player_ground_y;
 
             const float fall_height = m_game_state.map_length * 0.4f;
             start_roll(m_game_state.dice_state, target_pos, fall_height);
+            
+            // Reset turn_finished flag when player starts rolling dice
+            // This allows switching to next player when this player finishes their turn
+            m_game_state.turn_finished = false;
         }
 
         // Handle precision timing input
@@ -664,9 +710,9 @@ namespace game
                     int requested_tile = std::stoi(m_game_state.debug_warp_state.buffer);
                     int zero_based_tile = (requested_tile <= 0) ? 0 : requested_tile - 1;
                     int target_tile = std::clamp(zero_based_tile, 0, m_game_state.final_tile_index);
-                    warp_to_tile(m_game_state.player_state, target_tile);
+                    warp_to_tile(get_current_player(m_game_state), target_tile);
                     m_game_state.last_processed_tile = -1;
-                    m_game_state.player_state.previous_space_state = false;
+                    get_current_player(m_game_state).previous_space_state = false;
 
                     m_game_state.dice_state.is_rolling = false;
                     m_game_state.dice_state.is_falling = false;
@@ -725,7 +771,7 @@ namespace game
             m_game_state.debug_warp_state.notification_timer = std::max(0.0f, m_game_state.debug_warp_state.notification_timer - delta_time);
         }
 
-        m_game_state.player_state.previous_space_state = space_pressed;
+        current_player.previous_space_state = space_pressed;
     }
 
     void GameLoop::update_game_logic(float delta_time)
@@ -734,15 +780,17 @@ namespace game
         using namespace game::player::dice;
         using namespace game::map;
 
+        auto& current_player = get_current_player(m_game_state);
+
         // Check if dice has finished rolling
         const bool dice_ready = !m_game_state.dice_state.is_falling && 
                                !m_game_state.dice_state.is_rolling && 
                                m_game_state.dice_state.result > 0;
 
-        // Transfer dice result to player
-        if (dice_ready && m_game_state.player_state.last_dice_result != m_game_state.dice_state.result)
+        // Transfer dice result to current player
+        if (dice_ready && current_player.last_dice_result != m_game_state.dice_state.result)
         {
-            set_dice_result(m_game_state.player_state, m_game_state.dice_state.result);
+            set_dice_result(current_player, m_game_state.dice_state.result);
             m_game_state.dice_display_timer = 3.0f;
         }
 
@@ -753,11 +801,11 @@ namespace game
         }
 
         // Safety check for dice result
-        if (dice_ready && m_game_state.player_state.steps_remaining == 0 && m_game_state.dice_state.result > 0)
+        if (dice_ready && current_player.steps_remaining == 0 && m_game_state.dice_state.result > 0)
         {
-            if (m_game_state.player_state.last_dice_result != m_game_state.dice_state.result)
+            if (current_player.last_dice_result != m_game_state.dice_state.result)
             {
-                set_dice_result(m_game_state.player_state, m_game_state.dice_state.result);
+                set_dice_result(current_player, m_game_state.dice_state.result);
                 m_game_state.dice_display_timer = 3.0f;
             }
         }
@@ -782,19 +830,24 @@ namespace game
         }
 
         const bool dice_finished = dice_ready && !minigame_running;
-        const bool has_steps_to_walk = m_game_state.player_state.steps_remaining > 0;
+        const bool has_steps_to_walk = current_player.steps_remaining > 0;
         const bool can_walk_now = (dice_finished && has_steps_to_walk) || minigame_force_walk;
 
-        game::player::update(m_game_state.player_state, delta_time, false, m_game_state.final_tile_index, can_walk_now);
+        game::player::update(current_player, delta_time, false, m_game_state.final_tile_index, can_walk_now);
 
         // Final safeguard for player movement
-        if (dice_ready && m_game_state.player_state.steps_remaining > 0 && 
-            !m_game_state.player_state.is_stepping && 
+        if (dice_ready && current_player.steps_remaining > 0 && 
+            !current_player.is_stepping && 
             !minigame_running &&
             !minigame_force_walk)
         {
-            game::player::update(m_game_state.player_state, delta_time, false, m_game_state.final_tile_index, true);
+            game::player::update(current_player, delta_time, false, m_game_state.final_tile_index, true);
         }
+        
+        // Camera target position is only updated when:
+        // 1. Player presses space to start rolling dice (in handle_input)
+        // 2. Player switches to next player (in player switching logic below)
+        // This prevents camera from switching back and forth between players
 
         // Update dice animation
         const float half_width = m_game_state.map_data.board_width * 0.5f;
@@ -808,12 +861,14 @@ namespace game
         }
 
         // Check tile activity
-        const int current_tile = get_current_tile(m_game_state.player_state);
-        if (current_tile != m_game_state.last_processed_tile)
+        const int current_tile = get_current_tile(current_player);
+        int& last_processed_tile_for_player = m_game_state.last_processed_tiles[m_game_state.current_player_index];
+        if (current_tile != last_processed_tile_for_player)
         {
-            if (!m_game_state.player_state.is_stepping && m_game_state.player_state.steps_remaining == 0)
+            if (!current_player.is_stepping && current_player.steps_remaining == 0)
             {
-                m_game_state.last_processed_tile = current_tile;
+                last_processed_tile_for_player = current_tile;
+                m_game_state.last_processed_tile = current_tile;  // Keep for compatibility
 
                 // Check for win condition
                 if (current_tile >= m_game_state.final_tile_index && !m_game_state.win_state.is_active)
@@ -821,17 +876,17 @@ namespace game
                     m_game_state.win_state.is_active = true;
                     m_game_state.win_state.show_animation = true;
                     m_game_state.win_state.animation_timer = 0.0f;
-                    m_game_state.win_state.winner_player = 1; // For now, always player 1
+                    m_game_state.win_state.winner_player = m_game_state.current_player_index + 1; // 1-based player number
                 }
 
-                game::map::check_and_apply_ladder(m_game_state.player_state, current_tile, m_game_state.last_processed_tile);
+                game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
 
                 const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
                 game::map::check_tile_activity(current_tile,
-                                              m_game_state.last_processed_tile,
+                                              last_processed_tile_for_player,
                                               minigame_running,
                                               tile_memory_active_check,
-                                              m_game_state.player_state,
+                                              current_player,
                                               m_game_state.minigame_state,
                                               m_game_state.tile_memory_state,
                                               m_game_state.reaction_state,
@@ -844,8 +899,84 @@ namespace game
             }
             else
             {
-                m_game_state.last_processed_tile = current_tile;
+                last_processed_tile_for_player = current_tile;
+                m_game_state.last_processed_tile = current_tile;  // Keep for compatibility
             }
+        }
+        
+        // Switch to next player when current player's turn is finished
+        // Turn is finished when: 
+        // - not stepping
+        // - no steps remaining
+        // - dice not rolling/falling/displaying
+        // - no minigame running
+        // - tile has been processed (current_tile == last_processed_tile for this player)
+        // Note: We don't wait for dice_display_timer to expire - once player finishes walking, switch immediately
+        const bool tile_processed = (current_tile == m_game_state.last_processed_tiles[m_game_state.current_player_index]);
+        
+        // Only switch if current player has actually finished their turn
+        // AND we haven't already switched this frame (turn_finished prevents multiple switches)
+        // AND current player has rolled dice at least once (last_dice_result > 0) to prevent switching before first roll
+        const bool player_has_rolled = (current_player.last_dice_result > 0);
+        
+        if (!current_player.is_stepping && 
+            current_player.steps_remaining == 0 && 
+            !m_game_state.dice_state.is_rolling && 
+            !m_game_state.dice_state.is_falling && 
+            !m_game_state.dice_state.is_displaying &&
+            !minigame_running &&
+            tile_processed &&
+            player_has_rolled &&
+            m_game_state.num_players > 1 &&
+            !m_game_state.turn_finished)
+        {
+            // Mark turn as finished to prevent multiple switches
+            m_game_state.turn_finished = true;
+            
+            // Reset dice state for next player
+            m_game_state.dice_state.result = 0;
+            m_game_state.dice_state.is_displaying = false;
+            m_game_state.dice_display_timer = 0.0f;
+            
+            // Switch to next player
+            switch_to_next_player(m_game_state);
+            
+            // Get new player after switching
+            auto& new_player = get_current_player(m_game_state);
+            
+            // Reset last_dice_result for new player to allow them to roll dice
+            // This ensures each player can only roll once per turn
+            new_player.last_dice_result = 0;
+            
+            glm::vec3 player_pos = get_position(new_player);
+            glm::vec3 target_pos = player_pos;
+            target_pos.y = m_game_state.player_ground_y;
+            m_game_state.dice_state.position = target_pos + glm::vec3(0.0f, 3.0f, 0.0f);
+            m_game_state.dice_state.target_position = m_game_state.dice_state.position;
+            
+            // Update last_processed_tile to new player's current tile
+            m_game_state.last_processed_tile = get_current_tile(new_player);
+            m_game_state.last_processed_tiles[m_game_state.current_player_index] = m_game_state.last_processed_tile;
+            
+            // Keep turn_finished = true to prevent immediate re-switching
+            // It will be reset when new player starts rolling dice (in handle_input when space is pressed)
+        }
+        else if (current_player.is_stepping || 
+                 current_player.steps_remaining > 0 || 
+                 m_game_state.dice_state.is_rolling || 
+                 m_game_state.dice_state.is_falling ||
+                 m_game_state.dice_state.is_displaying ||
+                 minigame_running)
+        {
+            // Reset turn_finished flag if player is still active
+            // This allows switching when player finishes their turn
+            m_game_state.turn_finished = false;
+        }
+        else if (player_has_rolled)
+        {
+            // Player has rolled but hasn't finished yet - allow switching when ready
+            // Reset turn_finished only if player has rolled (to prevent switching before first roll)
+            m_game_state.turn_finished = false;
         }
 
         // Note: Win screen animation timer and input handling are now in handle_input()
@@ -895,6 +1026,8 @@ namespace game
     {
         using namespace game::player;
 
+        auto& current_player = get_current_player(m_game_state);
+
         // Handle precision timing results
         if (!m_game_state.minigame_state.is_showing_time && 
             (game::minigame::is_success(m_game_state.minigame_state) || 
@@ -906,12 +1039,12 @@ namespace game
                 if (game::minigame::is_success(m_game_state.minigame_state))
                 {
                     const int bonus = game::minigame::get_bonus_steps(m_game_state.minigame_state);
-                    m_game_state.player_state.steps_remaining += bonus;
+                    current_player.steps_remaining += bonus;
                 }
                 else if (game::minigame::is_failure(m_game_state.minigame_state))
                 {
-                    m_game_state.player_state.steps_remaining = 0;
-                    m_game_state.player_state.is_stepping = false;
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
                 }
             }
 
@@ -937,12 +1070,12 @@ namespace game
                 if (game::minigame::tile_memory::is_success(m_game_state.tile_memory_state))
                 {
                     const int bonus = game::minigame::tile_memory::get_bonus_steps(m_game_state.tile_memory_state);
-                    m_game_state.player_state.steps_remaining += bonus;
+                    current_player.steps_remaining += bonus;
                 }
                 else
                 {
-                    m_game_state.player_state.steps_remaining = 0;
-                    m_game_state.player_state.is_stepping = false;
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
                 }
             }
         }
@@ -961,12 +1094,12 @@ namespace game
                 if (game::minigame::is_success(m_game_state.reaction_state))
                 {
                     const int bonus = game::minigame::get_bonus_steps(m_game_state.reaction_state);
-                    m_game_state.player_state.steps_remaining += bonus;
+                    current_player.steps_remaining += bonus;
                 }
                 else
                 {
-                    m_game_state.player_state.steps_remaining = 0;
-                    m_game_state.player_state.is_stepping = false;
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
                 }
             }
         }
@@ -985,12 +1118,12 @@ namespace game
                 if (game::minigame::is_success(m_game_state.math_state))
                 {
                     const int bonus = game::minigame::get_bonus_steps(m_game_state.math_state);
-                    m_game_state.player_state.steps_remaining += bonus;
+                    current_player.steps_remaining += bonus;
                 }
                 else
                 {
-                    m_game_state.player_state.steps_remaining = 0;
-                    m_game_state.player_state.is_stepping = false;
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
                 }
             }
         }
@@ -1009,12 +1142,12 @@ namespace game
                 if (game::minigame::is_success(m_game_state.pattern_state))
                 {
                     const int bonus = game::minigame::get_bonus_steps(m_game_state.pattern_state);
-                    m_game_state.player_state.steps_remaining += bonus;
+                    current_player.steps_remaining += bonus;
                 }
                 else
                 {
-                    m_game_state.player_state.steps_remaining = 0;
-                    m_game_state.player_state.is_stepping = false;
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
                 }
             }
         }

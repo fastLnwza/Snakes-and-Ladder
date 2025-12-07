@@ -42,8 +42,10 @@ namespace game
         float map_min_dimension = 0.0f;
         int final_tile_index = 0;
 
-        // Player
-        game::player::PlayerState player_state;
+        // Players (up to 4 players)
+        std::array<game::player::PlayerState, 4> players{};
+        int current_player_index = 0;  // 0-based index of current player
+        int num_players = 1;  // Number of active players (1-4)
         float player_ground_y = 0.0f;
         float player_radius = 0.0f;
         Mesh sphere_mesh{};
@@ -79,9 +81,14 @@ namespace game
 
         // Game state tracking
         int last_processed_tile = 0;
+        std::array<int, 4> last_processed_tiles{};  // Track last processed tile for each player
         std::string minigame_message;
         float minigame_message_timer = 0.0f;
         float dice_display_timer = 0.0f;
+        bool turn_finished = false;  // Flag to track if current player's turn is finished
+        
+        // Camera target position - updated only when switching players
+        glm::vec3 camera_target_position = glm::vec3(0.0f, 0.0f, 0.0f);
 
         // Result tracking
         bool precision_result_applied = false;

@@ -86,14 +86,19 @@ namespace game
             glBindVertexArray(0);
         }
 
+#pragma warning(push)
+#pragma warning(disable: 4100)  // Unreferenced formal parameter
         void render_rounded_rect(const RenderState& render_state, const glm::mat4& mvp,
                                 float x, float y, float width, float height, float radius,
                                 float r, float g, float b, float a = 1.0f)
         {
             // For simplicity, render as regular rectangle with rounded corners approximated
             // We'll use a simple rectangle for now (can be improved with proper rounded rect shader)
+            // radius parameter is reserved for future rounded rectangle implementation
+            (void)radius;
             render_colored_quad(render_state, mvp, x, y, width, height, r, g, b, a);
         }
+#pragma warning(pop)
 
         void render_circle(const RenderState& render_state, const glm::mat4& mvp,
                           float center_x, float center_y, float radius,

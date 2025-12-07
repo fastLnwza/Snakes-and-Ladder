@@ -25,8 +25,18 @@ namespace game
         state.sphere_mesh = ::create_mesh(sphere_result.first, sphere_result.second);
 
         state.player_ground_y = state.player_radius;
-        initialize(state.player_state, tile_center_world(0), state.player_ground_y, state.player_radius);
-        state.last_processed_tile = get_current_tile(state.player_state);
+        // Initialize all players (will be activated based on num_players from menu)
+        for (int i = 0; i < 4; ++i)
+        {
+            initialize(state.players[i], tile_center_world(0), state.player_ground_y, state.player_radius);
+        }
+        state.current_player_index = 0;
+        state.num_players = 1;  // Default to 1 player, will be updated from menu
+        state.last_processed_tile = get_current_tile(state.players[0]);
+        state.last_processed_tiles.fill(0);
+        state.turn_finished = false;
+        // Initialize camera target position to first player's position
+        state.camera_target_position = get_position(state.players[0]);
 
         // Initialize dice state
         using namespace game::player::dice;
