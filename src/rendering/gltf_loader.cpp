@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <stdexcept>
 #include <iostream>
 
@@ -276,6 +277,115 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
     // Store all loaded textures in model
     model.textures = std::move(loaded_textures);
 
+    // Load animations from the model
+    for (cgltf_size anim_idx = 0; anim_idx < data->animations_count; ++anim_idx)
+    {
+        const cgltf_animation* gltf_anim = &data->animations[anim_idx];
+        GLTFAnimation animation;
+        animation.name = gltf_anim->name ? gltf_anim->name : "Unnamed";
+        animation.duration = 0.0f;
+
+        // Process all channels in this animation
+        for (cgltf_size channel_idx = 0; channel_idx < gltf_anim->channels_count; ++channel_idx)
+        {
+            const cgltf_animation_channel* channel = &gltf_anim->channels[channel_idx];
+            const cgltf_animation_sampler* sampler = channel->sampler;
+
+            if (!sampler || !channel->target_node)
+                continue;
+
+            GLTFAnimationChannel anim_channel;
+
+            // Determine target path type
+            if (channel->target_path == cgltf_animation_path_type_translation)
+                anim_channel.target_path = "translation";
+            else if (channel->target_path == cgltf_animation_path_type_rotation)
+                anim_channel.target_path = "rotation";
+            else if (channel->target_path == cgltf_animation_path_type_scale)
+                anim_channel.target_path = "scale";
+            else
+                continue; // Skip unsupported animation types
+
+            // Store target node information
+            anim_channel.target_node_index = 0; // TODO: Map to actual node index
+            anim_channel.target_node_name = channel->target_node->name ? channel->target_node->name : "Unnamed";
+
+            // Extract keyframe times
+            if (sampler->input && sampler->input->buffer_view)
+            {
+                cgltf_size time_count = sampler->input->count;
+                anim_channel.keyframe_times.resize(time_count);
+                cgltf_accessor_unpack_floats(sampler->input, anim_channel.keyframe_times.data(), time_count);
+
+                // Update animation duration
+                if (!anim_channel.keyframe_times.empty())
+                {
+                    float max_time = anim_channel.keyframe_times.back();
+                    if (max_time > animation.duration)
+                        animation.duration = max_time;
+                }
+            }
+
+            // Extract keyframe values
+            if (sampler->output && sampler->output->buffer_view)
+            {
+                cgltf_size value_count = sampler->output->count;
+                
+                if (channel->target_path == cgltf_animation_path_type_translation || 
+                    channel->target_path == cgltf_animation_path_type_scale)
+                {
+                    // Translation or scale: vec3 values
+                    std::vector<float> values(value_count * 3);
+                    cgltf_accessor_unpack_floats(sampler->output, values.data(), value_count * 3);
+                    
+                    for (cgltf_size i = 0; i < value_count; ++i)
+                    {
+                        glm::vec3 vec_value(
+                            values[i * 3 + 0],
+                            values[i * 3 + 1],
+                            values[i * 3 + 2]
+                        );
+                        if (channel->target_path == cgltf_animation_path_type_translation)
+                            anim_channel.translation_keys.push_back(vec_value);
+                        else
+                            anim_channel.scale_keys.push_back(vec_value);
+                    }
+                }
+                else if (channel->target_path == cgltf_animation_path_type_rotation)
+                {
+                    // Rotation: quaternion values (x, y, z, w)
+                    std::vector<float> values(value_count * 4);
+                    cgltf_accessor_unpack_floats(sampler->output, values.data(), value_count * 4);
+                    
+                    for (cgltf_size i = 0; i < value_count; ++i)
+                    {
+                        glm::quat quat_value(
+                            values[i * 4 + 3], // w
+                            values[i * 4 + 0], // x
+                            values[i * 4 + 1], // y
+                            values[i * 4 + 2]  // z
+                        );
+                        anim_channel.rotation_keys.push_back(quat_value);
+                    }
+                }
+            }
+
+            animation.channels.push_back(anim_channel);
+        }
+
+        if (!animation.channels.empty())
+        {
+            model.animations.push_back(animation);
+            std::cout << "Loaded animation: " << animation.name << " (duration: " << animation.duration 
+                      << "s, channels: " << animation.channels.size() << ")\n";
+        }
+    }
+
+    if (model.animations.empty() && data->animations_count > 0)
+    {
+        std::cout << "Note: Model has " << data->animations_count << " animation(s) but none were loaded successfully\n";
+    }
+
     cgltf_free(data);
     return model;
 }
@@ -293,5 +403,8 @@ void destroy_gltf_model(GLTFModel& model)
         destroy_texture(texture);
     }
     model.textures.clear();
+    
+    // Animations don't need explicit cleanup (vectors will clean themselves)
+    model.animations.clear();
 }
 
