@@ -72,11 +72,65 @@ namespace game
         for (int i = 0; i < game_state.num_players; ++i)
         {
             const glm::vec3 player_position = get_position(game_state.players[i]);
-            const glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
-            const glm::mat4 mvp = projection * view * model;
-            glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-            glBindVertexArray(game_state.sphere_mesh.vao);
-            glDrawElements(GL_TRIANGLES, game_state.sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
+            
+            // Use GLB model if available, otherwise use sphere fallback
+            if (game_state.has_player_model && !game_state.player_model_glb.meshes.empty())
+            {
+                // Scale and position the player model
+                // Calculate scale to match player_radius (adjust multiplier as needed for model size)
+                const float model_scale = game_state.player_radius * 2.0f;
+                
+                // Apply transforms in correct order: translate * rotate * scale * base_transform
+                // Rotate -90 degrees around X axis to make model stand up, then 180 around Y to flip if upside down
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Flip if upside down
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
+                model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
+                model = model * game_state.player_model_glb.base_transform;
+                
+                const glm::mat4 mvp = projection * view * model;
+                glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+                
+                // Render all meshes in the model
+                for (size_t mesh_idx = 0; mesh_idx < game_state.player_model_glb.meshes.size(); ++mesh_idx)
+                {
+                    const auto& mesh = game_state.player_model_glb.meshes[mesh_idx];
+                    
+                    // Use texture if available (use first texture for now, or match to mesh)
+                    if (!game_state.player_model_glb.textures.empty())
+                    {
+                        // Use first texture for all meshes (or could match texture index to mesh index)
+                        size_t texture_idx = (mesh_idx < game_state.player_model_glb.textures.size()) ? mesh_idx : 0;
+                        const auto& texture = game_state.player_model_glb.textures[texture_idx];
+                        
+                        glUniform1i(m_render_state.use_texture_location, 1);
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, texture.id);
+                    }
+                    else
+                    {
+                        // No texture, use vertex colors
+                        glUniform1i(m_render_state.use_texture_location, 0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                    }
+                    
+                    glBindVertexArray(mesh.vao);
+                    glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+                }
+                
+                // Reset texture state
+                glUniform1i(m_render_state.use_texture_location, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else
+            {
+                // Fallback to sphere
+                const glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+                const glm::mat4 mvp = projection * view * model;
+                glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+                glBindVertexArray(game_state.sphere_mesh.vao);
+                glDrawElements(GL_TRIANGLES, game_state.sphere_mesh.index_count, GL_UNSIGNED_INT, nullptr);
+            }
         }
     }
 

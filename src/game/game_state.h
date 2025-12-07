@@ -48,7 +48,9 @@ namespace game
         int num_players = 1;  // Number of active players (1-4)
         float player_ground_y = 0.0f;
         float player_radius = 0.0f;
-        Mesh sphere_mesh{};
+        Mesh sphere_mesh{};  // Fallback mesh if model is not loaded
+        GLTFModel player_model_glb{};
+        bool has_player_model = false;
 
         // Dice
         game::player::dice::DiceState dice_state;

@@ -71,6 +71,13 @@ namespace game
                 }
             }
         }
+        if (state.has_player_model)
+        {
+            if (!state.player_model_glb.meshes.empty())
+            {
+                destroy_gltf_model(state.player_model_glb);
+            }
+        }
     }
 }
 

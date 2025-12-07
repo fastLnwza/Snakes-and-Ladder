@@ -81,6 +81,40 @@ namespace
             std::cerr << "Warning: Failed to load dice texture: " << ex.what() << '\n';
         }
     }
+
+    void load_player_assets(const std::filesystem::path& executable_dir, 
+                           const std::filesystem::path& source_dir,
+                           game::GameState& game_state)
+    {
+        // Try to load player1 GLB model
+        std::filesystem::path player1_glb_path = source_dir.parent_path() / "assets" / "character" / "player1" / "peasant_character.glb";
+
+        try
+        {
+            if (std::filesystem::exists(player1_glb_path))
+            {
+                std::cout << "Loading player1 model (GLB) from: " << player1_glb_path << std::endl;
+                game_state.player_model_glb = load_gltf_model(player1_glb_path);
+                game_state.has_player_model = true;
+                std::cout << "Loaded player1 model with " << game_state.player_model_glb.meshes.size() << " mesh(es)\n";
+            }
+            else if (std::filesystem::exists(executable_dir / "assets" / "character" / "player1" / "peasant_character.glb"))
+            {
+                std::cout << "Loading player1 model (GLB) from executable directory\n";
+                game_state.player_model_glb = load_gltf_model(executable_dir / "assets" / "character" / "player1" / "peasant_character.glb");
+                game_state.has_player_model = true;
+                std::cout << "Loaded player1 model with " << game_state.player_model_glb.meshes.size() << " mesh(es)\n";
+            }
+            else
+            {
+                std::cerr << "Warning: Player1 model file not found, using sphere fallback\n";
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            std::cerr << "Warning: Failed to load player1 model: " << ex.what() << '\n';
+        }
+    }
 }
 
 int main(int argc, char* argv[])
@@ -136,6 +170,9 @@ int main(int argc, char* argv[])
         // Load dice assets
         std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path();
         load_dice_assets(executable_dir, source_dir, game_state);
+
+        // Load player assets
+        load_player_assets(executable_dir, source_dir, game_state);
 
         // Initialize text renderer
         game::RenderState render_state;

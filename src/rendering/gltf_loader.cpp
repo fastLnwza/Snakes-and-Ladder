@@ -2,12 +2,17 @@
 
 #define CGLTF_IMPLEMENTATION
 #include <cgltf/cgltf.h>
+// Note: STB_IMAGE_IMPLEMENTATION is already defined in texture_loader.cpp
+// Just include the header without defining implementation
+#include "../../external/stb_image.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stdexcept>
+#include <iostream>
 
 #include "mesh.h"
+#include "texture_loader.h"
 #include "utils/file_utils.h"
 
 GLTFModel load_gltf_model(const std::filesystem::path& path)
@@ -32,6 +37,60 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
         throw std::runtime_error("Failed to load GLTF buffers: " + path.string());
     }
 
+    // First, load all textures
+    std::vector<Texture> loaded_textures;
+    for (cgltf_size img_idx = 0; img_idx < data->images_count; ++img_idx)
+    {
+        const cgltf_image* image = &data->images[img_idx];
+        
+        // Check if image data is embedded (GLB format)
+        if (image->buffer_view)
+        {
+            // Image data is embedded in GLB buffer
+            const cgltf_buffer_view* view = image->buffer_view;
+            const cgltf_buffer* buffer = view->buffer;
+            const unsigned char* image_data = static_cast<const unsigned char*>(buffer->data) + view->offset;
+            
+            int width, height, channels;
+            unsigned char* decoded_data = stbi_load_from_memory(
+                image_data, 
+                static_cast<int>(view->size),
+                &width, &height, &channels, 
+                0
+            );
+            
+            if (decoded_data)
+            {
+                Texture texture{};
+                texture.width = width;
+                texture.height = height;
+                
+                glGenTextures(1, &texture.id);
+                glBindTexture(GL_TEXTURE_2D, texture.id);
+                
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                
+                GLenum format = GL_RGB;
+                if (channels == 4)
+                    format = GL_RGBA;
+                else if (channels == 1)
+                    format = GL_RED;
+                
+                glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, decoded_data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+                
+                stbi_image_free(decoded_data);
+                glBindTexture(GL_TEXTURE_2D, 0);
+                
+                loaded_textures.push_back(texture);
+                std::cout << "Loaded embedded texture " << static_cast<unsigned int>(img_idx) << " (" << width << "x" << height << ", " << channels << " channels)\n";
+            }
+        }
+    }
+
     // Process all meshes in the scene
     for (cgltf_size i = 0; i < data->meshes_count; ++i)
     {
@@ -48,6 +107,7 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
             cgltf_accessor* position_accessor = nullptr;
             cgltf_accessor* normal_accessor = nullptr;
             cgltf_accessor* color_accessor = nullptr;
+            cgltf_accessor* texcoord_accessor = nullptr;
 
             for (cgltf_size k = 0; k < primitive->attributes_count; ++k)
             {
@@ -63,6 +123,10 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
                 else if (attr->type == cgltf_attribute_type_color)
                 {
                     color_accessor = attr->data;
+                }
+                else if (attr->type == cgltf_attribute_type_texcoord)
+                {
+                    texcoord_accessor = attr->data;
                 }
             }
 
@@ -96,6 +160,20 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
                     vertex_count * cgltf_num_components(color_accessor->type));
             }
 
+            // Unpack texture coordinates if available
+            std::vector<float> texcoords;
+            if (texcoord_accessor && texcoord_accessor->count == vertex_count)
+            {
+                // Suppress warning: cgltf_num_components returns small values (1-4), safe to cast
+                #pragma warning(push)
+                #pragma warning(disable: 4267)
+                const size_t num_components = static_cast<size_t>(cgltf_num_components(texcoord_accessor->type));
+                #pragma warning(pop)
+                texcoords.resize(vertex_count * num_components);
+                cgltf_accessor_unpack_floats(texcoord_accessor, texcoords.data(), 
+                    static_cast<cgltf_size>(vertex_count * num_components));
+            }
+
             // Create vertices
             for (cgltf_size v = 0; v < vertex_count; ++v)
             {
@@ -106,20 +184,45 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
                     positions[v * 3 + 2]
                 );
 
-                // Use color from accessor if available, otherwise use default white
+                // Use color from accessor if available, otherwise use default gray-ish color
                 if (!colors.empty())
                 {
-                    int num_components = cgltf_num_components(color_accessor->type);
+                    // Suppress warning: cgltf_num_components returns small values (1-4), safe to cast
+                    #pragma warning(push)
+                    #pragma warning(disable: 4267)
+                    const size_t num_components = static_cast<size_t>(cgltf_num_components(color_accessor->type));
+                    #pragma warning(pop)
+                    const size_t base_idx = v * num_components;
                     vertex.color = glm::vec3(
-                        colors[v * num_components + 0],
-                        num_components > 1 ? colors[v * num_components + 1] : colors[v * num_components + 0],
-                        num_components > 2 ? colors[v * num_components + 2] : colors[v * num_components + 0]
+                        colors[base_idx + 0],
+                        num_components > 1 ? colors[base_idx + 1] : colors[base_idx + 0],
+                        num_components > 2 ? colors[base_idx + 2] : colors[base_idx + 0]
                     );
                 }
                 else
                 {
-                    // Default to white color
-                    vertex.color = glm::vec3(1.0f, 1.0f, 1.0f);
+                    // Default to light gray if no color data (instead of pure white)
+                    // This helps distinguish the model even without textures
+                    vertex.color = glm::vec3(0.8f, 0.8f, 0.8f);
+                }
+
+                // Set texture coordinates if available
+                if (!texcoords.empty())
+                {
+                    // Suppress warning: cgltf_num_components returns small values (1-4), safe to cast
+                    #pragma warning(push)
+                    #pragma warning(disable: 4267)
+                    const size_t num_components = static_cast<size_t>(cgltf_num_components(texcoord_accessor->type));
+                    #pragma warning(pop)
+                    const size_t base_idx = v * num_components;
+                    vertex.texcoord = glm::vec2(
+                        texcoords[base_idx + 0],
+                        num_components > 1 ? texcoords[base_idx + 1] : 0.0f
+                    );
+                }
+                else
+                {
+                    vertex.texcoord = glm::vec2(0.0f, 0.0f);
                 }
 
                 vertices.push_back(vertex);
@@ -151,9 +254,27 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
             {
                 Mesh mesh = create_mesh(vertices, indices);
                 model.meshes.push_back(mesh);
+                
+                // Try to find texture for this primitive's material
+                if (primitive->material)
+                {
+                    const cgltf_material* mat = primitive->material;
+                    if (mat->pbr_metallic_roughness.base_color_texture.texture)
+                    {
+                        const cgltf_texture* tex = mat->pbr_metallic_roughness.base_color_texture.texture;
+                        if (tex->image && tex->image - data->images < static_cast<ptrdiff_t>(loaded_textures.size()))
+                        {
+                            // Store texture index with mesh (for now, just store all textures)
+                            // In a more sophisticated system, you'd store texture index per mesh
+                        }
+                    }
+                }
             }
         }
     }
+
+    // Store all loaded textures in model
+    model.textures = std::move(loaded_textures);
 
     cgltf_free(data);
     return model;
@@ -166,5 +287,11 @@ void destroy_gltf_model(GLTFModel& model)
         destroy_mesh(mesh);
     }
     model.meshes.clear();
+    
+    for (auto& texture : model.textures)
+    {
+        destroy_texture(texture);
+    }
+    model.textures.clear();
 }
 
