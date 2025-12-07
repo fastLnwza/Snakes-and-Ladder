@@ -1118,6 +1118,24 @@ namespace game
         int& last_processed_tile_for_player = m_game_state.last_processed_tiles[m_game_state.current_player_index];
         if (current_tile != last_processed_tile_for_player)
         {
+            // Check for ladder even if player is still walking (has steps_remaining)
+            // This ensures ladder is checked immediately when player lands on ladder tile
+            bool ladder_used = false;
+            if (!current_player.is_stepping)
+            {
+                ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
+                // If ladder was used, stop player movement immediately
+                if (ladder_used)
+                {
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
+                    // Update current_tile after ladder warp
+                    const int new_tile = get_current_tile(current_player);
+                    last_processed_tile_for_player = new_tile;
+                    m_game_state.last_processed_tile = new_tile;
+                }
+            }
+            
             if (!current_player.is_stepping && current_player.steps_remaining == 0)
             {
                 last_processed_tile_for_player = current_tile;
@@ -1132,7 +1150,11 @@ namespace game
                     m_game_state.win_state.winner_player = m_game_state.current_player_index + 1; // 1-based player number
                 }
 
-                game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
+                // Only check ladder again if it wasn't already used above
+                if (!ladder_used)
+                {
+                    game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
+                }
 
                 const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
                 game::map::check_tile_activity(current_tile,

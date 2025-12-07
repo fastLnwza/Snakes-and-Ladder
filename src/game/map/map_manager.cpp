@@ -39,6 +39,9 @@ namespace game::map
                 // Found a ladder - warp player to the end tile
                 player::warp_to_tile(player_state, link.end);
                 last_processed_tile = link.end;
+                // Stop player movement after using ladder - don't continue walking
+                player_state.steps_remaining = 0;
+                player_state.is_stepping = false;
                 return true;
             }
         }
