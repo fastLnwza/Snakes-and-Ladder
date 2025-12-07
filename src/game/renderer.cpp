@@ -171,6 +171,24 @@ namespace game
         const bool precision_has_result = game::minigame::is_success(game_state.minigame_state) || 
                                          game::minigame::is_failure(game_state.minigame_state);
         const auto& current_player = game_state.players[game_state.current_player_index];
+        
+        // Check if player can roll dice (to show "SPACE!" prompt)
+        // Don't show when menu or win screen is active, or when current player is AI
+        const bool can_roll_dice = !game_state.menu_state.is_active &&
+                                  !game_state.win_state.is_active &&
+                                  !current_player.is_ai &&  // Don't show for AI players
+                                  !current_player.is_stepping && 
+                                  current_player.steps_remaining == 0 && 
+                                  !game_state.dice_state.is_rolling && 
+                                  !game_state.dice_state.is_falling && 
+                                  !game_state.dice_state.is_displaying &&
+                                  !precision_running &&
+                                  !tile_memory_active &&
+                                  !reaction_running &&
+                                  !math_running &&
+                                  !pattern_running &&
+                                  current_player.last_dice_result == 0;
+        
         const bool show_ui_overlay = game_state.dice_state.is_displaying || 
                                     game_state.dice_state.is_rolling ||
                                     game_state.dice_state.is_falling ||
@@ -187,7 +205,8 @@ namespace game
                                     pattern_has_result ||
                                     game_state.debug_warp_state.active || 
                                     game_state.debug_warp_state.notification_timer > 0.0f ||
-                                    game_state.minigame_message_timer > 0.0f;
+                                    game_state.minigame_message_timer > 0.0f ||
+                                    can_roll_dice;  // Show UI when player can roll dice
 
         if (game_state.minigame_message_timer <= 0.0f && !show_ui_overlay)
         {
@@ -553,6 +572,13 @@ namespace game
                 const glm::vec3 player_info_color(0.7f, 0.7f, 1.0f);  // Light blue
                 render_text(m_render_state.text_renderer, player_info.str(), center_x, player_info_y, player_info_scale, player_info_color);
             }
+        }
+        else if (can_roll_dice)
+        {
+            // Show "SPACE!" in green when player can roll dice
+            const float space_scale = ui_primary_scale * 1.2f;  // Larger scale for "SPACE!"
+            const glm::vec3 green_color(0.2f, 1.0f, 0.4f);  // Green color
+            render_text(m_render_state.text_renderer, "SPACE!", center_x, top_y, space_scale, green_color);
         }
 
         glDisable(GL_BLEND);

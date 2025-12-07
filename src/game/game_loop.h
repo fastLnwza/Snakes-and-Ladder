@@ -17,6 +17,7 @@ namespace game
 
     private:
         void handle_input(float delta_time);
+        void handle_ai_input(float delta_time);
         void update_game_logic(float delta_time);
         void update_minigames(float delta_time);
         void handle_minigame_results(float delta_time);

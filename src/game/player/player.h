@@ -16,6 +16,7 @@ namespace game::player
         int last_dice_result = 0;
         bool previous_space_state = false;
         bool is_walking_backward = false;  // Flag for backward movement
+        bool is_ai = false;  // Flag to indicate if this player is AI-controlled
         
         float ground_y = 0.0f;
         float radius = 0.4f;

@@ -13,6 +13,8 @@
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <sstream>
+#include <random>
+#include <chrono>
 
 namespace game
 {
@@ -140,6 +142,9 @@ namespace game
                      m_game_state.players[i].steps_remaining = 0;
                      m_game_state.players[i].is_stepping = false;
                      m_game_state.last_processed_tiles[i] = 0;
+                     // Set AI flag: if use_ai is true, player 1 (index 0) is human, others are AI
+                     // Or if use_ai is true and num_players > 1, make player 1 (index 1) AI
+                     m_game_state.players[i].is_ai = m_game_state.menu_state.use_ai && (i > 0);
                  }
                  m_game_state.turn_finished = false;
                  
@@ -237,8 +242,16 @@ namespace game
             m_game_state.win_state.previous_space_state = false;
         }
 
-        const bool space_pressed = m_window.is_key_pressed(GLFW_KEY_SPACE);
         auto& current_player = get_current_player(m_game_state);
+        
+        // Handle AI input if current player is AI
+        if (current_player.is_ai)
+        {
+            handle_ai_input(delta_time);
+            return;  // AI handles its own input, skip human input handling
+        }
+        
+        const bool space_pressed = m_window.is_key_pressed(GLFW_KEY_SPACE);
         const bool space_just_pressed = space_pressed && !current_player.previous_space_state;
         
         // Handle minigame title screen - wait for Space to start
@@ -772,6 +785,246 @@ namespace game
         }
 
         current_player.previous_space_state = space_pressed;
+    }
+
+    void GameLoop::handle_ai_input(float delta_time)
+    {
+        using namespace game::player;
+        using namespace game::player::dice;
+        
+        auto& current_player = get_current_player(m_game_state);
+        
+        // AI delay timer to make AI actions feel more natural
+        static float ai_action_timer = 0.0f;
+        static bool ai_action_pending = false;
+        
+        const bool precision_running = game::minigame::is_running(m_game_state.minigame_state);
+        const bool tile_memory_running = game::minigame::tile_memory::is_running(m_game_state.tile_memory_state);
+        const bool reaction_running = game::minigame::is_running(m_game_state.reaction_state);
+        const bool math_running = game::minigame::is_running(m_game_state.math_state);
+        const bool pattern_running = game::minigame::is_running(m_game_state.pattern_state);
+        const bool minigame_running = precision_running || tile_memory_running || reaction_running || math_running || pattern_running;
+        
+        // Handle minigame title screens - AI skips them immediately
+        if (m_game_state.minigame_state.status == game::minigame::PrecisionTimingStatus::ShowingTitle)
+        {
+            m_game_state.minigame_state.status = game::minigame::PrecisionTimingStatus::Running;
+            m_game_state.minigame_state.title_timer = m_game_state.minigame_state.title_duration;
+            m_game_state.minigame_state.display_text = "Press SPACE to stop at 4.99!";
+            m_game_state.precision_space_was_down = true;
+            return;
+        }
+        else if (m_game_state.tile_memory_state.phase == game::minigame::tile_memory::Phase::ShowingTitle)
+        {
+            m_game_state.tile_memory_state.title_timer = m_game_state.tile_memory_state.title_duration;
+            m_game_state.tile_memory_previous_keys.fill(false);
+            return;
+        }
+        else if (m_game_state.reaction_state.phase == game::minigame::ReactionState::Phase::ShowingTitle)
+        {
+            m_game_state.reaction_state.phase = game::minigame::ReactionState::Phase::PlayerTurn;
+            m_game_state.reaction_state.timer = 0.0f;
+            m_game_state.reaction_state.title_timer = m_game_state.reaction_state.title_duration;
+            m_game_state.reaction_state.player_attempts = 0;
+            m_game_state.reaction_state.input_buffer.clear();
+            std::ostringstream ss;
+            ss << "Guess " << (m_game_state.reaction_state.player_attempts + 1) << "/" << m_game_state.reaction_state.max_attempts << " : input _\n(space)";
+            m_game_state.reaction_state.display_text = ss.str();
+            return;
+        }
+        else if (m_game_state.math_state.phase == game::minigame::MathQuizState::Phase::ShowingTitle)
+        {
+            m_game_state.math_state.phase = game::minigame::MathQuizState::Phase::ShowingQuestion;
+            m_game_state.math_state.timer = 0.0f;
+            m_game_state.math_state.title_timer = m_game_state.math_state.title_duration;
+            m_game_state.math_state.display_text.clear();
+            return;
+        }
+        else if (m_game_state.pattern_state.phase == game::minigame::PatternMatchingState::Phase::ShowingTitle)
+        {
+            m_game_state.pattern_state.phase = game::minigame::PatternMatchingState::Phase::ShowingPattern;
+            m_game_state.pattern_state.show_timer = 0.0f;
+            m_game_state.pattern_state.title_timer = m_game_state.pattern_state.title_duration;
+            std::ostringstream oss;
+            for (int i = 0; i < 4; ++i)
+            {
+                const char* dirs[] = {"", "W", "S", "A", "D"};
+                oss << dirs[m_game_state.pattern_state.pattern[i]];
+                if (i < 3) oss << " ";
+            }
+            m_game_state.pattern_state.display_text = oss.str();
+            return;
+        }
+        
+        // Handle minigames - AI plays automatically
+        if (precision_running && m_game_state.minigame_state.is_showing_time)
+        {
+            // AI tries to stop at 4.99 - wait for timer to get close
+            if (m_game_state.minigame_state.timer >= 4.5f && m_game_state.minigame_state.timer <= 5.5f)
+            {
+                // Try to stop close to 4.99 (with some randomness for realism)
+                static std::mt19937 rng(static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count()));
+                std::uniform_real_distribution<float> dist(4.8f, 5.2f);
+                if (m_game_state.minigame_state.timer >= dist(rng))
+                {
+                    game::minigame::stop_timing(m_game_state.minigame_state);
+                }
+            }
+            return;
+        }
+        else if (tile_memory_running && m_game_state.tile_memory_state.phase == game::minigame::tile_memory::Phase::WaitingInput)
+        {
+            // AI remembers the sequence and inputs it correctly
+            static float ai_input_timer = 0.0f;
+            static int sequence_index = 0;
+            ai_input_timer += delta_time;
+            
+            // Reset sequence index when entering WaitingInput phase
+            if (sequence_index == 0 && m_game_state.tile_memory_state.input_buffer.empty())
+            {
+                sequence_index = 0;
+            }
+            
+            if (ai_input_timer >= 0.3f && sequence_index < static_cast<int>(m_game_state.tile_memory_state.sequence.size()))  // Input every 0.3 seconds
+            {
+                ai_input_timer = 0.0f;
+                // AI inputs the sequence it saw
+                int digit = m_game_state.tile_memory_state.sequence[sequence_index];
+                game::minigame::tile_memory::add_digit(m_game_state.tile_memory_state, static_cast<char>('0' + digit));
+                sequence_index++;
+                
+                // Submit when sequence is complete
+                if (sequence_index >= static_cast<int>(m_game_state.tile_memory_state.sequence.size()))
+                {
+                    game::minigame::tile_memory::submit_buffer(m_game_state.tile_memory_state);
+                    sequence_index = 0;  // Reset for next time
+                }
+            }
+            return;
+        }
+        else if (reaction_running && m_game_state.reaction_state.phase == game::minigame::ReactionState::Phase::PlayerTurn)
+        {
+            // AI guesses using binary search strategy
+            static float ai_guess_timer = 0.0f;
+            ai_guess_timer += delta_time;
+            
+            if (ai_guess_timer >= 0.5f)  // Wait 0.5 seconds before guessing
+            {
+                ai_guess_timer = 0.0f;
+                int guess = (m_game_state.reaction_state.min_range + m_game_state.reaction_state.max_range) / 2;
+                std::string guess_str = std::to_string(guess);
+                for (char c : guess_str)
+                {
+                    game::minigame::add_digit(m_game_state.reaction_state, c);
+                }
+                game::minigame::submit_buffer(m_game_state.reaction_state);
+            }
+            return;
+        }
+        else if (math_running && m_game_state.math_state.phase == game::minigame::MathQuizState::Phase::WaitingAnswer)
+        {
+            // AI calculates the answer
+            static float ai_calculate_timer = 0.0f;
+            ai_calculate_timer += delta_time;
+            
+            if (ai_calculate_timer >= 0.5f)  // Wait 0.5 seconds before answering
+            {
+                ai_calculate_timer = 0.0f;
+                int answer = m_game_state.math_state.correct_answer;
+                std::string answer_str = std::to_string(answer);
+                for (char c : answer_str)
+                {
+                    game::minigame::add_digit(m_game_state.math_state, c);
+                }
+                game::minigame::submit_buffer(m_game_state.math_state);
+            }
+            return;
+        }
+        else if (pattern_running && m_game_state.pattern_state.phase == game::minigame::PatternMatchingState::Phase::WaitingInput)
+        {
+            // AI inputs the pattern it saw
+            static float ai_pattern_timer = 0.0f;
+            static int pattern_index = 0;
+            ai_pattern_timer += delta_time;
+            
+            if (ai_pattern_timer >= 0.3f && pattern_index < 4)  // Input every 0.3 seconds
+            {
+                ai_pattern_timer = 0.0f;
+                // AI inputs the pattern it remembered
+                int pattern_value = m_game_state.pattern_state.pattern[pattern_index];
+                const char* dirs[] = {"", "W", "S", "A", "D"};
+                if (pattern_value >= 1 && pattern_value <= 4)
+                {
+                    game::minigame::add_char_input(m_game_state.pattern_state, dirs[pattern_value][0]);
+                }
+                pattern_index++;
+                
+                if (pattern_index >= 4)
+                {
+                    game::minigame::submit_answer(m_game_state.pattern_state);
+                    pattern_index = 0;  // Reset for next time
+                }
+            }
+            return;
+        }
+        
+        // Handle dice roll - AI rolls automatically after a short delay
+        const bool has_not_rolled_this_turn = (current_player.last_dice_result == 0);
+        
+        if (!current_player.is_stepping && 
+            current_player.steps_remaining == 0 && 
+            !m_game_state.dice_state.is_rolling && 
+            !m_game_state.dice_state.is_falling && 
+            !minigame_running &&
+            has_not_rolled_this_turn)
+        {
+            if (!ai_action_pending)
+            {
+                // Start delay timer
+                ai_action_timer = 0.0f;
+                ai_action_pending = true;
+            }
+            
+            ai_action_timer += delta_time;
+            
+            // Wait 0.5-1.5 seconds before rolling (randomized for realism)
+            static std::mt19937 rng(static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count()));
+            static std::uniform_real_distribution<float> delay_dist(0.5f, 1.5f);
+            static float target_delay = delay_dist(rng);
+            
+            if (ai_action_timer >= target_delay)
+            {
+                // Roll dice
+                m_game_state.dice_state.is_displaying = false;
+                m_game_state.dice_state.is_rolling = false;
+                m_game_state.dice_state.is_falling = false;
+                m_game_state.dice_state.display_timer = 0.0f;
+                m_game_state.dice_state.roll_timer = 0.0f;
+                m_game_state.dice_state.result = 0;
+                m_game_state.dice_state.pending_result = 0;
+
+                glm::vec3 player_pos = get_position(current_player);
+                glm::vec3 target_pos = player_pos;
+                target_pos.y = m_game_state.player_ground_y;
+                m_game_state.dice_state.ground_y = m_game_state.player_ground_y;
+
+                const float fall_height = m_game_state.map_length * 0.4f;
+                start_roll(m_game_state.dice_state, target_pos, fall_height);
+                
+                m_game_state.turn_finished = false;
+                
+                // Reset for next action
+                ai_action_pending = false;
+                ai_action_timer = 0.0f;
+                target_delay = delay_dist(rng);  // New random delay for next action
+            }
+        }
+        else
+        {
+            // Reset if conditions change
+            ai_action_pending = false;
+            ai_action_timer = 0.0f;
+        }
     }
 
     void GameLoop::update_game_logic(float delta_time)
