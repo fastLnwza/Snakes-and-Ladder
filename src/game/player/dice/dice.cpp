@@ -82,14 +82,14 @@ namespace game::player::dice
 
     void start_roll(DiceState& state, const glm::vec3& target_position, float fall_height)
     {
-        // Dice rolls its own number - get a random result here
-        const int rolled_number = random_dice_result();
+        // Don't lock the result yet - we'll randomize it when the dice actually stops
+        // This makes the dice truly random, not predetermined
         
         state.is_rolling = true;
         state.is_falling = true;
         state.roll_timer = 0.0f;
         state.result = 0;  // Don't set result yet - wait until bounce stops
-        state.pending_result = rolled_number;  // Store the rolled number but don't show it yet - IMPORTANT: This should never change
+        state.pending_result = 0;  // Don't set result yet - randomize when dice stops
         state.target_position = target_position;
         state.fall_height = fall_height;
         
@@ -203,22 +203,21 @@ namespace game::player::dice
         // Only set result and lock rotation when dice has completely stopped bouncing
         // IMPORTANT: Check this AFTER the is_rolling block to catch when dice stops
         // Also check that result hasn't been set yet to prevent overwriting
-        if (state.is_rolling && !state.is_falling && !state.is_displaying && state.pending_result > 0 && state.result == 0)
+        if (state.is_rolling && !state.is_falling && !state.is_displaying && state.result == 0)
         {
             // Wait a tiny bit more to ensure dice is completely still
             // Check if velocity is truly zero (dice has stopped bouncing completely)
             if (std::abs(state.velocity.x) < 0.01f && std::abs(state.velocity.y) < 0.01f && std::abs(state.velocity.z) < 0.01f)
             {
-                // Dice has completely stopped bouncing - NOW set the result and lock rotation
-                // IMPORTANT: Use pending_result directly - don't change it after it's been set
-                // Store pending_result IMMEDIATELY to prevent any changes
-                int final_result = state.pending_result;  // Lock the result value now
+                // Dice has completely stopped bouncing - NOW randomize the result
+                // This makes the dice truly random, not predetermined
+                int final_result = random_dice_result();
                 
-                // CRITICAL: Verify pending_result is valid (1-7 for testing)
+                // CRITICAL: Verify result is valid (1-7 for testing)
                 // Note: 7 is allowed for testing minigame at tile 7
                 if (final_result < 1 || final_result > 7)
                 {
-                    std::cerr << "ERROR: Invalid pending_result: " << final_result << "! Resetting to 1." << std::endl;
+                    std::cerr << "ERROR: Invalid random result: " << final_result << "! Resetting to 1." << std::endl;
                     final_result = 1;
                 }
                 
@@ -229,7 +228,7 @@ namespace game::player::dice
                 state.rotation_velocity = glm::vec3(0.0f);  // Stop rotation
                 
                 // Set rotation to show the correct face based on result
-                // IMPORTANT: Use final_result, not state.result, to ensure we use the locked value
+                // IMPORTANT: Use final_result to ensure we use the randomized value
                 glm::vec3 result_rotation = result_to_rotation(final_result);
                 // Set final rotation to show result face - make sure dice is parallel to ground (flat)
                 // For a dice to be flat on ground, we need to rotate to show the face, but keep it level

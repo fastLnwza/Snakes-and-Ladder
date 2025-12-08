@@ -1088,6 +1088,30 @@ namespace game
 
         game::player::update(current_player, delta_time, false, m_game_state.final_tile_index, can_walk_now);
 
+        // Check for ladder immediately after player update (when tile might have changed)
+        // This ensures ladder is checked right after player finishes a step
+        const int current_tile_after_update = get_current_tile(current_player);
+        int& last_processed_tile_for_player = m_game_state.last_processed_tiles[m_game_state.current_player_index];
+        if (current_tile_after_update != last_processed_tile_for_player)
+        {
+            // Check for ladder every time player reaches a new tile, even if still walking
+            // This ensures ladder is checked immediately when player lands on ladder tile
+            // IMPORTANT: Check ladder even while stepping to stop movement immediately
+            bool ladder_used = false;
+            // Check ladder every time tile changes
+            ladder_used = game::map::check_and_apply_ladder(current_player, current_tile_after_update, last_processed_tile_for_player);
+            // If ladder was used, stop player movement immediately
+            if (ladder_used)
+            {
+                current_player.steps_remaining = 0;
+                current_player.is_stepping = false;
+                // Update current_tile after ladder warp
+                const int new_tile = get_current_tile(current_player);
+                last_processed_tile_for_player = new_tile;
+                m_game_state.last_processed_tile = new_tile;
+            }
+        }
+
         // Final safeguard for player movement
         if (dice_ready && current_player.steps_remaining > 0 && 
             !current_player.is_stepping && 
@@ -1095,6 +1119,21 @@ namespace game
             !minigame_force_walk)
         {
             game::player::update(current_player, delta_time, false, m_game_state.final_tile_index, true);
+            
+            // Check for ladder again after safeguard update
+            const int current_tile_after_safeguard = get_current_tile(current_player);
+            if (current_tile_after_safeguard != last_processed_tile_for_player)
+            {
+                bool ladder_used = game::map::check_and_apply_ladder(current_player, current_tile_after_safeguard, last_processed_tile_for_player);
+                if (ladder_used)
+                {
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
+                    const int new_tile = get_current_tile(current_player);
+                    last_processed_tile_for_player = new_tile;
+                    m_game_state.last_processed_tile = new_tile;
+                }
+            }
         }
         
         // Camera target position is only updated when:
@@ -1115,25 +1154,18 @@ namespace game
 
         // Check tile activity
         const int current_tile = get_current_tile(current_player);
-        int& last_processed_tile_for_player = m_game_state.last_processed_tiles[m_game_state.current_player_index];
         if (current_tile != last_processed_tile_for_player)
         {
-            // Check for ladder even if player is still walking (has steps_remaining)
-            // This ensures ladder is checked immediately when player lands on ladder tile
+            // Check for ladder again (in case it wasn't caught above)
             bool ladder_used = false;
-            if (!current_player.is_stepping)
+            ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
+            if (ladder_used)
             {
-                ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
-                // If ladder was used, stop player movement immediately
-                if (ladder_used)
-                {
-                    current_player.steps_remaining = 0;
-                    current_player.is_stepping = false;
-                    // Update current_tile after ladder warp
-                    const int new_tile = get_current_tile(current_player);
-                    last_processed_tile_for_player = new_tile;
-                    m_game_state.last_processed_tile = new_tile;
-                }
+                current_player.steps_remaining = 0;
+                current_player.is_stepping = false;
+                const int new_tile = get_current_tile(current_player);
+                last_processed_tile_for_player = new_tile;
+                m_game_state.last_processed_tile = new_tile;
             }
             
             if (!current_player.is_stepping && current_player.steps_remaining == 0)
