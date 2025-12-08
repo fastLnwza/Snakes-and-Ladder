@@ -49,8 +49,20 @@ namespace game
         float player_ground_y = 0.0f;
         float player_radius = 0.0f;
         Mesh sphere_mesh{};  // Fallback mesh if model is not loaded
-        GLTFModel player_model_glb{};
+        GLTFModel player_model_glb{};  // Player1 model (GLB format)
         bool has_player_model = false;
+        
+        // Player2 model (GLB format)
+        GLTFModel player2_model_glb{};
+        bool has_player2_model = false;
+        
+        // Player3 model (GLB format)
+        GLTFModel player3_model_glb{};
+        bool has_player3_model = false;
+        
+        // Player4 model (GLB format)
+        GLTFModel player4_model_glb{};
+        bool has_player4_model = false;
 
         // Dice
         game::player::dice::DiceState dice_state;
@@ -120,6 +132,8 @@ namespace game
         GLint use_texture_location = -1;
         GLint texture_location = -1;
         GLint dice_texture_mode_location = -1;
+        GLint color_override_location = -1;
+        GLint use_color_override_location = -1;
         TextRenderer text_renderer{};
     };
 

@@ -68,6 +68,34 @@ set(FT_DISABLE_HARFBUZZ TRUE CACHE BOOL "Disable HarfBuzz support" FORCE)
 
 FetchContent_MakeAvailable(freetype)
 
+# Assimp for FBX support
+# Try to find pre-installed Assimp first
+find_package(assimp QUIET)
+
+if(NOT assimp_FOUND)
+    # If not found, use FetchContent with URL download instead of Git
+    message(STATUS "Assimp not found, downloading from source...")
+    
+    FetchContent_Declare(
+        assimp
+        URL https://github.com/assimp/assimp/archive/refs/tags/v5.4.2.zip
+    )
+    
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests" FORCE)
+    set(ASSIMP_INSTALL OFF CACHE BOOL "Disable Assimp install" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Disable Assimp tools" FORCE)
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib with Assimp" FORCE)
+    set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp export" FORCE)
+    
+    FetchContent_MakeAvailable(assimp)
+    
+    # After FetchContent, the target is just 'assimp'
+    set(ASSIMP_TARGET assimp)
+else()
+    message(STATUS "Using pre-installed Assimp")
+    set(ASSIMP_TARGET assimp::assimp)
+endif()
+
 find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
@@ -84,6 +112,7 @@ add_executable(${PROJECT_NAME}
     # Rendering
     src/rendering/gltf_loader.cpp
     src/rendering/obj_loader.cpp
+    src/rendering/fbx_loader.cpp
     src/rendering/mesh.cpp
     src/rendering/primitives.cpp
     src/rendering/shader.cpp
@@ -152,6 +181,38 @@ target_include_directories(${PROJECT_NAME}
         ${glad_BINARY_DIR}/include
 )
 
+# Add Assimp include directories
+# When using FetchContent, assimp_SOURCE_DIR is set automatically
+if(DEFINED assimp_SOURCE_DIR)
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${assimp_SOURCE_DIR}/include
+    )
+    message(STATUS "Assimp include directory: ${assimp_SOURCE_DIR}/include")
+elseif(TARGET assimp)
+    # If assimp target exists, try to get include dirs from target
+    get_target_property(ASSIMP_INCLUDE_DIR assimp INTERFACE_INCLUDE_DIRECTORIES)
+    if(ASSIMP_INCLUDE_DIR)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${ASSIMP_INCLUDE_DIR})
+        message(STATUS "Assimp include directory from target: ${ASSIMP_INCLUDE_DIR}")
+    endif()
+    # Also try FetchContent location
+    if(EXISTS "${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+        target_include_directories(${PROJECT_NAME} PRIVATE
+            ${CMAKE_BINARY_DIR}/_deps/assimp-src/include
+        )
+        message(STATUS "Assimp include directory (FetchContent): ${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+    endif()
+elseif(assimp_FOUND)
+    message(STATUS "Using pre-installed Assimp include directories")
+else()
+    if(EXISTS "${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+        target_include_directories(${PROJECT_NAME} PRIVATE
+            ${CMAKE_BINARY_DIR}/_deps/assimp-src/include
+        )
+        message(STATUS "Assimp include directory (fallback): ${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+    endif()
+endif()
+
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glad::glad
@@ -159,6 +220,7 @@ target_link_libraries(${PROJECT_NAME}
         OpenGL::GL
         glm::glm
         freetype
+        ${ASSIMP_TARGET}
 )
 
 if(APPLE)

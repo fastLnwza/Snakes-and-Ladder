@@ -40,9 +40,88 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
 
     // First, load all textures
     std::vector<Texture> loaded_textures;
+    std::cout << "GLB file has " << data->images_count << " image(s) defined\n";
+    std::cout << "GLB file has " << data->textures_count << " texture(s) defined\n";
+    std::cout << "GLB file has " << data->materials_count << " material(s) defined\n";
+    
+    // If no images but textures exist, try to load from textures array
+    if (data->images_count == 0 && data->textures_count > 0)
+    {
+        std::cout << "No images found, but textures exist. Attempting to load from textures array...\n";
+        for (cgltf_size tex_idx = 0; tex_idx < data->textures_count; ++tex_idx)
+        {
+            const cgltf_texture* tex = &data->textures[tex_idx];
+            if (tex->image)
+            {
+                std::cout << "Texture " << tex_idx << " references an image\n";
+                // Image might be in a different location - check if it has buffer_view
+                if (tex->image->buffer_view)
+                {
+                    std::cout << "Found image data in buffer_view for texture " << tex_idx << "\n";
+                    const cgltf_buffer_view* view = tex->image->buffer_view;
+                    const cgltf_buffer* buffer = view->buffer;
+                    const unsigned char* image_data = static_cast<const unsigned char*>(buffer->data) + view->offset;
+                    
+                    int width, height, channels;
+                    unsigned char* decoded_data = stbi_load_from_memory(
+                        image_data,
+                        static_cast<int>(view->size),
+                        &width, &height, &channels,
+                        0
+                    );
+                    
+                    if (decoded_data)
+                    {
+                        Texture texture{};
+                        texture.width = width;
+                        texture.height = height;
+                        
+                        glGenTextures(1, &texture.id);
+                        glBindTexture(GL_TEXTURE_2D, texture.id);
+                        
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        
+                        GLenum format = GL_RGB;
+                        if (channels == 4)
+                            format = GL_RGBA;
+                        else if (channels == 1)
+                            format = GL_RED;
+                        
+                        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, decoded_data);
+                        glGenerateMipmap(GL_TEXTURE_2D);
+                        
+                        stbi_image_free(decoded_data);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                        
+                        loaded_textures.push_back(texture);
+                        std::cout << "Loaded texture " << static_cast<unsigned int>(tex_idx) << " from textures array (" << width << "x" << height << ", " << channels << " channels)\n";
+                    }
+                }
+                else if (tex->image->uri)
+                {
+                    std::cout << "Texture " << tex_idx << " has URI: " << tex->image->uri << std::endl;
+                }
+            }
+        }
+    }
+    
+    // Load textures from images array (standard method)
     for (cgltf_size img_idx = 0; img_idx < data->images_count; ++img_idx)
     {
         const cgltf_image* image = &data->images[img_idx];
+        
+        // Debug: Check what type of image this is
+        if (image->uri)
+        {
+            std::cout << "Image " << img_idx << " has URI: " << image->uri << std::endl;
+        }
+        if (image->buffer_view)
+        {
+            std::cout << "Image " << img_idx << " has buffer_view (embedded)\n";
+        }
         
         // Check if image data is embedded (GLB format)
         if (image->buffer_view)
@@ -89,8 +168,60 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
                 loaded_textures.push_back(texture);
                 std::cout << "Loaded embedded texture " << static_cast<unsigned int>(img_idx) << " (" << width << "x" << height << ", " << channels << " channels)\n";
             }
+            else
+            {
+                std::cerr << "Warning: Failed to decode embedded texture " << img_idx << std::endl;
         }
     }
+        else if (image->uri)
+        {
+            // External texture file - try to load from URI
+            std::string uri_str = image->uri;
+            std::filesystem::path gltf_dir = path.parent_path();
+            std::filesystem::path texture_path;
+            
+            // Check if it's a data URI (base64 encoded)
+            if (uri_str.find("data:image/") == 0)
+            {
+                std::cerr << "Warning: Image " << img_idx << " uses data URI (base64). Data URI textures not fully supported yet.\n";
+            }
+            else
+            {
+                // Regular file path
+                // Check if URI is absolute or relative
+                if (std::filesystem::path(uri_str).is_absolute())
+                {
+                    texture_path = uri_str;
+                }
+                else
+                {
+                    // Relative path - resolve relative to GLB file directory
+                    texture_path = gltf_dir / uri_str;
+                }
+                
+                // Try to load external texture
+                if (std::filesystem::exists(texture_path))
+                {
+                    try
+                    {
+                        Texture texture = load_texture(texture_path);
+                        loaded_textures.push_back(texture);
+                        std::cout << "Loaded external texture " << static_cast<unsigned int>(img_idx) << " from: " << texture_path << " (" << texture.width << "x" << texture.height << ")\n";
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        std::cerr << "Warning: Failed to load external texture from " << texture_path << ": " << ex.what() << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Warning: External texture file not found: " << texture_path << std::endl;
+                }
+            }
+        }
+    }
+    
+    std::cout << "Total textures loaded: " << loaded_textures.size() << std::endl;
 
     // Process all meshes in the scene
     for (cgltf_size i = 0; i < data->meshes_count; ++i)

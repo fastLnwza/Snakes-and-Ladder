@@ -115,6 +115,114 @@ namespace
             std::cerr << "Warning: Failed to load player1 model: " << ex.what() << '\n';
         }
     }
+
+    void load_player2_assets(const std::filesystem::path& executable_dir, 
+                           const std::filesystem::path& source_dir,
+                           game::GameState& game_state)
+    {
+        // Try to load player2 GLB model
+        std::filesystem::path player2_glb_path = source_dir.parent_path() / "assets" / "character" / "player2" / "damsel_character.glb";
+
+        try
+        {
+            if (std::filesystem::exists(player2_glb_path))
+            {
+                std::cout << "Loading player2 model (GLB) from: " << player2_glb_path << std::endl;
+                game_state.player2_model_glb = load_gltf_model(player2_glb_path);
+                game_state.has_player2_model = true;
+                std::cout << "Loaded player2 model with " << game_state.player2_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player2_model_glb.textures.size() << " texture(s)\n";
+            }
+            else if (std::filesystem::exists(executable_dir / "assets" / "character" / "player2" / "damsel_character.glb"))
+            {
+                std::cout << "Loading player2 model (GLB) from executable directory\n";
+                game_state.player2_model_glb = load_gltf_model(executable_dir / "assets" / "character" / "player2" / "damsel_character.glb");
+                game_state.has_player2_model = true;
+                std::cout << "Loaded player2 model with " << game_state.player2_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player2_model_glb.textures.size() << " texture(s)\n";
+            }
+            else
+            {
+                std::cerr << "Warning: Player2 model file not found\n";
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            std::cerr << "Warning: Failed to load player2 model: " << ex.what() << '\n';
+        }
+    }
+
+    void load_player3_assets(const std::filesystem::path& executable_dir, 
+                           const std::filesystem::path& source_dir,
+                           game::GameState& game_state)
+    {
+        // Try to load player3 GLB model
+        std::filesystem::path player3_glb_path = source_dir.parent_path() / "assets" / "character" / "player3" / "monk_character.glb";
+
+        try
+        {
+            if (std::filesystem::exists(player3_glb_path))
+            {
+                std::cout << "Loading player3 model (GLB) from: " << player3_glb_path << std::endl;
+                game_state.player3_model_glb = load_gltf_model(player3_glb_path);
+                game_state.has_player3_model = true;
+                std::cout << "Loaded player3 model with " << game_state.player3_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player3_model_glb.textures.size() << " texture(s)\n";
+            }
+            else if (std::filesystem::exists(executable_dir / "assets" / "character" / "player3" / "monk_character.glb"))
+            {
+                std::cout << "Loading player3 model (GLB) from executable directory\n";
+                game_state.player3_model_glb = load_gltf_model(executable_dir / "assets" / "character" / "player3" / "monk_character.glb");
+                game_state.has_player3_model = true;
+                std::cout << "Loaded player3 model with " << game_state.player3_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player3_model_glb.textures.size() << " texture(s)\n";
+            }
+            else
+            {
+                std::cerr << "Warning: Player3 model file not found\n";
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            std::cerr << "Warning: Failed to load player3 model: " << ex.what() << '\n';
+        }
+    }
+
+    void load_player4_assets(const std::filesystem::path& executable_dir, 
+                           const std::filesystem::path& source_dir,
+                           game::GameState& game_state)
+    {
+        // Try to load player4 GLB model
+        std::filesystem::path player4_glb_path = source_dir.parent_path() / "assets" / "character" / "player4" / "scarecrow_target.glb";
+
+        try
+        {
+            if (std::filesystem::exists(player4_glb_path))
+            {
+                std::cout << "Loading player4 model (GLB) from: " << player4_glb_path << std::endl;
+                game_state.player4_model_glb = load_gltf_model(player4_glb_path);
+                game_state.has_player4_model = true;
+                std::cout << "Loaded player4 model with " << game_state.player4_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player4_model_glb.textures.size() << " texture(s)\n";
+            }
+            else if (std::filesystem::exists(executable_dir / "assets" / "character" / "player4" / "scarecrow_target.glb"))
+            {
+                std::cout << "Loading player4 model (GLB) from executable directory\n";
+                game_state.player4_model_glb = load_gltf_model(executable_dir / "assets" / "character" / "player4" / "scarecrow_target.glb");
+                game_state.has_player4_model = true;
+                std::cout << "Loaded player4 model with " << game_state.player4_model_glb.meshes.size() << " mesh(es)";
+                std::cout << " and " << game_state.player4_model_glb.textures.size() << " texture(s)\n";
+            }
+            else
+            {
+                std::cerr << "Warning: Player4 model file not found\n";
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            std::cerr << "Warning: Failed to load player4 model: " << ex.what() << '\n';
+        }
+    }
 }
 
 int main(int argc, char* argv[])
@@ -151,6 +259,8 @@ int main(int argc, char* argv[])
         const GLint use_texture_location = glGetUniformLocation(program, "uUseTexture");
         const GLint texture_location = glGetUniformLocation(program, "uTexture");
         const GLint dice_texture_mode_location = glGetUniformLocation(program, "uDiceTextureMode");
+        const GLint color_override_location = glGetUniformLocation(program, "uColorOverride");
+        const GLint use_color_override_location = glGetUniformLocation(program, "uUseColorOverride");
         
         glUseProgram(program);
         if (texture_location >= 0)
@@ -173,6 +283,15 @@ int main(int argc, char* argv[])
 
         // Load player assets
         load_player_assets(executable_dir, source_dir, game_state);
+        
+        // Load player2 assets
+        load_player2_assets(executable_dir, source_dir, game_state);
+        
+        // Load player3 assets
+        load_player3_assets(executable_dir, source_dir, game_state);
+        
+        // Load player4 assets
+        load_player4_assets(executable_dir, source_dir, game_state);
 
         // Initialize text renderer
         game::RenderState render_state;
@@ -181,6 +300,8 @@ int main(int argc, char* argv[])
         render_state.use_texture_location = use_texture_location;
         render_state.texture_location = texture_location;
         render_state.dice_texture_mode_location = dice_texture_mode_location;
+        render_state.color_override_location = color_override_location;
+        render_state.use_color_override_location = use_color_override_location;
 
         std::filesystem::path font_path = executable_dir / "pixel-game.regular.otf";
         if (!std::filesystem::exists(font_path))

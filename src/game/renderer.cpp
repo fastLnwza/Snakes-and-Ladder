@@ -44,6 +44,11 @@ namespace game
         glUseProgram(m_render_state.program);
         glUniform1i(m_render_state.use_texture_location, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
+        // Reset color override at the start of each frame
+        if (m_render_state.use_color_override_location >= 0)
+        {
+            glUniform1i(m_render_state.use_color_override_location, 0);
+        }
 
         render_map(projection, view, game_state);
         render_player(projection, view, game_state);
@@ -73,43 +78,57 @@ namespace game
         {
             const glm::vec3 player_position = get_position(game_state.players[i]);
             
-            // Use GLB model if available, otherwise use sphere fallback
-            if (game_state.has_player_model && !game_state.player_model_glb.meshes.empty())
+            // Determine which model to use: player4 (GLB) for index 3, player3 (GLB) for index 2, player2 (GLB) for index 1, player1 (GLB) for others
+            bool use_player4 = (i == 3 && game_state.has_player4_model && !game_state.player4_model_glb.meshes.empty());
+            bool use_player3 = (!use_player4 && i == 2 && game_state.has_player3_model && !game_state.player3_model_glb.meshes.empty());
+            bool use_player2 = (!use_player4 && !use_player3 && i == 1 && game_state.has_player2_model && !game_state.player2_model_glb.meshes.empty());
+            bool use_player1 = (!use_player4 && !use_player3 && !use_player2 && game_state.has_player_model && !game_state.player_model_glb.meshes.empty());
+            
+            if (use_player4)
             {
-                // Scale and position the player model
-                // Calculate scale to match player_radius (adjust multiplier as needed for model size)
+                // Render player4 using GLB model (same as player1)
+                const GLTFModel& model_to_use = game_state.player4_model_glb;
+                
+                // Scale and position - same as player1
                 const float model_scale = game_state.player_radius * 2.0f;
                 
-                // Apply transforms in correct order: translate * rotate * scale * base_transform
-                // Rotate -90 degrees around X axis to make model stand up, then 180 around Y to flip if upside down
+                // Apply transforms - same as player1
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
                 model = model * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Flip if upside down
                 model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
                 model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
-                model = model * game_state.player_model_glb.base_transform;
+                model = model * model_to_use.base_transform;
                 
                 const glm::mat4 mvp = projection * view * model;
                 glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
                 
                 // Render all meshes in the model
-                for (size_t mesh_idx = 0; mesh_idx < game_state.player_model_glb.meshes.size(); ++mesh_idx)
+                for (size_t mesh_idx = 0; mesh_idx < model_to_use.meshes.size(); ++mesh_idx)
                 {
-                    const auto& mesh = game_state.player_model_glb.meshes[mesh_idx];
+                    const auto& mesh = model_to_use.meshes[mesh_idx];
                     
                     // Use texture if available (use first texture for now, or match to mesh)
-                    if (!game_state.player_model_glb.textures.empty())
+                    bool has_texture = !model_to_use.textures.empty();
+                    if (has_texture)
                     {
-                        // Use first texture for all meshes (or could match texture index to mesh index)
-                        size_t texture_idx = (mesh_idx < game_state.player_model_glb.textures.size()) ? mesh_idx : 0;
-                        const auto& texture = game_state.player_model_glb.textures[texture_idx];
+                        size_t texture_idx = (mesh_idx < model_to_use.textures.size()) ? mesh_idx : 0;
+                        const auto& texture = model_to_use.textures[texture_idx];
                         
-                        glUniform1i(m_render_state.use_texture_location, 1);
-                        glActiveTexture(GL_TEXTURE0);
-                        glBindTexture(GL_TEXTURE_2D, texture.id);
+                        if (texture.id != 0)
+                        {
+                            glUniform1i(m_render_state.use_texture_location, 1);
+                            glActiveTexture(GL_TEXTURE0);
+                            glBindTexture(GL_TEXTURE_2D, texture.id);
+                        }
+                        else
+                        {
+                            has_texture = false;
+                        }
                     }
-                    else
+                    
+                    if (!has_texture)
                     {
-                        // No texture, use vertex colors
+                        // No texture, use vertex colors (which should be loaded from model)
                         glUniform1i(m_render_state.use_texture_location, 0);
                         glBindTexture(GL_TEXTURE_2D, 0);
                     }
@@ -121,6 +140,189 @@ namespace game
                 // Reset texture state
                 glUniform1i(m_render_state.use_texture_location, 0);
                 glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else if (use_player3)
+            {
+                // Render player3 using GLB model (same as player1)
+                const GLTFModel& model_to_use = game_state.player3_model_glb;
+                
+                // Scale and position - same as player1
+                const float model_scale = game_state.player_radius * 2.0f;
+                
+                // Apply transforms - same as player1
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Flip if upside down
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
+                model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
+                model = model * model_to_use.base_transform;
+                
+                const glm::mat4 mvp = projection * view * model;
+                glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+                
+                // Render all meshes in the model
+                for (size_t mesh_idx = 0; mesh_idx < model_to_use.meshes.size(); ++mesh_idx)
+                {
+                    const auto& mesh = model_to_use.meshes[mesh_idx];
+                    
+                    // Use texture if available (use first texture for now, or match to mesh)
+                    bool has_texture = !model_to_use.textures.empty();
+                    if (has_texture)
+                    {
+                        size_t texture_idx = (mesh_idx < model_to_use.textures.size()) ? mesh_idx : 0;
+                        const auto& texture = model_to_use.textures[texture_idx];
+                        
+                        if (texture.id != 0)
+                        {
+                            glUniform1i(m_render_state.use_texture_location, 1);
+                            glActiveTexture(GL_TEXTURE0);
+                            glBindTexture(GL_TEXTURE_2D, texture.id);
+                        }
+                        else
+                        {
+                            has_texture = false;
+                        }
+                    }
+                    
+                    if (!has_texture)
+                    {
+                        // No texture, use vertex colors (which should be loaded from model)
+                        glUniform1i(m_render_state.use_texture_location, 0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                    }
+                    
+                    glBindVertexArray(mesh.vao);
+                    glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+                }
+                
+                // Reset texture state
+                glUniform1i(m_render_state.use_texture_location, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else if (use_player2)
+            {
+                // Render player2 using GLB model (same as player1)
+                const GLTFModel& model_to_use = game_state.player2_model_glb;
+                
+                // Scale and position - same as player1
+                const float model_scale = game_state.player_radius * 2.0f;
+                
+                // Apply transforms - same as player1
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Flip if upside down
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
+                model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
+                model = model * model_to_use.base_transform;
+                
+                const glm::mat4 mvp = projection * view * model;
+                glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+                
+                // Render all meshes in the model
+                for (size_t mesh_idx = 0; mesh_idx < model_to_use.meshes.size(); ++mesh_idx)
+                {
+                    const auto& mesh = model_to_use.meshes[mesh_idx];
+                    
+                    // Use texture if available (use first texture for now, or match to mesh)
+                    bool has_texture = !model_to_use.textures.empty();
+                    if (has_texture)
+                    {
+                        size_t texture_idx = (mesh_idx < model_to_use.textures.size()) ? mesh_idx : 0;
+                        const auto& texture = model_to_use.textures[texture_idx];
+                        
+                        if (texture.id != 0)
+                        {
+                            glUniform1i(m_render_state.use_texture_location, 1);
+                            glActiveTexture(GL_TEXTURE0);
+                            glBindTexture(GL_TEXTURE_2D, texture.id);
+                        }
+                        else
+                        {
+                            has_texture = false;
+                        }
+                    }
+                    
+                    if (!has_texture)
+                    {
+                        // No texture, use vertex colors (which should be loaded from model)
+                        glUniform1i(m_render_state.use_texture_location, 0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                    }
+                    
+                    glBindVertexArray(mesh.vao);
+                    glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+                }
+                
+                // Reset texture state
+                glUniform1i(m_render_state.use_texture_location, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else if (use_player1)
+            {
+                // Render player1 using GLTF model
+                const GLTFModel& model_to_use = game_state.player_model_glb;
+                
+                // Scale and position the player model
+                const float model_scale = game_state.player_radius * 2.0f;
+                
+                // Apply transforms
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), player_position);
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Flip if upside down
+                model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
+                model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
+                model = model * model_to_use.base_transform;
+                
+                const glm::mat4 mvp = projection * view * model;
+                glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+                
+                // Render all meshes in the model
+                for (size_t mesh_idx = 0; mesh_idx < model_to_use.meshes.size(); ++mesh_idx)
+                {
+                    const auto& mesh = model_to_use.meshes[mesh_idx];
+                    
+                    // Use texture if available
+                    bool has_texture = !model_to_use.textures.empty();
+                    if (has_texture)
+                    {
+                        size_t texture_idx = (mesh_idx < model_to_use.textures.size()) ? mesh_idx : 0;
+                        const auto& texture = model_to_use.textures[texture_idx];
+                        
+                        if (texture.id != 0)
+                        {
+                            glUniform1i(m_render_state.use_texture_location, 1);
+                            glActiveTexture(GL_TEXTURE0);
+                            glBindTexture(GL_TEXTURE_2D, texture.id);
+                            if (m_render_state.use_color_override_location >= 0)
+                            {
+                                glUniform1i(m_render_state.use_color_override_location, 0);
+                            }
+                            has_texture = true;
+                        }
+                        else
+                        {
+                            has_texture = false;
+                        }
+                    }
+                    
+                    if (!has_texture)
+                    {
+                        glUniform1i(m_render_state.use_texture_location, 0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                        if (m_render_state.use_color_override_location >= 0)
+                        {
+                            glUniform1i(m_render_state.use_color_override_location, 0);
+                        }
+                    }
+                    
+                    glBindVertexArray(mesh.vao);
+                    glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+                }
+                
+                // Reset texture state
+                glUniform1i(m_render_state.use_texture_location, 0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+                if (m_render_state.use_color_override_location >= 0)
+                {
+                    glUniform1i(m_render_state.use_color_override_location, 0);
+                }
             }
             else
             {

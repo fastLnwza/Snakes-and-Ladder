@@ -5,6 +5,7 @@
 #include "../game/player/player.h"
 #include "../rendering/primitives.h"
 #include "../rendering/mesh.h"
+#include "../rendering/gltf_loader.h"
 
 namespace game
 {
@@ -76,6 +77,27 @@ namespace game
             if (!state.player_model_glb.meshes.empty())
             {
                 destroy_gltf_model(state.player_model_glb);
+            }
+        }
+        if (state.has_player2_model)
+        {
+            if (!state.player2_model_glb.meshes.empty())
+            {
+                destroy_gltf_model(state.player2_model_glb);
+            }
+        }
+        if (state.has_player3_model)
+        {
+            if (!state.player3_model_glb.meshes.empty())
+            {
+                destroy_gltf_model(state.player3_model_glb);
+            }
+        }
+        if (state.has_player4_model)
+        {
+            if (!state.player4_model_glb.meshes.empty())
+            {
+                destroy_gltf_model(state.player4_model_glb);
             }
         }
     }

@@ -8,6 +8,8 @@ out vec4 outColor;
 uniform sampler2D uTexture;
 uniform bool uUseTexture;
 uniform bool uDiceTextureMode;
+uniform vec3 uColorOverride;
+uniform bool uUseColorOverride;
 
 void main()
 {
@@ -62,8 +64,15 @@ void main()
     }
     else
     {
-        // Use vertex color with alpha
+        // Use vertex color with alpha, or override if specified
+        if (uUseColorOverride)
+        {
+            outColor = vec4(uColorOverride, fragColor.a);
+        }
+        else
+        {
         outColor = fragColor;
+        }
     }
 }
 
