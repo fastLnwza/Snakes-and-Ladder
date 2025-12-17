@@ -229,8 +229,10 @@ int main(int argc, char* argv[])
 {
     try
     {
+        std::cout << "Initializing window..." << std::endl;
         // Initialize window
         core::Window window(800, 600, "Pacman OpenGL");
+        std::cout << "Window created successfully!" << std::endl;
         
         // Setup camera
         core::Camera camera;
@@ -238,15 +240,47 @@ int main(int argc, char* argv[])
             camera.adjust_fov(static_cast<float>(y_offset));
         });
 
-        // Get executable directory
+        // Get executable directory - cross-platform approach
         std::filesystem::path executable_dir = std::filesystem::current_path();
-        if (argc > 0)
+        if (argc > 0 && argv[0] != nullptr)
         {
             std::error_code ec;
-            auto resolved = std::filesystem::weakly_canonical(std::filesystem::path(argv[0]), ec);
-            if (!ec)
+            std::filesystem::path exe_path(argv[0]);
+            
+            // On Windows, argv[0] might be relative or just the filename
+            // On macOS/Linux, it's usually the full path or relative to current directory
+            if (exe_path.is_absolute())
             {
-                executable_dir = resolved.parent_path();
+                executable_dir = exe_path.parent_path();
+            }
+            else
+            {
+                // Try to resolve relative path
+                auto resolved = std::filesystem::weakly_canonical(
+                    std::filesystem::current_path() / exe_path, ec);
+                if (!ec && std::filesystem::exists(resolved))
+                {
+                    executable_dir = resolved.parent_path();
+                }
+            }
+        }
+        
+        // Fallback: also check common build output locations
+        // This helps when running from IDE or different working directories
+        if (!std::filesystem::exists(executable_dir / "shaders"))
+        {
+            // Try parent directory (for build/Debug or build/Release structures)
+            std::filesystem::path parent_dir = executable_dir.parent_path();
+            if (std::filesystem::exists(parent_dir / "shaders"))
+            {
+                executable_dir = parent_dir;
+            }
+            // Try build directory relative to source
+            std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().parent_path();
+            std::filesystem::path build_dir = source_dir / "build";
+            if (std::filesystem::exists(build_dir / "shaders"))
+            {
+                executable_dir = build_dir;
             }
         }
 
@@ -333,8 +367,10 @@ int main(int argc, char* argv[])
         }
 
         // Initialize game loop and renderer
+        std::cout << "Initializing game loop and renderer..." << std::endl;
         game::GameLoop game_loop(window, camera, game_state, render_state);
         game::Renderer renderer(render_state);
+        std::cout << "Entering main game loop..." << std::endl;
 
         // Main game loop
         game_state.last_time = static_cast<float>(glfwGetTime());

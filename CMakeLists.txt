@@ -8,11 +8,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Note: Platform-specific policies will be handled per-dependency as needed
+
+# Platform-specific compiler options
 if(MSVC)
     # Add /FS flag directly to compile options to fix PDB file locking
     # Disable unsafe function warnings for third-party libraries (cgltf)
     add_compile_options(/W4 /permissive- /FS /D_CRT_SECURE_NO_WARNINGS)
+elseif(APPLE)
+    # macOS-specific compiler options
+    add_compile_options(-Wall -Wextra -Wpedantic)
+elseif(UNIX)
+    # Linux/Unix compiler options
+    add_compile_options(-Wall -Wextra -Wpedantic)
 else()
+    # Default for other platforms
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
@@ -47,7 +57,14 @@ set(GLAD_GENERATOR "c" CACHE STRING "GLAD generator language" FORCE)
 set(GLAD_SPEC "gl" CACHE STRING "GLAD specification" FORCE)
 set(GLAD_INSTALL OFF CACHE BOOL "Disable GLAD install target" FORCE)
 
+# Workaround for GLAD's old CMake requirements
+# GLAD's CMakeLists.txt uses deprecated cmake_minimum_required(VERSION < 3.5) syntax
+# We need to set CMAKE_POLICY_VERSION_MINIMUM before FetchContent processes GLAD
+# This allows CMake to accept the old syntax from dependencies
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version" FORCE)
 FetchContent_MakeAvailable(glad)
+# Reset to our project's minimum version after GLAD is configured
+set(CMAKE_POLICY_VERSION_MINIMUM ${CMAKE_MINIMUM_REQUIRED_VERSION} CACHE STRING "Minimum CMake policy version" FORCE)
 
 add_library(glad::glad ALIAS glad)
 
@@ -142,12 +159,21 @@ add_executable(${PROJECT_NAME}
 
 # /FS flag is already set via add_compile_options above
 
+# Cross-platform path handling for assets
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
+# Use CMAKE_CFG_INTDIR for multi-config generators (Visual Studio), CONFIG for single-config
+if(CMAKE_CONFIGURATION_TYPES)
+    set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/shaders)
+    set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/dice.glb)
+    set(BINARY_FONT_FILE ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pixel-game.regular.otf)
+else()
+    set(BINARY_SHADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+    set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/dice.glb)
+    set(BINARY_FONT_FILE ${CMAKE_CURRENT_BINARY_DIR}/pixel-game.regular.otf)
+endif()
+
 set(DICE_MODEL ${CMAKE_CURRENT_SOURCE_DIR}/dice.glb)
-set(BINARY_DICE_MODEL ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/dice.glb)
 set(FONT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/pixel-game.regular.otf)
-set(BINARY_FONT_FILE ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/pixel-game.regular.otf)
 
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${SHADER_DIR} ${BINARY_SHADER_DIR}
@@ -254,17 +280,37 @@ target_link_libraries(${PROJECT_NAME}
         ${ASSIMP_TARGET}
 )
 
+# Platform-specific linking and definitions
 if(APPLE)
+    # macOS requires Cocoa, IOKit, and CoreVideo frameworks for GLFW
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
             "-framework Cocoa"
             "-framework IOKit"
             "-framework CoreVideo"
     )
+    # macOS-specific compile definitions if needed
+    target_compile_definitions(${PROJECT_NAME} PRIVATE 
+        GL_SILENCE_DEPRECATION
+    )
 endif()
 
 if(WIN32)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE NOMINMAX)
+    # Windows-specific compile definitions
+    target_compile_definitions(${PROJECT_NAME} PRIVATE 
+        NOMINMAX
+        _CRT_SECURE_NO_WARNINGS
+    )
+    # Windows may need additional libraries
+    # GLFW will handle most of this, but we can add if needed
+endif()
+
+if(UNIX AND NOT APPLE)
+    # Linux-specific settings
+    # GLFW will handle X11 dependencies automatically
+    target_compile_definitions(${PROJECT_NAME} PRIVATE 
+        _GNU_SOURCE
+    )
 endif()
 
 install(TARGETS ${PROJECT_NAME})

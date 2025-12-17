@@ -59,6 +59,24 @@ namespace core
             throw std::runtime_error("Failed to initialize GLAD");
         }
 
+        // Ensure window is visible and focused (especially important on macOS)
+        glfwShowWindow(m_window);
+        glfwFocusWindow(m_window);
+        
+        // On macOS, request window attention to bring it to front
+        // This function is available in GLFW 3.3+, and we're using 3.4
+#if defined(__APPLE__)
+        // Request attention to ensure window appears in foreground
+        // This helps when running from terminal or IDE
+        if (glfwGetWindowAttrib(m_window, GLFW_VISIBLE))
+        {
+            // Window is visible, try to bring it to front
+            // Note: glfwRequestWindowAttention requires GLFW 3.3+
+            // If compilation fails, comment out the next line
+            glfwRequestWindowAttention(m_window);
+        }
+#endif
+
         g_window_instance = this;
     }
 
