@@ -11,6 +11,7 @@ namespace game::player::dice
         glm::vec3 target_position{};  // Target position above player's head
         glm::vec3 rotation{};
         glm::vec3 rotation_velocity{};
+        glm::vec3 target_rotation{};  // Target rotation to show the correct face
         float roll_duration = 1.0f;
         float roll_timer = 0.0f;
         float display_duration = 3.0f;  // Time to display result after landing (3 seconds)
@@ -18,7 +19,7 @@ namespace game::player::dice
         bool is_rolling = false;
         bool is_falling = false;
         bool is_displaying = false;  // Whether dice is displaying result
-        int result = 0;  // Final result to display (only set when stopped bouncing)
+        int result = 0;  // Final result to display (set immediately when roll starts)
         int pending_result = 0;  // Result from player roll (stored but not shown until bounce stops)
         float scale = 1.0f;
         float fall_height = 10.0f;  // Height to start falling from

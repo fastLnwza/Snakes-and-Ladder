@@ -64,6 +64,7 @@ namespace game::player::dice
         state.target_position = position;
         state.rotation = glm::vec3(0.0f);
         state.rotation_velocity = glm::vec3(0.0f);
+        state.target_rotation = glm::vec3(0.0f);
         state.roll_duration = 1.0f;
         state.roll_timer = 0.0f;
         state.display_duration = 3.0f;  // 3 seconds to display result
@@ -82,14 +83,18 @@ namespace game::player::dice
 
     void start_roll(DiceState& state, const glm::vec3& target_position, float fall_height)
     {
-        // Don't lock the result yet - we'll randomize it when the dice actually stops
-        // This makes the dice truly random, not predetermined
+        // Randomize result IMMEDIATELY when roll starts
+        // This allows animation to be consistent with the final result
+        int final_result = random_dice_result();
+        state.result = final_result;
+        state.pending_result = final_result;
+        
+        // Calculate target rotation for the result
+        glm::vec3 target_rotation = result_to_rotation(final_result);
         
         state.is_rolling = true;
         state.is_falling = true;
         state.roll_timer = 0.0f;
-        state.result = 0;  // Don't set result yet - wait until bounce stops
-        state.pending_result = 0;  // Don't set result yet - randomize when dice stops
         state.target_position = target_position;
         state.fall_height = fall_height;
         
@@ -106,8 +111,38 @@ namespace game::player::dice
         float fall_time = std::sqrt(2.0f * fall_height / state.gravity);
         state.roll_duration = fall_time + 0.5f; // Add 0.5 seconds after landing for visibility
         
-        // Faster rotation velocity for more visible rolling animation
-        state.rotation_velocity = random_rotation_velocity() * 2.0f;
+        // Store target rotation for smooth interpolation
+        state.target_rotation = target_rotation;
+        
+        // Start with random rotation but add strong rotation velocity that will help reach target
+        // Use random rotation velocity for natural rolling, but with strong bias towards target
+        glm::vec3 random_vel = random_rotation_velocity() * 2.0f;
+        // Add a strong component that helps reach target rotation
+        glm::vec3 rotation_diff = target_rotation - state.rotation;
+        
+        // Normalize angles to -180 to 180 range for proper bias calculation
+        auto normalize_angle = [](float angle) {
+            while (angle > 180.0f) angle -= 360.0f;
+            while (angle < -180.0f) angle += 360.0f;
+            return angle;
+        };
+        
+        rotation_diff.x = normalize_angle(rotation_diff.x);
+        rotation_diff.y = normalize_angle(rotation_diff.y);
+        rotation_diff.z = normalize_angle(rotation_diff.z);
+        
+        // Normalize and scale the difference to create a strong bias
+        float diff_magnitude = glm::length(rotation_diff);
+        if (diff_magnitude > 0.01f)
+        {
+            // Much stronger bias (20.0f instead of 5.0f) to ensure dice rolls towards target
+            glm::vec3 bias = (rotation_diff / diff_magnitude) * 20.0f; // Strong bias strength
+            state.rotation_velocity = random_vel + bias;
+        }
+        else
+        {
+            state.rotation_velocity = random_vel;
+        }
     }
 
     void update(DiceState& state, float delta_time, float board_half_width, float board_half_height)
@@ -117,10 +152,44 @@ namespace game::player::dice
             state.roll_timer += delta_time;
             
             // Rotate the dice during rolling animation - keep rotating while bouncing
-            // Don't lock rotation until dice stops bouncing completely
+            // Continuously adjust rotation velocity to bias towards target during rolling
             if (state.rotation_velocity.x != 0.0f || state.rotation_velocity.y != 0.0f || state.rotation_velocity.z != 0.0f)
             {
                 state.rotation += state.rotation_velocity * delta_time;
+                
+                // Continuously apply bias towards target rotation while rolling
+                // This ensures dice gradually moves towards the correct face during animation
+                if (state.result > 0)
+                {
+                    glm::vec3 target_rot = result_to_rotation(state.result);
+                    glm::vec3 rotation_diff = target_rot - state.rotation;
+                    
+                    // Normalize angles to -180 to 180 range
+                    auto normalize_angle = [](float angle) {
+                        while (angle > 180.0f) angle -= 360.0f;
+                        while (angle < -180.0f) angle += 360.0f;
+                        return angle;
+                    };
+                    
+                    rotation_diff.x = normalize_angle(rotation_diff.x);
+                    rotation_diff.y = normalize_angle(rotation_diff.y);
+                    rotation_diff.z = normalize_angle(rotation_diff.z);
+                    
+                    float diff_magnitude = glm::length(rotation_diff);
+                    if (diff_magnitude > 1.0f) // Only apply bias if still far from target
+                    {
+                        // Apply continuous bias during rolling (weaker than initial bias)
+                        glm::vec3 bias = (rotation_diff / diff_magnitude) * 10.0f * delta_time;
+                        state.rotation_velocity += bias;
+                        
+                        // Limit rotation velocity to prevent excessive spinning
+                        float max_vel = 30.0f;
+                        if (glm::length(state.rotation_velocity) > max_vel)
+                        {
+                            state.rotation_velocity = glm::normalize(state.rotation_velocity) * max_vel;
+                        }
+                    }
+                }
             }
             
             // Handle falling animation
@@ -200,43 +269,24 @@ namespace game::player::dice
         }
         
         // After rolling is done, check if dice has stopped bouncing and ready to show result
-        // Only set result and lock rotation when dice has completely stopped bouncing
+        // Snap to target rotation immediately when dice stops bouncing
         // IMPORTANT: Check this AFTER the is_rolling block to catch when dice stops
-        // Also check that result hasn't been set yet to prevent overwriting
-        if (state.is_rolling && !state.is_falling && !state.is_displaying && state.result == 0)
+        if (state.is_rolling && !state.is_falling && !state.is_displaying && state.result > 0)
         {
             // Wait a tiny bit more to ensure dice is completely still
             // Check if velocity is truly zero (dice has stopped bouncing completely)
             if (std::abs(state.velocity.x) < 0.01f && std::abs(state.velocity.y) < 0.01f && std::abs(state.velocity.z) < 0.01f)
             {
-                // Dice has completely stopped bouncing - NOW randomize the result
-                // This makes the dice truly random, not predetermined
-                int final_result = random_dice_result();
+                // Dice has completely stopped bouncing - snap to target rotation immediately
+                // Use the result that was already randomized at start_roll
+                glm::vec3 target_rot = result_to_rotation(state.result);
                 
-                // CRITICAL: Verify result is valid (1-7 for testing)
-                // Note: 7 is allowed for testing minigame at tile 7
-                if (final_result < 1 || final_result > 7)
-                {
-                    std::cerr << "ERROR: Invalid random result: " << final_result << "! Resetting to 1." << std::endl;
-                    final_result = 1;
-                }
-                
-                // Set result IMMEDIATELY
-                state.result = final_result;
-                
+                // Snap to target rotation immediately (no slow interpolation)
+                state.rotation = target_rot;
                 state.is_rolling = false;
                 state.rotation_velocity = glm::vec3(0.0f);  // Stop rotation
                 
-                // Set rotation to show the correct face based on result
-                // IMPORTANT: Use final_result to ensure we use the randomized value
-                glm::vec3 result_rotation = result_to_rotation(final_result);
-                // Set final rotation to show result face - make sure dice is parallel to ground (flat)
-                // For a dice to be flat on ground, we need to rotate to show the face, but keep it level
-                state.rotation = glm::vec3(result_rotation.x, result_rotation.y, result_rotation.z);
-                // Add a slight viewing angle (optional) but keep dice flat
-                // Don't add 45 degrees to Y as it makes dice tilted
-                
-                // Start displaying result
+                // Start displaying result immediately
                 state.is_displaying = true;
                 state.display_timer = 0.0f;
             }
