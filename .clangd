@@ -9,16 +9,16 @@ Diagnostics:
 
 CompileFlags:
   Add:
-    - -Ibuild-clangd/_deps/glm-src
-    - -Ibuild/_deps/glm-src
-    - -Ibuild-clangd/_deps/glfw-src/include
-    - -Ibuild/_deps/glfw-src/include
-    - -Ibuild-clangd/_deps/glad-build/include
-    - -Ibuild/_deps/glad-build/include
-    - -Isrc
-    - -Iexternal
-    - -Iexternal/cgltf
-    - -Iexternal/glad/include
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glm-src
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glfw-src/include
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glad-build/include
+    - -IC:/Github/Pacman-OpenGL/build/_deps/assimp-src/include
+    - -IC:/Github/Pacman-OpenGL/src
+    - -IC:/Github/Pacman-OpenGL/external
+    - -IC:/Github/Pacman-OpenGL/external/cgltf
+    - -IC:/Github/Pacman-OpenGL/external/glad/include
+    - -DNOMINMAX
+    - -D_CRT_SECURE_NO_WARNINGS
 
 
 

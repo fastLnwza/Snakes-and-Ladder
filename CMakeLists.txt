@@ -10,7 +10,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
     # Add /FS flag directly to compile options to fix PDB file locking
-    add_compile_options(/W4 /permissive- /FS)
+    # Disable unsafe function warnings for third-party libraries (cgltf)
+    add_compile_options(/W4 /permissive- /FS /D_CRT_SECURE_NO_WARNINGS)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -79,6 +80,7 @@ if(NOT assimp_FOUND)
     FetchContent_Declare(
         assimp
         URL https://github.com/assimp/assimp/archive/refs/tags/v5.4.2.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     
     set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests" FORCE)
@@ -181,36 +183,65 @@ target_include_directories(${PROJECT_NAME}
         ${glad_BINARY_DIR}/include
 )
 
+# Add GLM include directory (header-only library)
+# GLM is header-only, so we need to add its source directory to includes
+# Always add GLM include directory - it's critical for IntelliSense
+if(EXISTS "${CMAKE_BINARY_DIR}/_deps/glm-src")
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${CMAKE_BINARY_DIR}/_deps/glm-src
+    )
+    message(STATUS "GLM include directory: ${CMAKE_BINARY_DIR}/_deps/glm-src")
+elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build/_deps/glm-src")
+    # Fallback for when build directory is different
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/build/_deps/glm-src
+    )
+    message(STATUS "GLM include directory (fallback): ${CMAKE_CURRENT_SOURCE_DIR}/build/_deps/glm-src")
+endif()
+# Also try to get from target if available
+if(TARGET glm::glm)
+    get_target_property(GLM_INCLUDE_DIR glm::glm INTERFACE_INCLUDE_DIRECTORIES)
+    if(GLM_INCLUDE_DIR)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${GLM_INCLUDE_DIR})
+        message(STATUS "GLM include directory from target: ${GLM_INCLUDE_DIR}")
+    endif()
+endif()
+# Force add GLM include - ensure it's always available
+if(TARGET glm::glm-header-only)
+    get_target_property(GLM_HEADER_INCLUDE glm::glm-header-only INTERFACE_INCLUDE_DIRECTORIES)
+    if(GLM_HEADER_INCLUDE)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${GLM_HEADER_INCLUDE})
+        message(STATUS "GLM include from header-only target: ${GLM_HEADER_INCLUDE}")
+    endif()
+endif()
+
 # Add Assimp include directories
 # When using FetchContent, assimp_SOURCE_DIR is set automatically
-if(DEFINED assimp_SOURCE_DIR)
+# Always try FetchContent location first (most reliable)
+if(EXISTS "${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${CMAKE_BINARY_DIR}/_deps/assimp-src/include
+    )
+    message(STATUS "Assimp include directory: ${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
+endif()
+# Also try assimp_SOURCE_DIR if defined
+if(DEFINED assimp_SOURCE_DIR AND EXISTS "${assimp_SOURCE_DIR}/include")
     target_include_directories(${PROJECT_NAME} PRIVATE
         ${assimp_SOURCE_DIR}/include
     )
-    message(STATUS "Assimp include directory: ${assimp_SOURCE_DIR}/include")
-elseif(TARGET assimp)
-    # If assimp target exists, try to get include dirs from target
+    message(STATUS "Assimp include directory (source): ${assimp_SOURCE_DIR}/include")
+endif()
+# Try to get from target if available
+if(TARGET assimp)
     get_target_property(ASSIMP_INCLUDE_DIR assimp INTERFACE_INCLUDE_DIRECTORIES)
     if(ASSIMP_INCLUDE_DIR)
         target_include_directories(${PROJECT_NAME} PRIVATE ${ASSIMP_INCLUDE_DIR})
         message(STATUS "Assimp include directory from target: ${ASSIMP_INCLUDE_DIR}")
     endif()
-    # Also try FetchContent location
-    if(EXISTS "${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
-        target_include_directories(${PROJECT_NAME} PRIVATE
-            ${CMAKE_BINARY_DIR}/_deps/assimp-src/include
-        )
-        message(STATUS "Assimp include directory (FetchContent): ${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
-    endif()
-elseif(assimp_FOUND)
+endif()
+# If using pre-installed Assimp
+if(assimp_FOUND)
     message(STATUS "Using pre-installed Assimp include directories")
-else()
-    if(EXISTS "${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
-        target_include_directories(${PROJECT_NAME} PRIVATE
-            ${CMAKE_BINARY_DIR}/_deps/assimp-src/include
-        )
-        message(STATUS "Assimp include directory (fallback): ${CMAKE_BINARY_DIR}/_deps/assimp-src/include")
-    endif()
 endif()
 
 target_link_libraries(${PROJECT_NAME}
