@@ -30,6 +30,8 @@ _deps/
 # Compiled Object files
 *.o
 *.obj
+# Exception: Allow 3D model OBJ files (not compiled objects)
+!src/game/player/dice/source/dice.7z/dice.obj
 *.lo
 *.slo
 
