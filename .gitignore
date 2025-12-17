@@ -354,4 +354,5 @@ $RECYCLE.BIN/
 # Shader compiled files (if any)
 *.spv
 *.cso
-
+/build
+/build

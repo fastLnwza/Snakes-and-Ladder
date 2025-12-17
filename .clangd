@@ -1,0 +1,26 @@
+Diagnostics:
+  Suppress:
+    - constexpr_var_requires_const_init
+    - undeclared_var_use
+    - no_member
+    - no_type
+  UnusedIncludes: None
+  MissingIncludes: None
+
+CompileFlags:
+  Add:
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glm-src
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glfw-src/include
+    - -IC:/Github/Pacman-OpenGL/build/_deps/glad-build/include
+    - -IC:/Github/Pacman-OpenGL/build/_deps/assimp-src/include
+    - -IC:/Github/Pacman-OpenGL/src
+    - -IC:/Github/Pacman-OpenGL/external
+    - -IC:/Github/Pacman-OpenGL/external/cgltf
+    - -IC:/Github/Pacman-OpenGL/external/glad/include
+    - -DNOMINMAX
+    - -D_CRT_SECURE_NO_WARNINGS
+
+
+
+
+
