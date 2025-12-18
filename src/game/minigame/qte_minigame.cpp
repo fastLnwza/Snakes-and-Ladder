@@ -30,10 +30,10 @@ namespace game::minigame
         {
             // Slow down timer by 50% to make it easier
             state.timer += delta_time * 0.5f;
-            // Update display text to show current time
+            // Update display text to show current time (starting from 0)
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(2);
-            oss << "4.99:" << state.timer;
+            oss << "Target: 4.99 | Time: " << state.timer;
             state.display_text = oss.str();
         }
         else if (state.is_showing_time)

@@ -1239,7 +1239,7 @@ namespace game
                 }
 
                 const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
-                game::map::check_tile_activity(current_tile,
+                bool tile_activity_triggered = game::map::check_tile_activity(current_tile,
                                               last_processed_tile_for_player,
                                               minigame_running,
                                               tile_memory_active_check,
@@ -1253,6 +1253,24 @@ namespace game
                                               m_game_state.minigame_message_timer,
                                               m_game_state.tile_memory_previous_keys,
                                               m_game_state.precision_space_was_down);
+                
+                // Check if SkipTurn was triggered - if so, end the turn immediately
+                if (tile_activity_triggered)
+                {
+                    const game::map::ActivityKind tile_activity = game::map::classify_activity_tile(current_tile);
+                    if (tile_activity == game::map::ActivityKind::SkipTurn)
+                    {
+                        // Skip Turn: Force turn to end immediately
+                        current_player.steps_remaining = 0;
+                        current_player.is_stepping = false;
+                        current_player.last_dice_result = 0;  // Prevent rolling again
+                        m_game_state.dice_state.result = 0;  // Clear dice result
+                        m_game_state.dice_state.is_displaying = false;
+                        m_game_state.turn_finished = true;  // Force turn to end
+                        std::cout << "[DEBUG] Skip Turn triggered! Ending turn for player " 
+                                  << (m_game_state.current_player_index + 1) << std::endl;
+                    }
+                }
             }
             else
             {
