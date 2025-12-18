@@ -45,10 +45,16 @@ namespace game
         initialize(state.dice_state, dice_position);
         state.dice_state.scale = state.player_radius * 0.167f;
         state.dice_state.rotation = glm::vec3(45.0f, 45.0f, 0.0f);
+        
+        // Initialize audio system
+        state.audio_manager.initialize();
     }
 
     void cleanup_game_state(GameState& state)
     {
+        // Shutdown audio system
+        state.audio_manager.shutdown();
+        
         destroy_mesh(state.map_data.mesh);
         destroy_mesh(state.sphere_mesh);
         if (state.has_dice_texture)

@@ -6,6 +6,8 @@
 #include "../rendering/texture_loader.h"
 #include "../rendering/gltf_loader.h"
 #include "../rendering/obj_loader.h"
+#include "../rendering/animation_player.h"
+#include "../core/audio_manager.h"
 #include "map/map_manager.h"
 #include "player/player.h"
 #include "player/dice/dice.h"
@@ -49,6 +51,9 @@ namespace game
         float player_ground_y = 0.0f;
         float player_radius = 0.0f;
         Mesh sphere_mesh{};  // Fallback mesh if model is not loaded
+        
+        // Animation states for each player
+        std::array<AnimationPlayerState, 4> player_animations{};
         GLTFModel player_model_glb{};  // Player1 model (GLB format)
         bool has_player_model = false;
         
@@ -120,6 +125,9 @@ namespace game
 
         // Win screen
         game::win::WinState win_state;
+
+        // Audio
+        core::audio::AudioManager audio_manager;
 
         // Timing
         float last_time = 0.0f;

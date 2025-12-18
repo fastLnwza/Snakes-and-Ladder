@@ -1,0 +1,21 @@
+# Audio linking and definitions (before platform-specific)
+if(ENABLE_AUDIO AND SDL2_mixer_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_mixer_INCLUDE_DIRS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_AUDIO)
+    # SDL2_mixer depends on SDL2 - link both
+    find_package(PkgConfig)
+    pkg_check_modules(SDL2_PKG sdl2)
+    if(SDL2_PKG_FOUND)
+        target_link_directories(${PROJECT_NAME} PRIVATE ${SDL2_PKG_LIBRARY_DIRS})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_mixer_LIBRARIES} ${SDL2_PKG_LIBRARIES})
+    else()
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_mixer_LIBRARIES})
+    endif()
+    message(STATUS "Audio enabled: linking SDL2_mixer")
+else()
+    message(STATUS "Audio disabled: SDL2_mixer not found or ENABLE_AUDIO is OFF")
+endif()
+
+
+
+

@@ -43,6 +43,7 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
     std::cout << "GLB file has " << data->images_count << " image(s) defined\n";
     std::cout << "GLB file has " << data->textures_count << " texture(s) defined\n";
     std::cout << "GLB file has " << data->materials_count << " material(s) defined\n";
+    std::cout << "GLB file has " << data->animations_count << " animation(s) defined\n";
     
     // If no images but textures exist, try to load from textures array
     if (data->images_count == 0 && data->textures_count > 0)
@@ -515,6 +516,10 @@ GLTFModel load_gltf_model(const std::filesystem::path& path)
     if (model.animations.empty() && data->animations_count > 0)
     {
         std::cout << "Note: Model has " << data->animations_count << " animation(s) but none were loaded successfully\n";
+    }
+    else if (model.animations.empty())
+    {
+        std::cout << "Warning: Model has NO animations. Player will be static (no movement animations).\n";
     }
 
     cgltf_free(data);

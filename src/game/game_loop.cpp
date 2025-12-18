@@ -9,12 +9,14 @@
 #include "../game/minigame/reaction_minigame.h"
 #include "../game/minigame/math_minigame.h"
 #include "../game/minigame/pattern_minigame.h"
+#include "../rendering/animation_player.h"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <sstream>
 #include <random>
 #include <chrono>
+#include <iostream>
 
 namespace game
 {
@@ -51,6 +53,7 @@ namespace game
         update_minigames(delta_time);
         handle_minigame_results(delta_time);
         update_game_logic(delta_time);
+        update_player_animations(delta_time);
     }
 
     void GameLoop::handle_input(float delta_time)
@@ -340,6 +343,8 @@ namespace game
         // Start dice roll
         // Only allow rolling if player hasn't rolled yet this turn (last_dice_result == 0)
         // This prevents player from rolling multiple times in the same turn
+        // IMPORTANT: After using ladder, last_dice_result is kept to track that player has rolled,
+        // but dice_state.result is cleared. We should NOT allow rolling again if last_dice_result > 0
         const bool has_not_rolled_this_turn = (current_player.last_dice_result == 0);
         
         if (space_just_pressed && !current_player.is_stepping && 
@@ -673,6 +678,28 @@ namespace game
             m_game_state.pattern_previous_keys[5] = (enter_down || space_down);
         }
 
+        // Handle volume controls (+/-)
+        const bool plus_key_down = m_window.is_key_pressed(GLFW_KEY_EQUAL) || 
+                                   m_window.is_key_pressed(GLFW_KEY_KP_ADD);
+        const bool minus_key_down = m_window.is_key_pressed(GLFW_KEY_MINUS) || 
+                                    m_window.is_key_pressed(GLFW_KEY_KP_SUBTRACT);
+        
+        static bool plus_was_pressed = false;
+        static bool minus_was_pressed = false;
+        
+        if (plus_key_down && !plus_was_pressed)
+        {
+            m_game_state.audio_manager.increase_volume(0.1f);
+            std::cout << "Volume: " << (int)(m_game_state.audio_manager.get_master_volume() * 100) << "%" << std::endl;
+        }
+        if (minus_key_down && !minus_was_pressed)
+        {
+            m_game_state.audio_manager.decrease_volume(0.1f);
+            std::cout << "Volume: " << (int)(m_game_state.audio_manager.get_master_volume() * 100) << "%" << std::endl;
+        }
+        plus_was_pressed = plus_key_down;
+        minus_was_pressed = minus_key_down;
+        
         // Handle debug warp input
         const bool t_key_down = m_window.is_key_pressed(GLFW_KEY_T);
         if (t_key_down && !m_game_state.debug_warp_state.prev_toggle && !minigame_running)
@@ -1011,6 +1038,9 @@ namespace game
                 const float fall_height = m_game_state.map_length * 0.4f;
                 start_roll(m_game_state.dice_state, target_pos, fall_height);
                 
+                // Play dice roll sound
+                m_game_state.audio_manager.play_sound("dice_roll");
+                
                 m_game_state.turn_finished = false;
                 
                 // Reset for next action
@@ -1137,11 +1167,14 @@ namespace game
                     m_game_state.win_state.winner_player = m_game_state.current_player_index + 1; // 1-based player number
                 }
 
-                // Check for ladder ONLY when player has stopped at this tile
-                // This ensures ladder is only used when player lands on it, not when passing through
+                // Check for ladder ONLY when player has STOPPED walking (not while passing through)
+                // This matches the rules of Snakes and Ladders - you must land on the tile to use ladder
                 bool ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
                 if (ladder_used)
                 {
+                    // Play ladder sound
+                    m_game_state.audio_manager.play_sound("ladder");
+                    
                     // Update tile after ladder warp
                     const int new_tile = get_current_tile(current_player);
                     last_processed_tile_for_player = new_tile;
@@ -1428,6 +1461,97 @@ namespace game
     {
         // Rendering will be handled separately
         (void)camera;
+    }
+
+    void GameLoop::update_player_animations(float delta_time)
+    {
+        using namespace animation_player;
+        
+        // Update animations for all active players
+        for (int i = 0; i < m_game_state.num_players; ++i)
+        {
+            auto& player = m_game_state.players[i];
+            auto& anim_state = m_game_state.player_animations[i];
+            
+            // Determine which model to use for this player
+            const GLTFModel* model_to_use = nullptr;
+            if (i == 3 && m_game_state.has_player4_model)
+                model_to_use = &m_game_state.player4_model_glb;
+            else if (i == 2 && m_game_state.has_player3_model)
+                model_to_use = &m_game_state.player3_model_glb;
+            else if (i == 1 && m_game_state.has_player2_model)
+                model_to_use = &m_game_state.player2_model_glb;
+            else if (m_game_state.has_player_model)
+                model_to_use = &m_game_state.player_model_glb;
+            
+            // If no model, skip
+            if (!model_to_use)
+                continue;
+            
+            // Check if model has animations
+            if (model_to_use->animations.empty())
+            {
+                // Model has no animations - player will remain static
+                // This is expected if GLB file doesn't contain animation data
+                continue;
+            }
+            
+            // Start animation if player is walking and animation is not playing
+            if (player.is_stepping && !is_playing(anim_state))
+            {
+                // Try to find a "walk" or "walking" animation, otherwise use first animation
+                const GLTFAnimation* walk_anim = nullptr;
+                for (const auto& anim : model_to_use->animations)
+                {
+                    std::string anim_name_lower = anim.name;
+                    std::transform(anim_name_lower.begin(), anim_name_lower.end(), anim_name_lower.begin(), ::tolower);
+                    if (anim_name_lower.find("walk") != std::string::npos)
+                    {
+                        walk_anim = &anim;
+                        break;
+                    }
+                }
+                
+                // Use walk animation if found, otherwise use first animation
+                if (!walk_anim && !model_to_use->animations.empty())
+                {
+                    walk_anim = &model_to_use->animations[0];
+                }
+                
+                if (walk_anim)
+                {
+                    play_animation(anim_state, walk_anim, true, 1.0f); // Loop walking animation
+                }
+            }
+            // Stop animation if player stopped walking
+            else if (!player.is_stepping && is_playing(anim_state))
+            {
+                // Try to find an "idle" animation, otherwise stop
+                const GLTFAnimation* idle_anim = nullptr;
+                for (const auto& anim : model_to_use->animations)
+                {
+                    std::string anim_name_lower = anim.name;
+                    std::transform(anim_name_lower.begin(), anim_name_lower.end(), anim_name_lower.begin(), ::tolower);
+                    if (anim_name_lower.find("idle") != std::string::npos)
+                    {
+                        idle_anim = &anim;
+                        break;
+                    }
+                }
+                
+                if (idle_anim)
+                {
+                    play_animation(anim_state, idle_anim, true, 1.0f); // Loop idle animation
+                }
+                else
+                {
+                    stop_animation(anim_state);
+                }
+            }
+            
+            // Update animation
+            animation_player::update(anim_state, delta_time);
+        }
     }
 }
 

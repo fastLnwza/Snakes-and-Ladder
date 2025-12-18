@@ -475,23 +475,27 @@ namespace game::map
             }
         };
 
-        const glm::vec3 base_color = {0.08f, 0.07f, 0.07f};
+        // Enhanced base colors with gradient
+        const glm::vec3 base_color = {0.12f, 0.10f, 0.08f};  // Warmer dark brown
+        const glm::vec3 base_edge_color = {0.06f, 0.05f, 0.04f};
         const auto [plaza_verts, plaza_indices] =
-            build_plane(board_width + plaza_margin, board_height + plaza_margin, base_color, base_color);
+            build_plane(board_width + plaza_margin, board_height + plaza_margin, base_color, base_edge_color);
         push_plane(plaza_verts, plaza_indices, -0.02f);
 
-        const glm::vec3 terrace_color = {0.16f, 0.13f, 0.1f};
+        const glm::vec3 terrace_color = {0.22f, 0.18f, 0.15f};  // Warmer brown
+        const glm::vec3 terrace_edge_color = {0.12f, 0.10f, 0.08f};
         const auto [terrace_verts, terrace_indices] =
-            build_plane(board_width + board_margin * 2.0f, board_height + board_margin * 2.0f, terrace_color, terrace_color);
+            build_plane(board_width + board_margin * 2.0f, board_height + board_margin * 2.0f, terrace_color, terrace_edge_color);
         push_plane(terrace_verts, terrace_indices, 0.0f);
 
-        const glm::vec3 board_plate_color = {0.12f, 0.16f, 0.22f};
-        const auto [board_plate_verts, board_plate_indices] = build_plane(board_width, board_height, board_plate_color, board_plate_color);
+        const glm::vec3 board_plate_color = {0.18f, 0.22f, 0.30f};  // Brighter blue-gray
+        const glm::vec3 board_plate_edge_color = {0.10f, 0.12f, 0.18f};
+        const auto [board_plate_verts, board_plate_indices] = build_plane(board_width, board_height, board_plate_color, board_plate_edge_color);
         push_plane(board_plate_verts, board_plate_indices, 0.015f);
 
         const float wall_thickness = TILE_SIZE * 0.45f;
         const float wall_height = 2.4f;
-        const glm::vec3 wall_color = {0.15f, 0.2f, 0.32f};
+        const glm::vec3 wall_color = {0.20f, 0.25f, 0.38f};  // Brighter walls
         const float half_board_w = board_width * 0.5f;
         const float half_board_h = board_height * 0.5f;
 
@@ -528,7 +532,7 @@ namespace game::map
                          wall_height,
                          wall_color);
 
-        const glm::vec3 pillar_color = {0.22f, 0.22f, 0.3f};
+        const glm::vec3 pillar_color = {0.28f, 0.28f, 0.38f};  // Brighter pillars
         const float pillar_size = wall_thickness * 0.85f;
         const float pillar_height = wall_height * 1.15f;
         const float pillar_offset_x = half_board_w + wall_thickness * 0.5f;
@@ -564,13 +568,15 @@ namespace game::map
             }
         }
 
-        const glm::vec3 color_a = {0.18f, 0.28f, 0.45f};
-        const glm::vec3 color_b = {0.16f, 0.24f, 0.4f};
-        const glm::vec3 start_color = {0.22f, 0.65f, 0.28f};
-        const glm::vec3 finish_color = {0.85f, 0.63f, 0.22f};
-        const glm::vec3 ladder_color = {0.35f, 0.7f, 0.4f};
-        const glm::vec3 digit_color_default = {0.95f, 0.95f, 0.92f};
-        const glm::vec3 digit_color_minigame = {1.0f, 0.2f, 0.2f};  // Bright red for minigame tiles
+        // Enhanced tile colors with better contrast and vibrancy
+        const glm::vec3 color_a = {0.25f, 0.35f, 0.55f};  // Brighter blue
+        const glm::vec3 color_b = {0.20f, 0.30f, 0.50f};  // Darker blue
+        const glm::vec3 start_color = {0.15f, 0.75f, 0.25f};  // Vibrant green
+        const glm::vec3 finish_color = {0.95f, 0.75f, 0.15f};  // Golden yellow
+        const glm::vec3 ladder_color = {0.40f, 0.80f, 0.50f};  // Bright green
+        const glm::vec3 digit_color_default = {1.0f, 1.0f, 0.95f};  // Bright white
+        const glm::vec3 digit_color_minigame = {1.0f, 0.3f, 0.3f};  // Bright red for minigame tiles
+        const glm::vec3 tile_border_color = {0.1f, 0.1f, 0.15f};  // Dark border
 
         const float tile_surface_offset = 0.02f;
         const float tile_size = TILE_SIZE * 0.98f;  // Increased to fill board better
@@ -594,7 +600,9 @@ namespace game::map
                 break;
             }
 
-            const auto [tile_verts, tile_indices] = build_plane(tile_size, tile_size, color, color);
+            // Create tile with gradient (lighter center, darker edges)
+            const glm::vec3 tile_edge_color = color * 0.7f;  // Darker edges
+            const auto [tile_verts, tile_indices] = build_plane(tile_size, tile_size, color, tile_edge_color);
             const std::size_t tile_offset = vertices.size();
             const glm::vec3 center = tile_center_world(tile, tile_surface_offset);
             for (const auto& v : tile_verts)
@@ -607,6 +615,28 @@ namespace game::map
             {
                 indices.push_back(static_cast<unsigned int>(tile_offset + idx));
             }
+            
+            // Add border around tile
+            const float border_width = tile_size * 0.03f;
+            const float border_height = tile_surface_offset + 0.005f;
+            const float half_tile = tile_size * 0.5f;
+            
+            // Top border
+            append_box_prism(vertices, indices,
+                           center.x, center.z + half_tile,
+                           tile_size, border_width, border_height, tile_border_color);
+            // Bottom border
+            append_box_prism(vertices, indices,
+                           center.x, center.z - half_tile,
+                           tile_size, border_width, border_height, tile_border_color);
+            // Left border
+            append_box_prism(vertices, indices,
+                           center.x - half_tile, center.z,
+                           border_width, tile_size, border_height, tile_border_color);
+            // Right border
+            append_box_prism(vertices, indices,
+                           center.x + half_tile, center.z,
+                           border_width, tile_size, border_height, tile_border_color);
 
             const ActivityKind activity = classify_activity_tile(tile);
             glm::vec3 digit_color = digit_color_default;
@@ -628,6 +658,55 @@ namespace game::map
             {
                 append_ladder_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
             }
+        }
+        
+        // Add decorative elements around the board
+        // Corner decorations (small pyramids)
+        const float decor_size = TILE_SIZE * 0.3f;
+        const float decor_height = 1.5f;
+        const glm::vec3 decor_color = {0.35f, 0.45f, 0.60f};
+        const float corner_offset = (board_width + board_margin) * 0.5f + decor_size;
+        
+        std::array<glm::vec2, 4> corner_positions = {{
+            {corner_offset, corner_offset},
+            {-corner_offset, corner_offset},
+            {corner_offset, -corner_offset},
+            {-corner_offset, -corner_offset}
+        }};
+        
+        for (const auto& pos : corner_positions)
+        {
+            append_pyramid(vertices, indices,
+                         glm::vec3(pos.x, decor_height, pos.y),
+                         decor_size, decor_height, decor_color);
+        }
+        
+        // Add decorative flags/banners on walls
+        const float flag_height = wall_height * 0.8f;
+        const float flag_width = TILE_SIZE * 0.4f;
+        const glm::vec3 flag_color1 = {0.85f, 0.2f, 0.2f};  // Red
+        const glm::vec3 flag_color2 = {0.2f, 0.2f, 0.85f};  // Blue
+        
+        // Flags on top of walls
+        for (int i = 0; i < 4; ++i)
+        {
+            glm::vec3 flag_pos;
+            glm::vec3 flag_color = (i % 2 == 0) ? flag_color1 : flag_color2;
+            
+            if (i == 0) // Top wall
+                flag_pos = glm::vec3(0.0f, flag_height, half_board_h + wall_thickness * 0.5f);
+            else if (i == 1) // Bottom wall
+                flag_pos = glm::vec3(0.0f, flag_height, -(half_board_h + wall_thickness * 0.5f));
+            else if (i == 2) // Right wall
+                flag_pos = glm::vec3(half_board_w + wall_thickness * 0.5f, flag_height, 0.0f);
+            else // Left wall
+                flag_pos = glm::vec3(-(half_board_w + wall_thickness * 0.5f), flag_height, 0.0f);
+            
+            // Simple flag as a box
+            append_box_prism(vertices, indices,
+                           flag_pos.x, flag_pos.z,
+                           flag_width, flag_width * 0.1f, flag_height * 0.3f,
+                           flag_color);
         }
         
         return {vertices, indices};

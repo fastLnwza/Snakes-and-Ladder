@@ -13,6 +13,7 @@
 #include "../game/minigame/minigame_menu_renderer.h"
 #include "../rendering/text_renderer.h"
 #include "../rendering/mesh.h"
+#include "../rendering/animation_player.h"
 
 #include <glad/glad.h>
 #include <iomanip>
@@ -71,6 +72,36 @@ namespace game
         game::map::render_map(game_state.map_data, projection, view, m_render_state.program, m_render_state.mvp_location);
     }
 
+    namespace
+    {
+        // Helper function to apply animation transforms to model matrix
+        void apply_animation_transform(glm::mat4& model, const AnimationPlayerState& anim_state)
+        {
+            if (animation_player::is_playing(anim_state))
+            {
+                // Try to get root node transform (common node names: "Root", "root", "Armature", etc.)
+                std::vector<std::string> root_node_names = {"Root", "root", "Armature", "armature", "Scene", "scene"};
+                for (const auto& node_name : root_node_names)
+                {
+                    glm::mat4 node_transform = animation_player::get_node_transform(anim_state, node_name);
+                    if (node_transform != glm::mat4(1.0f))
+                    {
+                        model = model * node_transform;
+                        return;
+                    }
+                }
+                
+                // If no root node found, try to apply first available transform
+                // This is a simplified approach - full implementation would use scene graph
+                for (const auto& [node_name, transform] : anim_state.node_transforms)
+                {
+                    model = model * transform;
+                    break; // Use first transform found
+                }
+            }
+        }
+    }
+
     void Renderer::render_player(const glm::mat4& projection, const glm::mat4& view, const GameState& game_state)
     {
         // Render all active players
@@ -98,6 +129,9 @@ namespace game
                 model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
                 model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
                 model = model * model_to_use.base_transform;
+                
+                // Apply animation transforms if available
+                apply_animation_transform(model, game_state.player_animations[i]);
                 
                 const glm::mat4 mvp = projection * view * model;
                 glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -156,6 +190,9 @@ namespace game
                 model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
                 model = model * model_to_use.base_transform;
                 
+                // Apply animation transforms if available
+                apply_animation_transform(model, game_state.player_animations[i]);
+                
                 const glm::mat4 mvp = projection * view * model;
                 glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
                 
@@ -213,6 +250,9 @@ namespace game
                 model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
                 model = model * model_to_use.base_transform;
                 
+                // Apply animation transforms if available
+                apply_animation_transform(model, game_state.player_animations[i]);
+                
                 const glm::mat4 mvp = projection * view * model;
                 glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
                 
@@ -269,6 +309,9 @@ namespace game
                 model = model * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // Stand up
                 model = model * glm::scale(glm::mat4(1.0f), glm::vec3(model_scale));
                 model = model * model_to_use.base_transform;
+                
+                // Apply animation transforms if available
+                apply_animation_transform(model, game_state.player_animations[i]);
                 
                 const glm::mat4 mvp = projection * view * model;
                 glUniformMatrix4fv(m_render_state.mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));

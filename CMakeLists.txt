@@ -117,12 +117,40 @@ endif()
 
 find_package(OpenGL REQUIRED)
 
+# SDL_mixer for audio (supports MP3, OGG, WAV)
+find_package(SDL2_mixer QUIET)
+if(NOT SDL2_mixer_FOUND)
+    # Try to find SDL2_mixer using pkg-config (Linux/macOS)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(SDL2_MIXER QUIET SDL2_mixer)
+        if(SDL2_MIXER_FOUND)
+            set(SDL2_mixer_INCLUDE_DIRS ${SDL2_MIXER_INCLUDE_DIRS})
+            set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIBRARIES})
+            set(SDL2_mixer_FOUND TRUE)
+        endif()
+    endif()
+endif()
+
+# If still not found, provide helpful message
+if(NOT SDL2_mixer_FOUND)
+    message(WARNING "SDL2_mixer not found. Audio features will be disabled.")
+    message(STATUS "On macOS: brew install sdl2_mixer")
+    message(STATUS "On Linux: sudo apt-get install libsdl2-mixer-dev")
+    message(STATUS "On Windows: Download SDL2_mixer development libraries")
+    set(ENABLE_AUDIO OFF)
+else()
+    set(ENABLE_AUDIO ON)
+    message(STATUS "SDL2_mixer found")
+endif()
+
 add_executable(${PROJECT_NAME}
     src/main.cpp
     
     # Core modules
     src/core/camera.cpp
     src/core/window.cpp
+    src/core/audio_manager.cpp
     
     # Utilities
     src/utils/bounds_utils.cpp
@@ -137,6 +165,7 @@ add_executable(${PROJECT_NAME}
     src/rendering/shader.cpp
     src/rendering/texture_loader.cpp
     src/rendering/text_renderer.cpp
+    src/rendering/animation_player.cpp
     
     # Game modules
     src/game/game_state.cpp
@@ -279,6 +308,36 @@ target_link_libraries(${PROJECT_NAME}
         freetype
         ${ASSIMP_TARGET}
 )
+
+# Audio linking and definitions (before platform-specific)
+if(ENABLE_AUDIO AND SDL2_mixer_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_mixer_INCLUDE_DIRS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_AUDIO)
+    # SDL2_mixer depends on SDL2 - link both
+    # Use pkg-config to get both libraries directly
+    find_package(PkgConfig)
+    pkg_check_modules(SDL2_MIXER_PKG sdl2_mixer)
+    pkg_check_modules(SDL2_PKG sdl2)
+    if(SDL2_MIXER_PKG_FOUND AND SDL2_PKG_FOUND)
+        if(SDL2_MIXER_PKG_LIBRARY_DIRS)
+            target_link_directories(${PROJECT_NAME} PRIVATE ${SDL2_MIXER_PKG_LIBRARY_DIRS})
+        endif()
+        if(SDL2_PKG_LIBRARY_DIRS)
+            target_link_directories(${PROJECT_NAME} PRIVATE ${SDL2_PKG_LIBRARY_DIRS})
+        endif()
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_MIXER_PKG_LIBRARIES} ${SDL2_PKG_LIBRARIES})
+    else()
+        # Fallback: link directly
+        if(APPLE)
+            target_link_libraries(${PROJECT_NAME} PRIVATE /opt/homebrew/lib/libSDL2_mixer.dylib /opt/homebrew/lib/libSDL2.dylib)
+        else()
+            target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer SDL2)
+        endif()
+    endif()
+    message(STATUS "Audio enabled: linking SDL2_mixer")
+else()
+    message(STATUS "Audio disabled: SDL2_mixer not found or ENABLE_AUDIO is OFF")
+endif()
 
 # Platform-specific linking and definitions
 if(APPLE)

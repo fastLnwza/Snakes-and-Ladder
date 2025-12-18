@@ -327,6 +327,57 @@ int main(int argc, char* argv[])
         // Load player4 assets
         load_player4_assets(executable_dir, source_dir, game_state);
 
+        // Load audio files
+        std::filesystem::path audio_dir = executable_dir / "assets" / "audio";
+        if (!std::filesystem::exists(audio_dir))
+        {
+            audio_dir = source_dir.parent_path() / "assets" / "audio";
+        }
+        
+        if (game_state.audio_manager.is_available())
+        {
+            // Load BGM
+            std::filesystem::path bgm_path = audio_dir / "bgm.mp3";
+            if (!std::filesystem::exists(bgm_path))
+            {
+                bgm_path = audio_dir / "bgm.ogg";
+            }
+            if (!std::filesystem::exists(bgm_path))
+            {
+                bgm_path = audio_dir / "bgm.wav";
+            }
+            if (std::filesystem::exists(bgm_path))
+            {
+                game_state.audio_manager.load_music(bgm_path.string(), "bgm");
+                game_state.audio_manager.play_music("bgm", -1); // Loop forever
+            }
+            else
+            {
+                std::cout << "Warning: BGM file not found in " << audio_dir << std::endl;
+                std::cout << "  Looking for: bgm.mp3, bgm.ogg, or bgm.wav" << std::endl;
+            }
+            
+            // Load sound effects (optional - will work even if files don't exist)
+            std::vector<std::pair<std::string, std::string>> sounds = {
+                {"dice_roll", "dice_roll.wav"},
+                {"step", "step.wav"},
+                {"ladder", "ladder.wav"},
+                {"snake", "snake.wav"},
+                {"minigame_start", "minigame_start.wav"},
+                {"minigame_success", "minigame_success.wav"},
+                {"minigame_fail", "minigame_fail.wav"}
+            };
+            
+            for (const auto& [name, filename] : sounds)
+            {
+                std::filesystem::path sound_path = audio_dir / filename;
+                if (std::filesystem::exists(sound_path))
+                {
+                    game_state.audio_manager.load_sound(sound_path.string(), name);
+                }
+            }
+        }
+
         // Initialize text renderer
         game::RenderState render_state;
         render_state.program = program;

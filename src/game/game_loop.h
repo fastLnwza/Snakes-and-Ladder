@@ -21,6 +21,7 @@ namespace game
         void update_game_logic(float delta_time);
         void update_minigames(float delta_time);
         void handle_minigame_results(float delta_time);
+        void update_player_animations(float delta_time);
 
         core::Window& m_window;
         core::Camera& m_camera;
