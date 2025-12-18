@@ -372,7 +372,16 @@ namespace game
             
             // Reset turn_finished flag when player starts rolling dice
             // This allows switching to next player when this player finishes their turn
-            m_game_state.turn_finished = false;
+            // BUT: Don't reset if it was set by ladder (ladder case: last_dice_result == 0)
+            // If last_dice_result is 0, it means ladder was used and we should not allow rolling again
+            if (current_player.last_dice_result != 0)
+            {
+                m_game_state.turn_finished = false;
+            }
+            else
+            {
+                std::cout << "[DEBUG] Keeping turn_finished=true (ladder was used, preventing roll)" << std::endl;
+            }
         }
 
         // Handle precision timing input
@@ -1172,6 +1181,9 @@ namespace game
                 bool ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
                 if (ladder_used)
                 {
+                    std::cout << "[DEBUG] Ladder used! Player " << (m_game_state.current_player_index + 1) 
+                              << " from tile " << current_tile << std::endl;
+                    
                     // Play ladder sound
                     m_game_state.audio_manager.play_sound("ladder");
                     
@@ -1179,6 +1191,24 @@ namespace game
                     const int new_tile = get_current_tile(current_player);
                     last_processed_tile_for_player = new_tile;
                     m_game_state.last_processed_tile = new_tile;
+                    
+                    std::cout << "[DEBUG] Player warped to tile " << new_tile << std::endl;
+                    std::cout << "[DEBUG] Before ladder: steps_remaining=" << current_player.steps_remaining 
+                              << ", last_dice_result=" << current_player.last_dice_result 
+                              << ", turn_finished=" << m_game_state.turn_finished << std::endl;
+                    
+                    // Simple logic: After using ladder, force turn to end
+                    // Reset steps and mark turn as finished
+                    current_player.steps_remaining = 0;
+                    current_player.is_stepping = false;
+                    current_player.last_dice_result = 0;  // Prevent rolling again
+                    m_game_state.dice_state.result = 0;  // Clear dice result
+                    m_game_state.dice_state.is_displaying = false;
+                    m_game_state.turn_finished = true;  // Force turn to end
+                    
+                    std::cout << "[DEBUG] After ladder: steps_remaining=" << current_player.steps_remaining 
+                              << ", last_dice_result=" << current_player.last_dice_result 
+                              << ", turn_finished=" << m_game_state.turn_finished << std::endl;
                 }
 
                 const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
@@ -1216,9 +1246,29 @@ namespace game
         
         // Only switch if current player has actually finished their turn
         // AND we haven't already switched this frame (turn_finished prevents multiple switches)
-        // AND current player has rolled dice at least once (last_dice_result > 0) to prevent switching before first roll
+        // Simple logic: 
+        // - Normal case: player has rolled (last_dice_result > 0) and finished walking
+        // - Ladder case: turn_finished is true (set after using ladder)
         const bool player_has_rolled = (current_player.last_dice_result > 0);
         
+        // Debug: Print state before checking switch conditions
+        static int debug_counter = 0;
+        if (debug_counter++ % 60 == 0)  // Print every 60 frames (about once per second)
+        {
+            std::cout << "[DEBUG] Switch check - Player " << (m_game_state.current_player_index + 1)
+                      << ": is_stepping=" << current_player.is_stepping
+                      << ", steps_remaining=" << current_player.steps_remaining
+                      << ", last_dice_result=" << current_player.last_dice_result
+                      << ", dice_rolling=" << m_game_state.dice_state.is_rolling
+                      << ", dice_falling=" << m_game_state.dice_state.is_falling
+                      << ", dice_displaying=" << m_game_state.dice_state.is_displaying
+                      << ", minigame_running=" << minigame_running
+                      << ", tile_processed=" << tile_processed
+                      << ", player_has_rolled=" << player_has_rolled
+                      << ", turn_finished=" << m_game_state.turn_finished << std::endl;
+        }
+        
+        // For normal case: mark turn as finished first
         if (!current_player.is_stepping && 
             current_player.steps_remaining == 0 && 
             !m_game_state.dice_state.is_rolling && 
@@ -1230,8 +1280,32 @@ namespace game
             m_game_state.num_players > 1 &&
             !m_game_state.turn_finished)
         {
-            // Mark turn as finished to prevent multiple switches
+            std::cout << "[DEBUG] Normal case: Marking turn as finished for player " 
+                      << (m_game_state.current_player_index + 1) << std::endl;
+            // Mark turn as finished to prevent multiple switches (for normal case)
             m_game_state.turn_finished = true;
+        }
+        
+        // Now switch if turn is finished (either from normal case or ladder case)
+        // IMPORTANT: 
+        // - Normal case: Only switch if current player has actually rolled (to prevent switching before first roll)
+        // - Ladder case: turn_finished is true and last_dice_result is 0 (ladder was used), switch immediately
+        const bool is_ladder_case = (m_game_state.turn_finished && current_player.last_dice_result == 0 && 
+                                     m_game_state.dice_state.result == 0);
+        const bool can_switch = (player_has_rolled && !is_ladder_case) || is_ladder_case;
+        
+        if (!current_player.is_stepping && 
+            current_player.steps_remaining == 0 && 
+            !m_game_state.dice_state.is_rolling && 
+            !m_game_state.dice_state.is_falling && 
+            !m_game_state.dice_state.is_displaying &&
+            !minigame_running &&
+            tile_processed &&
+            can_switch &&
+            m_game_state.num_players > 1 &&
+            m_game_state.turn_finished)
+        {
+            std::cout << "[DEBUG] Switching player from " << (m_game_state.current_player_index + 1) << std::endl;
             
             // Reset dice state for next player
             m_game_state.dice_state.result = 0;
@@ -1240,6 +1314,7 @@ namespace game
             
             // Switch to next player
             switch_to_next_player(m_game_state);
+            std::cout << "[DEBUG] Switched to player " << (m_game_state.current_player_index + 1) << std::endl;
             
             // Get new player after switching
             auto& new_player = get_current_player(m_game_state);
@@ -1258,8 +1333,11 @@ namespace game
             m_game_state.last_processed_tile = get_current_tile(new_player);
             m_game_state.last_processed_tiles[m_game_state.current_player_index] = m_game_state.last_processed_tile;
             
-            // Keep turn_finished = true to prevent immediate re-switching
-            // It will be reset when new player starts rolling dice (in handle_input when space is pressed)
+            // CRITICAL: Reset turn_finished immediately after switching
+            // This prevents the new player from immediately triggering another switch
+            // The new player needs to roll dice first before turn_finished can be set again
+            m_game_state.turn_finished = false;
+            std::cout << "[DEBUG] Reset turn_finished=false after switching" << std::endl;
         }
         else if (current_player.is_stepping || 
                  current_player.steps_remaining > 0 || 
@@ -1270,6 +1348,10 @@ namespace game
         {
             // Reset turn_finished flag if player is still active
             // This allows switching when player finishes their turn
+            if (m_game_state.turn_finished)
+            {
+                std::cout << "[DEBUG] Resetting turn_finished (player still active)" << std::endl;
+            }
             m_game_state.turn_finished = false;
         }
         else if (player_has_rolled)
