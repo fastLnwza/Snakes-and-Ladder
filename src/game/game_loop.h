@@ -24,9 +24,11 @@ namespace game
         void update_player_animations(float delta_time);
 
         core::Window& m_window;
-        core::Camera& m_camera;
         GameState& m_game_state;
-        RenderState& m_render_state;
+        // Note: m_camera and m_render_state are stored for potential future use
+        // They are currently passed as parameters to render() instead
+        [[maybe_unused]] core::Camera& m_camera;
+        [[maybe_unused]] RenderState& m_render_state;
     };
 }
 
