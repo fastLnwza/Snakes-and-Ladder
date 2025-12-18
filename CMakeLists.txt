@@ -456,15 +456,25 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # Audio linking and definitions (before platform-specific)
-if(ENABLE_AUDIO AND SDL2_mixer_FOUND)
+# CRITICAL: Only enable audio if SDL2_mixer is actually found
+if(SDL2_mixer_FOUND)
+    set(ENABLE_AUDIO ON)
+    message(STATUS "=== Enabling Audio Support ===")
+    
     # Add SDL2_mixer include directories
     if(SDL2_mixer_INCLUDE_DIRS)
         target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_mixer_INCLUDE_DIRS})
         message(STATUS "Added SDL2_mixer include dirs: ${SDL2_mixer_INCLUDE_DIRS}")
     else()
-        message(WARNING "SDL2_mixer found but INCLUDE_DIRS not set")
+        message(FATAL_ERROR "SDL2_mixer found but INCLUDE_DIRS not set! This should not happen.")
     endif()
+    
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_AUDIO)
+    message(STATUS "ENABLE_AUDIO defined for target ${PROJECT_NAME}")
+else()
+    set(ENABLE_AUDIO OFF)
+    message(STATUS "=== Audio Support DISABLED (SDL2_mixer not found) ===")
+endif()
     # SDL2_mixer depends on SDL2 - link both
     # Use pkg-config to get both libraries directly
     find_package(PkgConfig)
