@@ -4,6 +4,20 @@ A modern 3D implementation of the classic Snakes and Ladders board game built wi
 
 ![Game Overview](assets/result/Overview.png)
 
+## 🎥 Demo Video
+
+<video width="800" controls>
+  <source src="assets/result/VDO Gameplay/Gameplay.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<div align="center">
+
+[![Watch on YouTube](https://img.shields.io/badge/▶️%20Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/gI_U13uca3M)
+[![View Raw](https://img.shields.io/badge/📹%20View%20Raw-0052CC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fastLnwza/Pacman-OpenGL/raw/main/assets/result/VDO%20Gameplay/Gameplay.mp4)
+
+</div>
+
 ## 🎮 Overview
 
 This project brings the classic Snakes and Ladders board game to life in a fully 3D environment. Players navigate a 100-tile board, rolling dice to advance while encountering ladders, snakes, minigames, and special tiles that can dramatically change the course of the game.
