@@ -1,0 +1,91 @@
+<h1>🎮 Snakes and Ladders 3D</h1>
+
+<p>A modern 3D implementation of the classic Snakes and Ladders board game built with OpenGL. Experience the traditional board game with enhanced 3D graphics, interactive minigames, and various special tiles that add strategic depth to gameplay.</p>
+
+<h2>🔗 Links</h2>
+<p><strong>GitHub Repository:</strong> <a href="https://github.com/fastLnwza/Pacman-OpenGL" target="_blank">View Source Code</a></p>
+
+<h2>✨ Key Features</h2>
+<ul>
+<li><strong>🎨 3D Graphics</strong>: Beautiful 3D board with animated player models and physics-based dice rolling</li>
+<li><strong>👥 Multiplayer Support</strong>: Play with 2-4 players in turn-based gameplay</li>
+<li><strong>🎯 Interactive Minigames</strong>: 5 different skill-based minigames that reward bonus steps</li>
+<li><strong>⚡ Special Tiles</strong>: Various tile types including portals, traps, bonuses, and more</li>
+<li><strong>🔊 Audio System</strong>: Background music and sound effects with real-time volume controls</li>
+<li><strong>💻 Cross-Platform</strong>: Fully compatible with macOS and Windows</li>
+</ul>
+
+<h2>🎯 How to Play</h2>
+<p><strong>Basic Rules:</strong></p>
+<ol>
+<li>Players take turns rolling a dice (1-6) and moving forward by the rolled number</li>
+<li>Land on special tiles to trigger various effects</li>
+<li>First player to reach tile 100 wins the game</li>
+<li>You must roll the exact number needed to reach tile 100 (overshooting will bounce back)</li>
+</ol>
+
+<h2>🎮 Special Tiles</h2>
+
+<h3>🪜 Ladders (3 tiles)</h3>
+<p>Climb up ladders to advance quickly!</p>
+<ul>
+<li>Tile 7 → Tile 18 (+11 steps)</li>
+<li>Tile 21 → Tile 39 (+18 steps)</li>
+<li>Tile 42 → Tile 63 (+21 steps)</li>
+</ul>
+
+<h3>🐍 Snakes (9 tiles)</h3>
+<p>Slide down snakes and move backward 13-23 steps!</p>
+
+<h3>🎯 Minigames (10 tiles)</h3>
+<p>Complete skill-based challenges to earn bonus steps (+6 if successful):</p>
+<ul>
+<li><strong>Precision Timing</strong>: Stop the timer at exactly 4.99 seconds</li>
+<li><strong>Memory Game</strong>: Remember and repeat a sequence of numbers (3-4 digits)</li>
+<li><strong>Reaction Game</strong>: Guess a number between 1-9 before the AI does</li>
+<li><strong>Math Game</strong>: Solve arithmetic problems within the time limit</li>
+<li><strong>Pattern Game</strong>: Memorize and repeat a sequence of directional inputs (W, S, A, D)</li>
+</ul>
+
+<h3>⚡ Special Activity Tiles</h3>
+<ul>
+<li><strong>Slide</strong> (5 tiles): Move forward 1 additional step</li>
+<li><strong>Portal</strong> (5 tiles): Teleport to a random tile on the board</li>
+<li><strong>Trap</strong> (5 tiles): Skip your next turn</li>
+<li><strong>Bonus</strong> (5 tiles): Receive 1-6 random bonus steps</li>
+<li><strong>Skip Turn</strong> (3 tiles): Immediately skip your turn</li>
+<li><strong>Walk Backward</strong> (3 tiles): Move backward 3 steps</li>
+</ul>
+
+<h2>⌨️ Controls</h2>
+<p><strong>Main Controls:</strong></p>
+<ul>
+<li><strong>Space</strong>: Roll dice / Confirm minigame actions</li>
+<li><strong>+ / -</strong>: Increase / Decrease volume</li>
+<li><strong>T</strong>: Toggle debug teleport mode</li>
+</ul>
+
+<h2>💻 System Requirements</h2>
+<ul>
+<li><strong>macOS</strong>: macOS 10.13 or later</li>
+<li><strong>Windows</strong>: Windows 10 or later</li>
+<li>OpenGL 3.3+ compatible graphics card</li>
+</ul>
+
+<h2>👥 Credits</h2>
+<p><strong>Developers:</strong></p>
+<ul>
+<li>65070501006 - Jarukit Pan-Iam</li>
+<li>65070501034 - Nanthikarn Sakulnet</li>
+</ul>
+
+<p><strong>3D Models:</strong></p>
+<ul>
+<li>Dice model: <a href="https://skfb.ly/Ftpp" target="_blank">Sketchfab</a></li>
+<li>Player models: <a href="https://sketchfab.com/Inuciian" target="_blank">Inuciian (Sketchfab)</a></li>
+</ul>
+
+<p><strong>Source Code:</strong> <a href="https://github.com/fastLnwza/Pacman-OpenGL" target="_blank">GitHub Repository</a></p>
+
+<p><strong>Enjoy the game! 🎲🎮</strong></p>
+

@@ -29,7 +29,7 @@ This project brings the classic Snakes and Ladders board game to life in a fully
 - **Interactive Minigames**: 5 different skill-based minigames that reward bonus steps
 - **Special Tiles**: Various tile types including portals, traps, bonuses, and more
 - **Audio System**: Background music and sound effects with real-time volume controls
-- **Cross-Platform**: Fully compatible with macOS and Windows
+- **Cross-Platform**: Fully compatible with macOS and Windows (builds available via GitHub Actions)
 
 ## 🎯 Gameplay
 

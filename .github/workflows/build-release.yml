@@ -1,0 +1,203 @@
+name: Build and Package for itch.io
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build (all, windows, macos)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - macos
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    if: github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows' || github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install SDL2_mixer
+        run: |
+          choco install sdl2-mixer -y
+      
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build
+        run: |
+          cmake --build build --config Release
+      
+      - name: Create Windows package
+        run: |
+          mkdir itch_package_windows
+          copy build\Release\PacmanOpenGL.exe itch_package_windows\
+          xcopy /E /I shaders itch_package_windows\shaders
+          xcopy /E /I assets itch_package_windows\assets
+          if exist build\pixel-game.regular.otf copy build\pixel-game.regular.otf itch_package_windows\
+          if exist assets\fonts\pixel-game.regular.otf copy assets\fonts\pixel-game.regular.otf itch_package_windows\
+      
+      - name: Copy DLLs (if needed)
+        run: |
+          # SDL2 DLLs might be needed
+          if exist "C:\tools\vcpkg\installed\x64-windows\bin\SDL2.dll" (
+            copy "C:\tools\vcpkg\installed\x64-windows\bin\SDL2.dll" itch_package_windows\
+            copy "C:\tools\vcpkg\installed\x64-windows\bin\SDL2_mixer.dll" itch_package_windows\
+          )
+      
+      - name: Create README
+        run: |
+          echo Snakes and Ladders 3D - Windows > itch_package_windows\README.txt
+          echo. >> itch_package_windows\README.txt
+          echo HOW TO RUN: >> itch_package_windows\README.txt
+          echo 1. Double-click PacmanOpenGL.exe to launch the game >> itch_package_windows\README.txt
+          echo 2. If Windows Defender blocks it, click "More info" then "Run anyway" >> itch_package_windows\README.txt
+          echo. >> itch_package_windows\README.txt
+          echo CONTROLS: >> itch_package_windows\README.txt
+          echo - Space: Roll dice / Confirm actions >> itch_package_windows\README.txt
+          echo - +/-: Adjust volume >> itch_package_windows\README.txt
+          echo - T: Debug teleport mode >> itch_package_windows\README.txt
+          echo. >> itch_package_windows\README.txt
+          echo SYSTEM REQUIREMENTS: >> itch_package_windows\README.txt
+          echo - Windows 10 or later >> itch_package_windows\README.txt
+          echo - OpenGL 3.3+ compatible graphics card >> itch_package_windows\README.txt
+      
+      - name: Create ZIP
+        run: |
+          powershell Compress-Archive -Path itch_package_windows\* -DestinationPath SnakesAndLadders3D_windows_v${{ github.ref_name }}.zip -Force
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: SnakesAndLadders3D_windows_*.zip
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    if: github.event.inputs.platform == 'all' || github.event.inputs.platform == 'macos' || github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install SDL2_mixer
+        run: |
+          brew install sdl2_mixer
+      
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      
+      - name: Build
+        run: |
+          cmake --build build --config Release
+      
+      - name: Create macOS package
+        run: |
+          mkdir -p itch_package_mac/SnakesAndLadders3D.app/Contents/MacOS
+          mkdir -p itch_package_mac/SnakesAndLadders3D.app/Contents/Resources
+          
+          cp build/PacmanOpenGL itch_package_mac/SnakesAndLadders3D.app/Contents/MacOS/SnakesAndLadders3D
+          chmod +x itch_package_mac/SnakesAndLadders3D.app/Contents/MacOS/SnakesAndLadders3D
+          
+          cp -r build/shaders itch_package_mac/SnakesAndLadders3D.app/Contents/Resources/
+          cp -r assets itch_package_mac/SnakesAndLadders3D.app/Contents/Resources/
+          
+          if [ -f "build/pixel-game.regular.otf" ]; then
+            cp build/pixel-game.regular.otf itch_package_mac/SnakesAndLadders3D.app/Contents/Resources/
+          elif [ -f "assets/fonts/pixel-game.regular.otf" ]; then
+            cp assets/fonts/pixel-game.regular.otf itch_package_mac/SnakesAndLadders3D.app/Contents/Resources/
+          fi
+          
+          # Create Info.plist
+          cat > itch_package_mac/SnakesAndLadders3D.app/Contents/Info.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>SnakesAndLadders3D</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.snakesandladders3d</string>
+              <key>CFBundleName</key>
+              <string>SnakesAndLadders3D</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>10.13</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+      
+      - name: Create README
+        run: |
+          cat > itch_package_mac/README.txt << EOF
+          Snakes and Ladders 3D - macOS
+          
+          HOW TO RUN:
+          1. Double-click SnakesAndLadders3D.app to launch the game
+          2. If you see a security warning, right-click the app and select "Open"
+          3. You may need to allow the app in System Preferences > Security & Privacy
+          
+          CONTROLS:
+          - Space: Roll dice / Confirm actions
+          - +/-: Adjust volume
+          - T: Debug teleport mode
+          
+          SYSTEM REQUIREMENTS:
+          - macOS 10.13 or later
+          - OpenGL 3.3+ compatible graphics card
+          
+          Enjoy the game!
+          EOF
+      
+      - name: Create ZIP
+        run: |
+          cd itch_package_mac
+          zip -r ../SnakesAndLadders3D_mac_v${{ github.ref_name }}.zip SnakesAndLadders3D.app README.txt
+          cd ..
+      
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: SnakesAndLadders3D_mac_*.zip
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos]
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            windows-build/*.zip
+            macos-build/*.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
