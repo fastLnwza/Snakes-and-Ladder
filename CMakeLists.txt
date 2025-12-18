@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.20)
 
+# Check if vcpkg toolchain is being used
+if(CMAKE_TOOLCHAIN_FILE)
+    message(STATUS "Using vcpkg toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+    if(DEFINED ENV{VCPKG_ROOT})
+        message(STATUS "VCPKG_ROOT environment variable: $ENV{VCPKG_ROOT}")
+    endif()
+endif()
+
 project(SnakesAndLadder VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -139,6 +147,7 @@ endif()
 find_package(OpenGL REQUIRED)
 
 # SDL_mixer for audio (supports MP3, OGG, WAV)
+# Try to find SDL2_mixer - vcpkg toolchain file should handle this on Windows
 find_package(SDL2_mixer QUIET)
 if(NOT SDL2_mixer_FOUND)
     # Try to find SDL2_mixer using pkg-config (Linux/macOS)
@@ -149,6 +158,7 @@ if(NOT SDL2_mixer_FOUND)
             set(SDL2_mixer_INCLUDE_DIRS ${SDL2_MIXER_INCLUDE_DIRS})
             set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIBRARIES})
             set(SDL2_mixer_FOUND TRUE)
+            message(STATUS "Found SDL2_mixer via pkg-config")
         endif()
     endif()
 endif()
@@ -178,33 +188,53 @@ endif()
 
 # Windows: Try to find SDL2_mixer from vcpkg if not found
 if(WIN32 AND NOT SDL2_mixer_FOUND)
-    # Try vcpkg paths
+    # Try vcpkg paths - check multiple possible locations
+    set(VCPKG_ROOT "")
     if(DEFINED ENV{VCPKG_ROOT})
         set(VCPKG_ROOT $ENV{VCPKG_ROOT})
     elseif(EXISTS "C:/vcpkg")
         set(VCPKG_ROOT "C:/vcpkg")
+    elseif(EXISTS "D:/vcpkg")
+        set(VCPKG_ROOT "D:/vcpkg")
     endif()
     
-    if(VCPKG_ROOT AND EXISTS "${VCPKG_ROOT}/installed/x64-windows/include/SDL2/SDL_mixer.h")
-        set(SDL2_mixer_INCLUDE_DIRS "${VCPKG_ROOT}/installed/x64-windows/include")
-        find_library(SDL2_MIXER_LIB 
-            PATHS "${VCPKG_ROOT}/installed/x64-windows/lib"
-            NAMES SDL2_mixer
-            NO_DEFAULT_PATH
-        )
-        if(SDL2_MIXER_LIB)
-            set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIB})
-            # Also find SDL2
-            find_library(SDL2_LIB 
-                PATHS "${VCPKG_ROOT}/installed/x64-windows/lib"
-                NAMES SDL2
+    message(STATUS "Checking for vcpkg at: ${VCPKG_ROOT}")
+    
+    if(VCPKG_ROOT)
+        # Check for SDL2_mixer in vcpkg installed directory
+        set(VCPKG_INSTALLED_DIR "${VCPKG_ROOT}/installed/x64-windows")
+        if(EXISTS "${VCPKG_INSTALLED_DIR}/include/SDL2/SDL_mixer.h")
+            set(SDL2_mixer_INCLUDE_DIRS "${VCPKG_INSTALLED_DIR}/include")
+            message(STATUS "Found SDL2_mixer.h at: ${VCPKG_INSTALLED_DIR}/include/SDL2/SDL_mixer.h")
+            
+            # Find libraries
+            find_library(SDL2_MIXER_LIB 
+                PATHS "${VCPKG_INSTALLED_DIR}/lib"
+                NAMES SDL2_mixer SDL2_mixer.lib
                 NO_DEFAULT_PATH
             )
-            if(SDL2_LIB)
-                list(APPEND SDL2_mixer_LIBRARIES ${SDL2_LIB})
+            if(SDL2_MIXER_LIB)
+                set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIB})
+                message(STATUS "Found SDL2_mixer library: ${SDL2_MIXER_LIB}")
+                
+                # Also find SDL2
+                find_library(SDL2_LIB 
+                    PATHS "${VCPKG_INSTALLED_DIR}/lib"
+                    NAMES SDL2 SDL2.lib
+                    NO_DEFAULT_PATH
+                )
+                if(SDL2_LIB)
+                    list(APPEND SDL2_mixer_LIBRARIES ${SDL2_LIB})
+                    message(STATUS "Found SDL2 library: ${SDL2_LIB}")
+                endif()
+                
+                set(SDL2_mixer_FOUND TRUE)
+                message(STATUS "Found SDL2_mixer via vcpkg at ${VCPKG_ROOT}")
+            else()
+                message(WARNING "SDL2_mixer.h found but library not found in ${VCPKG_INSTALLED_DIR}/lib")
             endif()
-            set(SDL2_mixer_FOUND TRUE)
-            message(STATUS "Found SDL2_mixer via vcpkg at ${VCPKG_ROOT}")
+        else()
+            message(STATUS "SDL2_mixer.h not found at ${VCPKG_INSTALLED_DIR}/include/SDL2/SDL_mixer.h")
         endif()
     endif()
 endif()
@@ -390,7 +420,13 @@ target_link_libraries(${PROJECT_NAME}
 
 # Audio linking and definitions (before platform-specific)
 if(ENABLE_AUDIO AND SDL2_mixer_FOUND)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_mixer_INCLUDE_DIRS})
+    # Add SDL2_mixer include directories
+    if(SDL2_mixer_INCLUDE_DIRS)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_mixer_INCLUDE_DIRS})
+        message(STATUS "Added SDL2_mixer include dirs: ${SDL2_mixer_INCLUDE_DIRS}")
+    else()
+        message(WARNING "SDL2_mixer found but INCLUDE_DIRS not set")
+    endif()
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_AUDIO)
     # SDL2_mixer depends on SDL2 - link both
     # Use pkg-config to get both libraries directly

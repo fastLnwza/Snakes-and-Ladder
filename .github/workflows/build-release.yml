@@ -35,10 +35,15 @@ jobs:
       - name: Install SDL2_mixer via vcpkg
         run: |
           C:\vcpkg\vcpkg.exe install sdl2-mixer:x64-windows
+          echo "Checking installed files..."
+          dir C:\vcpkg\installed\x64-windows\include\SDL2
+          dir C:\vcpkg\installed\x64-windows\lib\SDL2*
       
       - name: Configure CMake
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
       
       - name: Build
         run: |
@@ -102,6 +107,8 @@ jobs:
       - name: Install SDL2_mixer
         run: |
           brew install sdl2_mixer
+          echo "Checking installed files..."
+          ls -la /opt/homebrew/include/SDL2/ 2>/dev/null || ls -la /usr/local/include/SDL2/ 2>/dev/null || echo "SDL2 include not found"
       
       - name: Configure CMake
         run: |
