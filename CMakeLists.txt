@@ -471,10 +471,7 @@ if(SDL2_mixer_FOUND)
     
     target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_AUDIO)
     message(STATUS "ENABLE_AUDIO defined for target ${PROJECT_NAME}")
-else()
-    set(ENABLE_AUDIO OFF)
-    message(STATUS "=== Audio Support DISABLED (SDL2_mixer not found) ===")
-endif()
+    
     # SDL2_mixer depends on SDL2 - link both
     # Use pkg-config to get both libraries directly
     find_package(PkgConfig)
@@ -489,16 +486,22 @@ endif()
         endif()
         target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_MIXER_PKG_LIBRARIES} ${SDL2_PKG_LIBRARIES})
     else()
-        # Fallback: link directly
-        if(APPLE)
-            target_link_libraries(${PROJECT_NAME} PRIVATE /opt/homebrew/lib/libSDL2_mixer.dylib /opt/homebrew/lib/libSDL2.dylib)
+        # Fallback: link directly using found libraries
+        if(SDL2_mixer_LIBRARIES)
+            target_link_libraries(${PROJECT_NAME} PRIVATE ${SDL2_mixer_LIBRARIES})
         else()
-            target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer SDL2)
+            # Last resort: try common paths
+            if(APPLE)
+                target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer SDL2)
+            else()
+                target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer SDL2)
+            endif()
         endif()
     endif()
     message(STATUS "Audio enabled: linking SDL2_mixer")
 else()
-    message(STATUS "Audio disabled: SDL2_mixer not found or ENABLE_AUDIO is OFF")
+    set(ENABLE_AUDIO OFF)
+    message(STATUS "=== Audio Support DISABLED (SDL2_mixer not found) ===")
 endif()
 
 # Platform-specific linking and definitions

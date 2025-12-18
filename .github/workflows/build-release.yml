@@ -44,10 +44,16 @@ jobs:
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake `
             -DVCPKG_TARGET_TRIPLET=x64-windows 2>&1 | Tee-Object -FilePath cmake_output.log
+          $CMAKE_EXIT_CODE = $LASTEXITCODE
           Write-Host "=== SDL2_mixer related messages ==="
           Select-String -Path cmake_output.log -Pattern "sdl|audio|mixer" -CaseSensitive:$false | ForEach-Object { Write-Host $_.Line }
           Write-Host "=== Final CMake status ==="
           Get-Content cmake_output.log -Tail 30
+          if ($CMAKE_EXIT_CODE -ne 0) {
+            Write-Host "CMake configure failed with exit code $CMAKE_EXIT_CODE"
+            exit $CMAKE_EXIT_CODE
+          }
+          Write-Host "CMake configure completed successfully"
       
       - name: Build
         run: |
@@ -118,10 +124,16 @@ jobs:
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_FLAGS="-Wno-deprecated-copy" 2>&1 | tee cmake_output.log
+          CMAKE_EXIT_CODE=${PIPESTATUS[0]}
           echo "=== SDL2_mixer related messages ==="
           grep -i "sdl\|audio\|mixer" cmake_output.log || echo "No SDL2_mixer messages found"
           echo "=== Final CMake status ==="
           tail -30 cmake_output.log
+          if [ $CMAKE_EXIT_CODE -ne 0 ]; then
+            echo "CMake configure failed with exit code $CMAKE_EXIT_CODE"
+            exit $CMAKE_EXIT_CODE
+          fi
+          echo "CMake configure completed successfully"
       
       - name: Build
         run: |

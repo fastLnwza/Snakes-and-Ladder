@@ -15,6 +15,7 @@ A modern 3D implementation of the classic Snakes and Ladders board game built wi
 
 [![Watch on YouTube](https://img.shields.io/badge/▶️%20Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/gI_U13uca3M)
 [![View Raw](https://img.shields.io/badge/📹%20View%20Raw-0052CC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fastLnwza/Snakes-and-Ladder/raw/main/assets/result/VDO%20Gameplay/Gameplay.mp4)
+[![Play on itch.io](https://img.shields.io/badge/🎮%20Play%20on%20itch.io-FA5C5C?style=for-the-badge&logo=itchdotio&logoColor=white)](https://kurocucu.itch.io/snakes-and-ladders-3d-with-opengl)
 
 </div>
 
