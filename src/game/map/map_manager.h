@@ -43,6 +43,10 @@ namespace game::map
     // Returns true if player was warped, false otherwise
     bool check_and_apply_ladder(player::PlayerState& player_state, int current_tile, int& last_processed_tile);
 
+    // Check if player is on a snake tile and warp them if needed (going backward)
+    // Returns true if player was warped, false otherwise
+    bool check_and_apply_snake(player::PlayerState& player_state, int current_tile, int& last_processed_tile);
+
     // Check tile activity and trigger appropriate minigame or special action
     // Returns true if a minigame was triggered or special action was applied
     bool check_tile_activity(int current_tile, 

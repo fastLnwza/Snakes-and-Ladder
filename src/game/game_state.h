@@ -47,7 +47,7 @@ namespace game
         // Players (up to 4 players)
         std::array<game::player::PlayerState, 4> players{};
         int current_player_index = 0;  // 0-based index of current player
-        int num_players = 1;  // Number of active players (1-4)
+        int num_players = 2;  // Number of active players (2-4, minimum 2)
         float player_ground_y = 0.0f;
         float player_radius = 0.0f;
         Mesh sphere_mesh{};  // Fallback mesh if model is not loaded

@@ -48,6 +48,24 @@ namespace game::map
         return false;
     }
 
+    bool check_and_apply_snake(player::PlayerState& player_state, int current_tile, int& last_processed_tile)
+    {
+        for (const auto& link : BOARD_LINKS)
+        {
+            if (!link.is_ladder && link.start == current_tile)
+            {
+                // Found a snake - warp player to the end tile (going backward)
+                player::warp_to_tile(player_state, link.end);
+                last_processed_tile = link.end;
+                // Stop player movement after using snake - don't continue walking
+                player_state.steps_remaining = 0;
+                player_state.is_stepping = false;
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool check_tile_activity(int current_tile, 
                             int& last_processed_tile,
                             bool minigame_running,

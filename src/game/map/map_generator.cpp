@@ -314,38 +314,36 @@ namespace game::map
             }
             case ActivityKind::MiniGame:
             {
-                const float orb_radius = tile_size * 0.2f;
-                const auto [orb_vertices, orb_indices] = build_sphere(orb_radius, 20, 14, {0.72f, 0.35f, 0.92f});
+                // Precision Timing Game - Clock/Timer icon
+                const float clock_radius = tile_size * 0.2f;
+                const glm::vec3 clock_color = {0.72f, 0.35f, 0.92f};
+                const glm::vec3 clock_center = tile_center + glm::vec3(0.0f, tile_size * 0.18f, 0.0f);
+                // Clock face (sphere)
+                const auto [clock_vertices, clock_indices] = build_sphere(clock_radius, 20, 14, clock_color);
                 const std::size_t offset = vertices.size();
-                const glm::vec3 orb_center = tile_center + glm::vec3(0.0f, tile_size * 0.22f, 0.0f);
-                for (auto vertex : orb_vertices)
+                for (auto vertex : clock_vertices)
                 {
-                    vertex.position += orb_center;
+                    vertex.position += clock_center;
                     vertices.push_back(vertex);
                 }
-                for (unsigned int idx : orb_indices)
+                for (unsigned int idx : clock_indices)
                 {
                     indices.push_back(static_cast<unsigned int>(offset + idx));
                 }
-
+                // Clock hands
+                append_box_prism(vertices, indices, clock_center.x, clock_center.z + clock_radius * 0.3f,
+                               clock_radius * 0.05f, clock_radius * 0.4f, clock_radius * 0.1f, {1.0f, 1.0f, 1.0f});
+                append_box_prism(vertices, indices, clock_center.x + clock_radius * 0.2f, clock_center.z,
+                               clock_radius * 0.3f, clock_radius * 0.05f, clock_radius * 0.1f, {1.0f, 1.0f, 1.0f});
+                // Ring around clock
                 const glm::vec3 ring_color = {0.32f, 0.78f, 0.95f};
-                append_box_prism(vertices,
-                                 indices,
-                                 tile_center.x,
-                                 tile_center.z,
-                                 tile_size * 0.45f,
-                                 tile_size * 0.08f,
-                                 tile_size * 0.05f,
-                                 ring_color);
+                append_box_prism(vertices, indices, tile_center.x, tile_center.z,
+                               tile_size * 0.45f, tile_size * 0.08f, tile_size * 0.05f, ring_color);
                 const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.25f,
                                                                       tile_size * 0.04f,
                                                                       tile_size * 0.25f);
-                append_letter_label(vertices,
-                                    indices,
-                                    "PT",
-                                    label_start,
-                                    tile_size * 0.035f,
-                                    glm::vec3(0.95f, 0.95f, 0.95f));
+                append_letter_label(vertices, indices, "PT", label_start,
+                                   tile_size * 0.035f, glm::vec3(0.95f, 0.95f, 0.95f));
                 break;
             }
             case ActivityKind::MemoryGame:
@@ -378,9 +376,163 @@ namespace game::map
                                     glm::vec3(0.98f, 0.95f, 0.6f));
                 break;
             }
+            case ActivityKind::ReactionGame:
+            {
+                // Lightning bolt icon for reaction game
+                const glm::vec3 bolt_color = {1.0f, 0.9f, 0.2f};
+                const float bolt_size = tile_size * 0.25f;
+                const glm::vec3 bolt_center = tile_center + glm::vec3(0.0f, tile_size * 0.15f, 0.0f);
+                // Create a lightning bolt using multiple boxes
+                append_box_prism(vertices, indices, bolt_center.x, bolt_center.z - bolt_size * 0.3f,
+                               bolt_size * 0.15f, bolt_size * 0.4f, bolt_size * 0.3f, bolt_color);
+                append_box_prism(vertices, indices, bolt_center.x + bolt_size * 0.2f, bolt_center.z,
+                               bolt_size * 0.4f, bolt_size * 0.15f, bolt_size * 0.3f, bolt_color);
+                append_box_prism(vertices, indices, bolt_center.x, bolt_center.z + bolt_size * 0.3f,
+                               bolt_size * 0.15f, bolt_size * 0.4f, bolt_size * 0.3f, bolt_color);
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices, indices, "REA", label_start,
+                                   tile_size * 0.03f, glm::vec3(1.0f, 0.95f, 0.3f));
+                break;
+            }
+            case ActivityKind::MathGame:
+            {
+                // Calculator/math icon
+                const glm::vec3 calc_color = {0.4f, 0.7f, 0.95f};
+                const float calc_size = tile_size * 0.3f;
+                const glm::vec3 calc_center = tile_center + glm::vec3(0.0f, tile_size * 0.12f, 0.0f);
+                // Calculator body
+                append_box_prism(vertices, indices, calc_center.x, calc_center.z,
+                               calc_size, calc_size * 0.7f, calc_size * 0.2f, calc_color);
+                // Screen
+                append_box_prism(vertices, indices, calc_center.x, calc_center.z + calc_size * 0.25f,
+                               calc_size * 0.7f, calc_size * 0.15f, calc_size * 0.05f, {0.1f, 0.1f, 0.15f});
+                // Buttons (small squares)
+                for (int i = 0; i < 4; ++i)
+                {
+                    float x_offset = (i % 2 == 0) ? -calc_size * 0.2f : calc_size * 0.2f;
+                    float z_offset = (i < 2) ? -calc_size * 0.15f : -calc_size * 0.35f;
+                    append_box_prism(vertices, indices, calc_center.x + x_offset, calc_center.z + z_offset,
+                                   calc_size * 0.15f, calc_size * 0.15f, calc_size * 0.05f, {0.2f, 0.2f, 0.3f});
+                }
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices, indices, "MATH", label_start,
+                                   tile_size * 0.025f, glm::vec3(0.5f, 0.8f, 1.0f));
+                break;
+            }
+            case ActivityKind::PatternGame:
+            {
+                // Pattern matching icon - sequence of colored blocks
+                const float block_size = tile_size * 0.12f;
+                const float block_height = tile_size * 0.1f;
+                std::array<glm::vec3, 4> pattern_colors = {{
+                    {1.0f, 0.3f, 0.3f},  // Red
+                    {0.3f, 1.0f, 0.3f},  // Green
+                    {0.3f, 0.3f, 1.0f},  // Blue
+                    {1.0f, 1.0f, 0.3f}   // Yellow
+                }};
+                for (int i = 0; i < 4; ++i)
+                {
+                    float x_offset = (static_cast<float>(i) - 1.5f) * block_size * 1.2f;
+                    const glm::vec3 block_center = tile_center + glm::vec3(x_offset, block_height * 0.5f, -tile_size * 0.15f);
+                    append_box_prism(vertices, indices, block_center.x, block_center.z,
+                                   block_size, block_size, block_height, pattern_colors[i]);
+                }
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices, indices, "PAT", label_start,
+                                   tile_size * 0.03f, glm::vec3(0.95f, 0.95f, 0.6f));
+                break;
+            }
+            case ActivityKind::SkipTurn:
+            {
+                // Stop sign / X icon for skip turn
+                const glm::vec3 stop_color = {0.9f, 0.2f, 0.2f};
+                const float stop_size = tile_size * 0.25f;
+                const glm::vec3 stop_center = tile_center + glm::vec3(0.0f, tile_size * 0.15f, 0.0f);
+                // Create X shape using two rotated boxes
+                append_box_prism(vertices, indices, stop_center.x, stop_center.z,
+                               stop_size * 0.3f, stop_size * 0.15f, stop_size * 0.2f, stop_color);
+                append_box_prism(vertices, indices, stop_center.x, stop_center.z,
+                               stop_size * 0.15f, stop_size * 0.3f, stop_size * 0.2f, stop_color);
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices, indices, "SKIP", label_start,
+                                   tile_size * 0.025f, glm::vec3(1.0f, 0.3f, 0.3f));
+                break;
+            }
+            case ActivityKind::WalkBackward:
+            {
+                // Arrow pointing backward icon
+                const glm::vec3 arrow_color = {0.85f, 0.4f, 0.2f};
+                const float arrow_size = tile_size * 0.3f;
+                const glm::vec3 arrow_center = tile_center + glm::vec3(0.0f, tile_size * 0.12f, 0.0f);
+                // Arrow body
+                append_box_prism(vertices, indices, arrow_center.x, arrow_center.z,
+                               arrow_size * 0.6f, arrow_size * 0.2f, arrow_size * 0.15f, arrow_color);
+                // Arrow head (pointing left/backward)
+                append_pyramid(vertices, indices,
+                             arrow_center + glm::vec3(-arrow_size * 0.35f, arrow_size * 0.08f, 0.0f),
+                             arrow_size * 0.25f, arrow_size * 0.2f, arrow_color);
+                const glm::vec3 label_start = tile_center + glm::vec3(-tile_size * 0.28f,
+                                                                      tile_size * 0.04f,
+                                                                      tile_size * 0.25f);
+                append_letter_label(vertices, indices, "BACK", label_start,
+                                   tile_size * 0.025f, glm::vec3(0.95f, 0.5f, 0.3f));
+                break;
+            }
             case ActivityKind::None:
             default:
                 break;
+            }
+        }
+
+        void append_snake_between_tiles(std::vector<Vertex>& vertices,
+                                        std::vector<unsigned int>& indices,
+                                        const BoardLink& link,
+                                        float surface_height)
+        {
+            glm::vec3 start = tile_center_world(link.start, surface_height);
+            glm::vec3 end = tile_center_world(link.end, surface_height);
+            glm::vec3 forward = end - start;
+            const float span = glm::length(forward);
+            if (span < 1e-3f)
+            {
+                return;
+            }
+            forward /= span;
+            const glm::vec3 up(0.0f, 1.0f, 0.0f);
+            glm::vec3 right = glm::cross(up, forward);
+            if (glm::dot(right, right) < 1e-6f)
+            {
+                right = glm::vec3(1.0f, 0.0f, 0.0f);
+            }
+            right = glm::normalize(right);
+            const glm::vec3 mid = 0.5f * (start + end);
+
+            // Snake body - curved segments
+            const int segment_count = std::max(5, static_cast<int>(span / (TILE_SIZE * 0.3f)));
+            const float snake_radius = TILE_SIZE * 0.08f;
+            const glm::vec3 snake_color = link.color;
+
+            // Create wavy snake body
+            for (int i = 0; i < segment_count; ++i)
+            {
+                const float t = static_cast<float>(i) / static_cast<float>(segment_count - 1);
+                glm::vec3 segment_center = start + forward * (t * span);
+                // Add slight wave to snake body
+                float wave_offset = std::sin(t * 3.14159f * 2.0f) * TILE_SIZE * 0.1f;
+                segment_center += right * wave_offset;
+                segment_center.y += surface_height * 0.3f + std::sin(t * 3.14159f) * TILE_SIZE * 0.05f;
+                
+                // Snake body segment (cylinder-like)
+                append_box_prism(vertices, indices, segment_center.x, segment_center.z,
+                               snake_radius * 1.5f, snake_radius * 1.5f, snake_radius * 0.8f, snake_color);
             }
         }
 
@@ -566,6 +718,11 @@ namespace game::map
             {
                 tile_kinds[link.start] = TileKind::LadderBase;
             }
+            else
+            {
+                // Mark snake head tiles
+                tile_kinds[link.start] = TileKind::SnakeHead;
+            }
         }
 
         // Enhanced tile colors with better contrast and vibrancy
@@ -595,6 +752,10 @@ namespace game::map
                 break;
             case TileKind::LadderBase:
                 color = ladder_color;
+                break;
+            case TileKind::SnakeHead:
+                // Snake head tiles - make them more distinct with red-orange color
+                color = {0.85f, 0.3f, 0.25f};  // Red-orange for snake head
                 break;
             default:
                 break;
@@ -650,6 +811,35 @@ namespace game::map
             }
 
             append_tile_number(vertices, indices, tile, center, tile_size, digit_color);
+            
+            // Add activity icons for special tiles
+            append_activity_icon(vertices, indices, activity, center, tile_size);
+            
+            // Add snake head icon for snake tiles
+            if (tile_kinds[tile] == TileKind::SnakeHead)
+            {
+                // Snake head icon - snake head shape
+                const glm::vec3 snake_color = {0.75f, 0.2f, 0.2f};
+                const float snake_size = tile_size * 0.25f;
+                const glm::vec3 snake_center = center + glm::vec3(0.0f, tile_size * 0.15f, 0.0f);
+                // Snake head (rounded box)
+                append_box_prism(vertices, indices, snake_center.x, snake_center.z,
+                               snake_size, snake_size * 0.7f, snake_size * 0.2f, snake_color);
+                // Eyes
+                append_box_prism(vertices, indices, snake_center.x - snake_size * 0.15f, snake_center.z + snake_size * 0.2f,
+                               snake_size * 0.1f, snake_size * 0.1f, snake_size * 0.05f, {1.0f, 1.0f, 1.0f});
+                append_box_prism(vertices, indices, snake_center.x + snake_size * 0.15f, snake_center.z + snake_size * 0.2f,
+                               snake_size * 0.1f, snake_size * 0.1f, snake_size * 0.05f, {1.0f, 1.0f, 1.0f});
+                // Tongue (arrow pointing down)
+                append_pyramid(vertices, indices,
+                             snake_center + glm::vec3(0.0f, -snake_size * 0.15f, -snake_size * 0.35f),
+                             snake_size * 0.15f, snake_size * 0.2f, {0.9f, 0.3f, 0.3f});
+                const glm::vec3 label_start = center + glm::vec3(-tile_size * 0.28f,
+                                                                  tile_size * 0.04f,
+                                                                  tile_size * 0.25f);
+                append_letter_label(vertices, indices, "SNAKE", label_start,
+                                   tile_size * 0.02f, glm::vec3(0.95f, 0.3f, 0.3f));
+            }
         }
 
         for (const auto& link : BOARD_LINKS)
@@ -657,6 +847,11 @@ namespace game::map
             if (link.is_ladder)
             {
                 append_ladder_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
+            }
+            else
+            {
+                // Render snake connections
+                append_snake_between_tiles(vertices, indices, link, tile_surface_offset + 0.05f);
             }
         }
         

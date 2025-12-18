@@ -112,7 +112,8 @@ namespace game
                 // Number of players
                 if (left_pressed && !menu_left_was_pressed)
                 {
-                    m_game_state.menu_state.num_players = std::max(1, m_game_state.menu_state.num_players - 1);
+                    // Minimum 2 players (ห้ามต่ำกว่า 2)
+                    m_game_state.menu_state.num_players = std::max(2, m_game_state.menu_state.num_players - 1);
                 }
                 if (right_pressed && !menu_right_was_pressed)
                 {
@@ -759,9 +760,18 @@ namespace game
                     int requested_tile = std::stoi(m_game_state.debug_warp_state.buffer);
                     int zero_based_tile = (requested_tile <= 0) ? 0 : requested_tile - 1;
                     int target_tile = std::clamp(zero_based_tile, 0, m_game_state.final_tile_index);
-                    warp_to_tile(get_current_player(m_game_state), target_tile);
+                    auto& warped_player = get_current_player(m_game_state);
+                    warp_to_tile(warped_player, target_tile);
+                    
+                    // Reset last_processed_tile to trigger tile activity check after warp
+                    // Set to a value that will make current_tile != last_processed_tile_for_player
                     m_game_state.last_processed_tile = -1;
-                    get_current_player(m_game_state).previous_space_state = false;
+                    m_game_state.last_processed_tiles[m_game_state.current_player_index] = -1;
+                    
+                    // Ensure player is stopped so tile activity can be checked
+                    warped_player.is_stepping = false;
+                    warped_player.steps_remaining = 0;
+                    warped_player.previous_space_state = false;
 
                     m_game_state.dice_state.is_rolling = false;
                     m_game_state.dice_state.is_falling = false;
@@ -1179,13 +1189,30 @@ namespace game
                 // Check for ladder ONLY when player has STOPPED walking (not while passing through)
                 // This matches the rules of Snakes and Ladders - you must land on the tile to use ladder
                 bool ladder_used = game::map::check_and_apply_ladder(current_player, current_tile, last_processed_tile_for_player);
-                if (ladder_used)
+                
+                // Check for snake (going backward) - same logic as ladder
+                bool snake_used = false;
+                if (!ladder_used)
                 {
-                    std::cout << "[DEBUG] Ladder used! Player " << (m_game_state.current_player_index + 1) 
-                              << " from tile " << current_tile << std::endl;
-                    
-                    // Play ladder sound
-                    m_game_state.audio_manager.play_sound("ladder");
+                    snake_used = game::map::check_and_apply_snake(current_player, current_tile, last_processed_tile_for_player);
+                }
+                
+                if (ladder_used || snake_used)
+                {
+                    if (ladder_used)
+                    {
+                        std::cout << "[DEBUG] Ladder used! Player " << (m_game_state.current_player_index + 1) 
+                                  << " from tile " << current_tile << std::endl;
+                        // Play ladder sound
+                        m_game_state.audio_manager.play_sound("ladder");
+                    }
+                    else if (snake_used)
+                    {
+                        std::cout << "[DEBUG] Snake used! Player " << (m_game_state.current_player_index + 1) 
+                                  << " from tile " << current_tile << " (going backward)" << std::endl;
+                        // Play snake sound (or reuse ladder sound for now)
+                        m_game_state.audio_manager.play_sound("ladder");
+                    }
                     
                     // Update tile after ladder warp
                     const int new_tile = get_current_tile(current_player);
