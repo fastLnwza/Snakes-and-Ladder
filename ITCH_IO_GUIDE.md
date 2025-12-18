@@ -38,7 +38,7 @@ itch.io รองรับการอัปโหลดจากทุกแพ
    mkdir -p "SnakesAndLadders3D.app/Contents/Resources"
    
    # Copy executable
-   cp build/PacmanOpenGL "SnakesAndLadders3D.app/Contents/MacOS/SnakesAndLadders3D"
+   cp build/SnakesAndLadder "SnakesAndLadders3D.app/Contents/MacOS/SnakesAndLadders3D"
    chmod +x "SnakesAndLadders3D.app/Contents/MacOS/SnakesAndLadders3D"
    
    # Copy shaders

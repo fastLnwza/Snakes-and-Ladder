@@ -9,7 +9,7 @@ git push origin v1.0.0
 ```
 
 ### 2. หรือใช้ Manual Workflow
-1. ไปที่ GitHub repository: https://github.com/fastLnwza/Pacman-OpenGL
+1. ไปที่ GitHub repository: https://github.com/fastLnwza/Snakes-and-Ladder
 2. คลิก **Actions** tab
 3. เลือก **Build and Package for itch.io**
 4. คลิก **Run workflow**

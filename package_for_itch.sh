@@ -41,7 +41,7 @@ if [ "$PLATFORM" = "mac" ]; then
     mkdir -p "$RESOURCES_DIR"
     
     # Copy executable
-    EXECUTABLE="${BUILD_DIR}/PacmanOpenGL"
+    EXECUTABLE="${BUILD_DIR}/SnakesAndLadder"
     if [ ! -f "$EXECUTABLE" ]; then
         echo "❌ Error: Executable not found at $EXECUTABLE"
         echo "   Make sure the project is built successfully."
@@ -145,7 +145,7 @@ elif [ "$PLATFORM" = "windows" ]; then
     echo "🪟 Packaging for Windows..."
     
     # Windows executable
-    EXECUTABLE="${BUILD_DIR}/PacmanOpenGL.exe"
+    EXECUTABLE="${BUILD_DIR}/SnakesAndLadder.exe"
     if [ ! -f "$EXECUTABLE" ]; then
         echo "❌ Error: Windows executable not found. Build on Windows first."
         exit 1
@@ -174,7 +174,7 @@ elif [ "$PLATFORM" = "windows" ]; then
 Snakes and Ladders 3D - Windows
 
 HOW TO RUN:
-1. Double-click PacmanOpenGL.exe to launch the game
+1. Double-click SnakesAndLadder.exe to launch the game
 2. If Windows Defender blocks it, click "More info" then "Run anyway"
 
 CONTROLS:
@@ -195,14 +195,14 @@ EOF
 elif [ "$PLATFORM" = "linux" ]; then
     echo "🐧 Packaging for Linux..."
     
-    EXECUTABLE="${BUILD_DIR}/PacmanOpenGL"
+    EXECUTABLE="${BUILD_DIR}/SnakesAndLadder"
     if [ ! -f "$EXECUTABLE" ]; then
         echo "❌ Error: Executable not found at $EXECUTABLE"
         exit 1
     fi
     
     cp "$EXECUTABLE" "$PACKAGE_DIR/"
-    chmod +x "$PACKAGE_DIR/PacmanOpenGL"
+    chmod +x "$PACKAGE_DIR/SnakesAndLadder"
     
     # Copy shaders
     if [ -d "${BUILD_DIR}/shaders" ]; then
@@ -220,7 +220,7 @@ elif [ "$PLATFORM" = "linux" ]; then
     cat > "${PACKAGE_DIR}/run.sh" << 'EOF'
 #!/bin/bash
 cd "$(dirname "$0")"
-./PacmanOpenGL
+./SnakesAndLadder
 EOF
     chmod +x "${PACKAGE_DIR}/run.sh"
     
@@ -233,7 +233,7 @@ HOW TO RUN:
    sudo apt-get install libgl1-mesa-glx libglfw3 libsdl2-mixer-2.0-0
    (or equivalent for your distribution)
 2. Run: ./run.sh
-   Or: ./PacmanOpenGL
+   Or: ./SnakesAndLadder
 
 CONTROLS:
 - Space: Roll dice / Confirm actions

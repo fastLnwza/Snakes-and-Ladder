@@ -14,7 +14,7 @@ A modern 3D implementation of the classic Snakes and Ladders board game built wi
 <div align="center">
 
 [![Watch on YouTube](https://img.shields.io/badge/▶️%20Watch%20on%20YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/gI_U13uca3M)
-[![View Raw](https://img.shields.io/badge/📹%20View%20Raw-0052CC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fastLnwza/Pacman-OpenGL/raw/main/assets/result/VDO%20Gameplay/Gameplay.mp4)
+[![View Raw](https://img.shields.io/badge/📹%20View%20Raw-0052CC?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fastLnwza/Snakes-and-Ladder/raw/main/assets/result/VDO%20Gameplay/Gameplay.mp4)
 
 </div>
 
@@ -119,10 +119,10 @@ cmake --build build
 
 ```bash
 # macOS / Linux
-./build/PacmanOpenGL
+./build/SnakesAndLadder
 
 # Windows
-build\PacmanOpenGL.exe
+build\SnakesAndLadder.exe
 ```
 
 The executable and required assets (shaders, fonts) will be placed in the `build` directory.
@@ -130,7 +130,7 @@ The executable and required assets (shaders, fonts) will be placed in the `build
 ## 📁 Project Structure
 
 ```
-Pacman-OpenGL/
+Snakes-and-Ladder/
 ├── src/
 │   ├── core/              # Core systems (window, camera, audio)
 │   ├── game/              # Game logic

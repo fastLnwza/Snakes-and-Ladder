@@ -54,8 +54,8 @@
 
 2. **Clone repository (ถ้ายังไม่มี):**
    ```bash
-   git clone https://github.com/fastLnwza/Pacman-OpenGL.git
-   cd Pacman-OpenGL
+   git clone https://github.com/fastLnwza/Snakes-and-Ladder.git
+   cd Snakes-and-Ladder
    ```
 
 3. **Configure CMake:**
@@ -74,7 +74,7 @@
    mkdir itch_package_windows
    
    # Copy executable
-   copy build\Release\PacmanOpenGL.exe itch_package_windows\
+   copy build\Release\SnakesAndLadder.exe itch_package_windows\
    
    # Copy shaders
    xcopy /E /I shaders itch_package_windows\shaders
@@ -118,7 +118,7 @@ cmake --build build-windows
 
 ## สิ่งที่ต้องรวมใน Package
 
-- ✅ `PacmanOpenGL.exe` (executable)
+- ✅ `SnakesAndLadder.exe` (executable)
 - ✅ `shaders/` (โฟลเดอร์ทั้งหมด)
 - ✅ `assets/` (โฟลเดอร์ทั้งหมด)
 - ✅ `pixel-game.regular.otf` (font file)

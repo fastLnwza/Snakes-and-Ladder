@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(PacmanOpenGL VERSION 0.1.0 LANGUAGES CXX)
+project(SnakesAndLadder VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -109,12 +109,25 @@ if(NOT assimp_FOUND)
         set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "Use system zlib on macOS" FORCE)
         # macOS has zlib built-in at /usr/lib/libz.dylib
         find_package(ZLIB REQUIRED)
+        # Disable warnings that cause build failures on macOS with newer compilers
+        set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "Disable warnings as errors" FORCE)
     else()
         set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib with Assimp" FORCE)
     endif()
     set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp export" FORCE)
     
+    # Disable problematic warnings for Assimp on macOS
+    if(APPLE)
+        # Add compiler flags to disable deprecated-copy warnings
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-copy")
+    endif()
+    
     FetchContent_MakeAvailable(assimp)
+    
+    # After Assimp is configured, disable warnings for its build
+    if(APPLE AND TARGET assimp)
+        target_compile_options(assimp PRIVATE -Wno-deprecated-copy -Wno-error=deprecated-copy)
+    endif()
     
     # After FetchContent, the target is just 'assimp'
     set(ASSIMP_TARGET assimp)

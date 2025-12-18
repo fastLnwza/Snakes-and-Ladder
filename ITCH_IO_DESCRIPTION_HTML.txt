@@ -3,7 +3,7 @@
 <p>A modern 3D implementation of the classic Snakes and Ladders board game built with OpenGL. Experience the traditional board game with enhanced 3D graphics, interactive minigames, and various special tiles that add strategic depth to gameplay.</p>
 
 <h2>🔗 Links</h2>
-<p><strong>GitHub Repository:</strong> <a href="https://github.com/fastLnwza/Pacman-OpenGL" target="_blank">View Source Code</a></p>
+<p><strong>GitHub Repository:</strong> <a href="https://github.com/fastLnwza/Snakes-and-Ladder" target="_blank">View Source Code</a></p>
 
 <h2>✨ Key Features</h2>
 <ul>
@@ -85,7 +85,7 @@
 <li>Player models: <a href="https://sketchfab.com/Inuciian" target="_blank">Inuciian (Sketchfab)</a></li>
 </ul>
 
-<p><strong>Source Code:</strong> <a href="https://github.com/fastLnwza/Pacman-OpenGL" target="_blank">GitHub Repository</a></p>
+<p><strong>Source Code:</strong> <a href="https://github.com/fastLnwza/Snakes-and-Ladder" target="_blank">GitHub Repository</a></p>
 
 <p><strong>Enjoy the game! 🎲🎮</strong></p>
 
