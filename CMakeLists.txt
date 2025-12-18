@@ -103,7 +103,15 @@ if(NOT assimp_FOUND)
     set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Disable Assimp tests" FORCE)
     set(ASSIMP_INSTALL OFF CACHE BOOL "Disable Assimp install" FORCE)
     set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Disable Assimp tools" FORCE)
-    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib with Assimp" FORCE)
+    # On macOS, use system zlib to avoid macro conflicts with macOS SDK
+    # On other platforms, build zlib with Assimp
+    if(APPLE)
+        set(ASSIMP_BUILD_ZLIB OFF CACHE BOOL "Use system zlib on macOS" FORCE)
+        # macOS has zlib built-in at /usr/lib/libz.dylib
+        find_package(ZLIB REQUIRED)
+    else()
+        set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib with Assimp" FORCE)
+    endif()
     set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp export" FORCE)
     
     FetchContent_MakeAvailable(assimp)

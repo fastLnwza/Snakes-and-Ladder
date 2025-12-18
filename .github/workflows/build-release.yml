@@ -26,13 +26,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Install SDL2_mixer
+      - name: Install vcpkg
+        uses: microsoft/setup-vcpkg@v3
+      
+      - name: Install SDL2_mixer via vcpkg
         run: |
-          choco install sdl2-mixer -y
+          vcpkg install sdl2-mixer:x64-windows
       
       - name: Configure CMake
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
       
       - name: Build
         run: |
@@ -47,12 +50,14 @@ jobs:
           if exist build\pixel-game.regular.otf copy build\pixel-game.regular.otf itch_package_windows\
           if exist assets\fonts\pixel-game.regular.otf copy assets\fonts\pixel-game.regular.otf itch_package_windows\
       
-      - name: Copy DLLs (if needed)
+      - name: Copy DLLs
         run: |
-          # SDL2 DLLs might be needed
-          if exist "C:\tools\vcpkg\installed\x64-windows\bin\SDL2.dll" (
-            copy "C:\tools\vcpkg\installed\x64-windows\bin\SDL2.dll" itch_package_windows\
-            copy "C:\tools\vcpkg\installed\x64-windows\bin\SDL2_mixer.dll" itch_package_windows\
+          # Copy SDL2 DLLs from vcpkg
+          if exist "%VCPKG_ROOT%\installed\x64-windows\bin\SDL2.dll" (
+            copy "%VCPKG_ROOT%\installed\x64-windows\bin\SDL2.dll" itch_package_windows\
+            copy "%VCPKG_ROOT%\installed\x64-windows\bin\SDL2_mixer.dll" itch_package_windows\
+          ) else (
+            echo Warning: SDL2 DLLs not found, game may not run without them
           )
       
       - name: Create README
