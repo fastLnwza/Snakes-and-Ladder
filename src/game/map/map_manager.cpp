@@ -11,6 +11,9 @@
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <random>
+#include <chrono>
+#include <sstream>
 
 namespace game::map
 {
@@ -135,6 +138,62 @@ namespace game::map
                 game::minigame::start_pattern_matching(pattern_state);
                 minigame_message.clear();  // Clear minigame message to show pattern text instead
                 minigame_message_timer = 0.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::Slide && current_tile != 0)
+            {
+                // Slide: เดินเพิ่มไปอีก 1 ช่อง
+                player_state.steps_remaining += 1;
+                minigame_message = "Slide! +1 step";
+                minigame_message_timer = 2.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::Portal && current_tile != 0)
+            {
+                // Portal: สุ่มวาปไปช่องไหนก็ได้ (0-99)
+                static std::mt19937 rng(static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count()));
+                const int final_tile = BOARD_COLUMNS * BOARD_ROWS - 1;
+                std::uniform_int_distribution<int> dist(0, final_tile);
+                int random_tile = dist(rng);
+                
+                // ไม่วาปไปช่องเดิม
+                while (random_tile == current_tile && final_tile > 0)
+                {
+                    random_tile = dist(rng);
+                }
+                
+                player::warp_to_tile(player_state, random_tile);
+                last_processed_tile = random_tile;
+                player_state.steps_remaining = 0;
+                player_state.is_stepping = false;
+                
+                std::ostringstream oss;
+                oss << "Portal! Warped to tile " << (random_tile + 1);
+                minigame_message = oss.str();
+                minigame_message_timer = 2.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::Trap && current_tile != 0)
+            {
+                // Trap: ข้ามเทิร์นเหมือน Skip Turn
+                player::skip_turn(player_state);
+                minigame_message = "Trap! Skip Turn!";
+                minigame_message_timer = 2.0f;
+                return true;
+            }
+            else if (tile_activity == ActivityKind::Bonus && current_tile != 0)
+            {
+                // Bonus: สุ่มว่าจะได้เดินเพิ่มอีกเท่าไหร่ (1-6)
+                static std::mt19937 rng(static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count()));
+                std::uniform_int_distribution<int> dist(1, 6);
+                int bonus_steps = dist(rng);
+                
+                player_state.steps_remaining += bonus_steps;
+                
+                std::ostringstream oss;
+                oss << "Bonus! +" << bonus_steps << " steps";
+                minigame_message = oss.str();
+                minigame_message_timer = 2.0f;
                 return true;
             }
         }

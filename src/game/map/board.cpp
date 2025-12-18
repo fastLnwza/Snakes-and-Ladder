@@ -14,6 +14,12 @@ namespace game::map
         constexpr std::array<int, 2> PATTERN_MINIGAME_TILES = {18, 72};
         constexpr std::array<int, 3> SKIP_TURN_TILES = {15, 35, 65};
         constexpr std::array<int, 3> WALK_BACKWARD_TILES = {25, 45, 75};
+        
+        // Special Activity Tiles - hardcoded to avoid conflicts (สุ่มช่องอย่างละ 5)
+        constexpr std::array<int, 5> SLIDE_TILES = {13, 17, 26, 31, 86};
+        constexpr std::array<int, 5> PORTAL_TILES = {8, 53, 59, 88, 90};
+        constexpr std::array<int, 5> TRAP_TILES = {22, 24, 38, 69, 73};
+        constexpr std::array<int, 5> BONUS_TILES = {23, 29, 30, 39, 46};
 
         bool matches_tile(int tile_index, const std::array<int, 2>& tiles)
         {
@@ -21,6 +27,12 @@ namespace game::map
         }
 
         bool matches_tile(int tile_index, const std::array<int, 3>& tiles)
+        {
+            return std::find(tiles.begin(), tiles.end(), tile_index) != tiles.end();
+        }
+        
+        template<size_t N>
+        bool matches_tile(int tile_index, const std::array<int, N>& tiles)
         {
             return std::find(tiles.begin(), tiles.end(), tile_index) != tiles.end();
         }
@@ -80,20 +92,20 @@ namespace game::map
             return ActivityKind::WalkBackward;
         }
 
-        // Then check general activity patterns
-        if (tile_index % 14 == 0)
+        // Then check special activity tiles (hardcoded to avoid conflicts)
+        if (matches_tile(tile_index, PORTAL_TILES))
         {
             return ActivityKind::Portal;
         }
-        if ((tile_index + 5) % 11 == 0)
+        if (matches_tile(tile_index, SLIDE_TILES))
         {
             return ActivityKind::Slide;
         }
-        if ((tile_index % 9) == 0)
+        if (matches_tile(tile_index, TRAP_TILES))
         {
             return ActivityKind::Trap;
         }
-        if ((tile_index % 4) == 0)
+        if (matches_tile(tile_index, BONUS_TILES))
         {
             return ActivityKind::Bonus;
         }

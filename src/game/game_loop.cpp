@@ -1238,8 +1238,13 @@ namespace game
                               << ", turn_finished=" << m_game_state.turn_finished << std::endl;
                 }
 
-                const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
-                bool tile_activity_triggered = game::map::check_tile_activity(current_tile,
+                // Only check tile activity if ladder/snake was NOT used
+                // This prevents conflicts (e.g., ladder and slide on same tile)
+                bool tile_activity_triggered = false;
+                if (!ladder_used && !snake_used)
+                {
+                    const bool tile_memory_active_check = game::minigame::tile_memory::is_active(m_game_state.tile_memory_state);
+                    tile_activity_triggered = game::map::check_tile_activity(current_tile,
                                               last_processed_tile_for_player,
                                               minigame_running,
                                               tile_memory_active_check,
@@ -1253,23 +1258,68 @@ namespace game
                                               m_game_state.minigame_message_timer,
                                               m_game_state.tile_memory_previous_keys,
                                               m_game_state.precision_space_was_down);
+                }
                 
-                // Check if SkipTurn was triggered - if so, end the turn immediately
+                // Check all tile activities and handle them appropriately
                 if (tile_activity_triggered)
                 {
                     const game::map::ActivityKind tile_activity = game::map::classify_activity_tile(current_tile);
-                    if (tile_activity == game::map::ActivityKind::SkipTurn)
+                    
+                    if (tile_activity == game::map::ActivityKind::SkipTurn || 
+                        tile_activity == game::map::ActivityKind::Trap)
                     {
-                        // Skip Turn: Force turn to end immediately
+                        // Skip Turn / Trap: Force turn to end immediately
                         current_player.steps_remaining = 0;
                         current_player.is_stepping = false;
                         current_player.last_dice_result = 0;  // Prevent rolling again
                         m_game_state.dice_state.result = 0;  // Clear dice result
                         m_game_state.dice_state.is_displaying = false;
                         m_game_state.turn_finished = true;  // Force turn to end
-                        std::cout << "[DEBUG] Skip Turn triggered! Ending turn for player " 
+                        std::cout << "[DEBUG] " << (tile_activity == game::map::ActivityKind::SkipTurn ? "Skip Turn" : "Trap") 
+                                  << " triggered! Ending turn for player " 
                                   << (m_game_state.current_player_index + 1) << std::endl;
                     }
+                    else if (tile_activity == game::map::ActivityKind::Portal)
+                    {
+                        // Portal: Update last_processed_tile after warp
+                        const int new_tile = get_current_tile(current_player);
+                        last_processed_tile_for_player = new_tile;
+                        m_game_state.last_processed_tile = new_tile;
+                        // Portal also ends turn (like ladder/snake)
+                        current_player.steps_remaining = 0;
+                        current_player.is_stepping = false;
+                        current_player.last_dice_result = 0;
+                        m_game_state.dice_state.result = 0;
+                        m_game_state.dice_state.is_displaying = false;
+                        m_game_state.turn_finished = true;
+                        std::cout << "[DEBUG] Portal triggered! Warped to tile " << new_tile 
+                                  << ", ending turn for player " << (m_game_state.current_player_index + 1) << std::endl;
+                    }
+                    else if (tile_activity == game::map::ActivityKind::WalkBackward)
+                    {
+                        // WalkBackward: Already handled in check_tile_activity (steps are added)
+                        // Just log it
+                        std::cout << "[DEBUG] WalkBackward triggered! Player " 
+                                  << (m_game_state.current_player_index + 1) 
+                                  << " will walk backward 3 steps" << std::endl;
+                    }
+                    else if (tile_activity == game::map::ActivityKind::Slide)
+                    {
+                        // Slide: Already handled in check_tile_activity (steps_remaining += 1)
+                        // Just log it
+                        std::cout << "[DEBUG] Slide triggered! Player " 
+                                  << (m_game_state.current_player_index + 1) 
+                                  << " got +1 step" << std::endl;
+                    }
+                    else if (tile_activity == game::map::ActivityKind::Bonus)
+                    {
+                        // Bonus: Already handled in check_tile_activity (steps_remaining += bonus_steps)
+                        // Just log it
+                        std::cout << "[DEBUG] Bonus triggered! Player " 
+                                  << (m_game_state.current_player_index + 1) 
+                                  << " got bonus steps" << std::endl;
+                    }
+                    // Note: Minigames are already handled in check_tile_activity
                 }
             }
             else
