@@ -153,16 +153,74 @@ if(NOT SDL2_mixer_FOUND)
     endif()
 endif()
 
+# macOS: Try to find SDL2_mixer from Homebrew if not found
+if(APPLE AND NOT SDL2_mixer_FOUND)
+    # Common Homebrew paths
+    set(HOMEBREW_PREFIXES "/opt/homebrew" "/usr/local")
+    foreach(HOMEBREW_PREFIX ${HOMEBREW_PREFIXES})
+        if(EXISTS "${HOMEBREW_PREFIX}/include/SDL2/SDL_mixer.h")
+            set(SDL2_mixer_INCLUDE_DIRS "${HOMEBREW_PREFIX}/include")
+            find_library(SDL2_MIXER_LIB "${HOMEBREW_PREFIX}/lib" NAMES SDL2_mixer)
+            if(SDL2_MIXER_LIB)
+                set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIB})
+                # Also find SDL2
+                find_library(SDL2_LIB "${HOMEBREW_PREFIX}/lib" NAMES SDL2)
+                if(SDL2_LIB)
+                    list(APPEND SDL2_mixer_LIBRARIES ${SDL2_LIB})
+                endif()
+                set(SDL2_mixer_FOUND TRUE)
+                message(STATUS "Found SDL2_mixer via Homebrew at ${HOMEBREW_PREFIX}")
+                break()
+            endif()
+        endif()
+    endforeach()
+endif()
+
+# Windows: Try to find SDL2_mixer from vcpkg if not found
+if(WIN32 AND NOT SDL2_mixer_FOUND)
+    # Try vcpkg paths
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(VCPKG_ROOT $ENV{VCPKG_ROOT})
+    elseif(EXISTS "C:/vcpkg")
+        set(VCPKG_ROOT "C:/vcpkg")
+    endif()
+    
+    if(VCPKG_ROOT AND EXISTS "${VCPKG_ROOT}/installed/x64-windows/include/SDL2/SDL_mixer.h")
+        set(SDL2_mixer_INCLUDE_DIRS "${VCPKG_ROOT}/installed/x64-windows/include")
+        find_library(SDL2_MIXER_LIB 
+            PATHS "${VCPKG_ROOT}/installed/x64-windows/lib"
+            NAMES SDL2_mixer
+            NO_DEFAULT_PATH
+        )
+        if(SDL2_MIXER_LIB)
+            set(SDL2_mixer_LIBRARIES ${SDL2_MIXER_LIB})
+            # Also find SDL2
+            find_library(SDL2_LIB 
+                PATHS "${VCPKG_ROOT}/installed/x64-windows/lib"
+                NAMES SDL2
+                NO_DEFAULT_PATH
+            )
+            if(SDL2_LIB)
+                list(APPEND SDL2_mixer_LIBRARIES ${SDL2_LIB})
+            endif()
+            set(SDL2_mixer_FOUND TRUE)
+            message(STATUS "Found SDL2_mixer via vcpkg at ${VCPKG_ROOT}")
+        endif()
+    endif()
+endif()
+
 # If still not found, provide helpful message
 if(NOT SDL2_mixer_FOUND)
     message(WARNING "SDL2_mixer not found. Audio features will be disabled.")
     message(STATUS "On macOS: brew install sdl2_mixer")
     message(STATUS "On Linux: sudo apt-get install libsdl2-mixer-dev")
-    message(STATUS "On Windows: Download SDL2_mixer development libraries")
+    message(STATUS "On Windows: Use vcpkg to install sdl2-mixer")
     set(ENABLE_AUDIO OFF)
 else()
     set(ENABLE_AUDIO ON)
     message(STATUS "SDL2_mixer found")
+    message(STATUS "SDL2_mixer include dirs: ${SDL2_mixer_INCLUDE_DIRS}")
+    message(STATUS "SDL2_mixer libraries: ${SDL2_mixer_LIBRARIES}")
 endif()
 
 add_executable(${PROJECT_NAME}
